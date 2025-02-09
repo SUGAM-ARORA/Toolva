@@ -18,7 +18,7 @@ ToolVa is your one-stop destination for discovering, comparing, and learning abo
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/toolva.git
+git clone https://github.com/SUGAM-ARORA/toolva.git
 
 # Install dependencies
 npm install
