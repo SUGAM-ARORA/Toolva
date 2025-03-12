@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Sparkles, Brain, MessageSquare, Image, Code2, Music, Video, PenTool, BookOpen, Briefcase, LayoutGrid, Star, Heart, LogIn, LogOut, UserPlus, Menu } from 'lucide-react';
+import { Search, Sparkles, MessageSquare, Image, Code2, Music, Video, PenTool, BookOpen, Briefcase, LayoutGrid, Star, Heart, LogIn, LogOut, Menu, Zap, Globe, Database, Cpu, Cloud, Palette, FileCode, Headphones, Camera, Keyboard, Microscope, Share2, Gauge, Trophy, Gamepad } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { Toaster, toast } from 'react-hot-toast';
 import AuthModal from './components/AuthModal';
@@ -36,6 +36,11 @@ export const categories = [
   { name: 'Writing', icon: PenTool },
   { name: 'Education', icon: BookOpen },
   { name: 'Business', icon: Briefcase },
+  { name: 'APIs', icon: Cloud },
+  { name: 'Research', icon: Microscope },
+  { name: 'Design', icon: Palette },
+  { name: 'Gaming', icon: Gamepad },
+  { name: 'Analytics', icon: Gauge }
 ];
 
 const existingTools: AITool[] = [
@@ -113,239 +118,236 @@ const existingTools: AITool[] = [
     easeOfUse: 4.3,
     codeQuality: 'N/A',
     userExperience: 4.8
-  },
-  {
-    name: 'DALL-E 3',
-    description: 'Advanced AI art and image generation from text descriptions',
-    category: 'Image Generation',
-    url: 'https://labs.openai.com',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
-    pricing: 'Pay per use',
-    rating: 4.7,
-    dailyUsers: '20M+',
-    modelType: 'DALL-E 3',
-    easeOfUse: 4.9,
-    codeQuality: 'N/A',
-    userExperience: 4.7
-  },
-  {
-    name: 'Stable Diffusion XL',
-    description: 'Open-source image generation with exceptional quality',
-    category: 'Image Generation',
-    url: 'https://stability.ai',
-    image: 'https://images.unsplash.com/photo-1682687220923-c58b9a4592ae',
-    pricing: 'Free / API pricing',
-    rating: 4.6,
-    dailyUsers: '5M+',
-    modelType: 'SDXL 1.0',
-    easeOfUse: 4.2,
-    codeQuality: 4.5,
-    userExperience: 4.4
-  },
-  {
-    name: 'GitHub Copilot',
-    description: 'AI-powered code completion and suggestion tool',
-    category: 'Code',
-    url: 'https://github.com/features/copilot',
-    image: 'https://images.unsplash.com/photo-1687163155606-e769e7232c37',
-    pricing: '$10 monthly',
-    rating: 4.9,
-    featured: true,
-    dailyUsers: '50M+',
-    modelType: 'CodeGen',
-    easeOfUse: 4.9,
-    codeQuality: 4.8,
-    userExperience: 4.9
-  },
-  {
-    name: 'Amazon CodeWhisperer',
-    description: 'AI code companion for AWS and general development',
-    category: 'Code',
-    url: 'https://aws.amazon.com/codewhisperer',
-    image: 'https://images.unsplash.com/photo-1687163155606-e769e7232c37',
-    pricing: 'Free for individual use',
-    rating: 4.5,
-    dailyUsers: '10M+',
-    modelType: 'Custom LLM',
-    easeOfUse: 4.4,
-    codeQuality: 4.6,
-    userExperience: 4.3
-  },
-  {
-    name: 'Jasper',
-    description: 'AI writing assistant for marketing and content',
-    category: 'Writing',
-    url: 'https://www.jasper.ai',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
-    pricing: 'From $49 monthly',
-    rating: 4.5,
-    dailyUsers: '5M+',
-    modelType: 'Custom GPT',
-    easeOfUse: 4.7,
-    codeQuality: 'N/A',
-    userExperience: 4.6
-  },
-  {
-    name: 'Copy.ai',
-    description: 'AI-powered copywriting and content generation',
-    category: 'Writing',
-    url: 'https://www.copy.ai',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
-    pricing: 'Free / $36 monthly',
-    rating: 4.4,
-    dailyUsers: '2M+',
-    modelType: 'Custom GPT',
-    easeOfUse: 4.8,
-    codeQuality: 'N/A',
-    userExperience: 4.5
-  },
-  {
-    name: 'Synthesia',
-    description: 'Create AI videos with virtual presenters',
-    category: 'Video',
-    url: 'https://www.synthesia.io',
-    image: 'https://images.unsplash.com/photo-1682687982501-1e58ab814714',
-    pricing: 'From $30/video',
-    rating: 4.4,
-    dailyUsers: '1M+',
-    modelType: 'Custom AI',
-    easeOfUse: 4.3,
-    codeQuality: 'N/A',
-    userExperience: 4.4
-  },
-  {
-    name: 'RunwayML',
-    description: 'AI-powered creative tools for video editing',
-    category: 'Video',
-    url: 'https://runway.ml',
-    image: 'https://images.unsplash.com/photo-1682687220923-c58b9a4592ae',
-    pricing: 'From $15 monthly',
-    rating: 4.6,
-    dailyUsers: '2M+',
-    modelType: 'Gen-2',
-    easeOfUse: 4.2,
-    codeQuality: 'N/A',
-    userExperience: 4.5
-  },
-  {
-    name: 'Mubert',
-    description: 'AI-generated music and soundtracks',
-    category: 'Music',
-    url: 'https://mubert.com',
-    image: 'https://images.unsplash.com/photo-1685094488371-5ad47f1ad93f',
-    pricing: 'Free / Pro plans',
-    rating: 4.3,
-    dailyUsers: '500K+',
-    modelType: 'Custom AI',
-    easeOfUse: 4.4,
-    codeQuality: 'N/A',
-    userExperience: 4.2
-  },
-  {
-    name: 'Duolingo Max',
-    description: 'AI-powered language learning platform',
-    category: 'Education',
-    url: 'https://www.duolingo.com',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
-    pricing: '$7 monthly',
-    rating: 4.7,
-    dailyUsers: '20M+',
-    modelType: 'GPT-4',
-    easeOfUse: 4.9,
-    codeQuality: 'N/A',
-    userExperience: 4.8
-  },
-  {
-    name: 'Perplexity AI',
-    description: 'AI-powered search engine with detailed answers',
-    category: 'Chatbots',
-    url: 'https://www.perplexity.ai',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
-    pricing: 'Free / $20 monthly',
-    rating: 4.5,
-    dailyUsers: '5M+',
-    modelType: 'Claude/GPT-4',
-    easeOfUse: 4.8,
-    codeQuality: 'N/A',
-    userExperience: 4.6
-  },
-  {
-    name: 'Replicate',
-    description: 'Platform for running various AI models',
-    category: 'Image Generation',
-    url: 'https://replicate.com',
-    image: 'https://images.unsplash.com/photo-1682687982501-1e58ab814714',
-    pricing: 'Pay per use',
-    rating: 4.4,
-    dailyUsers: '1M+',
-    modelType: 'Various',
-    easeOfUse: 4.1,
-    codeQuality: 4.5,
-    userExperience: 4.3
-  },
-  {
-    name: 'Hugging Face',
-    description: 'Open-source AI model hub and deployment platform',
-    category: 'Code',
-    url: 'https://huggingface.co',
-    image: 'https://images.unsplash.com/photo-1687163155606-e769e7232c37',
-    pricing: 'Free / Enterprise',
-    rating: 4.7,
-    dailyUsers: '10M+',
-    modelType: 'Various',
-    easeOfUse: 4.2,
-    codeQuality: 4.8,
-    userExperience: 4.5
-  },
-  {
-    name: 'Notion AI',
-    description: 'AI-powered writing and productivity assistant',
-    category: 'Writing',
-    url: 'https://notion.so',
-    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
-    pricing: '$10 monthly add-on',
-    rating: 4.6,
-    dailyUsers: '30M+',
-    modelType: 'Custom GPT',
-    easeOfUse: 4.9,
-    codeQuality: 'N/A',
-    userExperience: 4.7
-  },
-  {
-    name: 'Anthropic Claude Pro',
-    description: 'Advanced AI model with enhanced capabilities',
-    category: 'Chatbots',
-    url: 'https://claude.ai/pro',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
-    pricing: '$20 monthly',
-    rating: 4.8,
-    dailyUsers: '5M+',
-    modelType: 'Claude 3 Opus',
-    easeOfUse: 4.7,
-    codeQuality: 4.9,
-    userExperience: 4.8
   }
 ];
 
 const additionalTools: AITool[] = [
   {
-    name: 'Bolt AI',
-    description: 'AI-powered development environment with real-time code assistance',
+    name: 'PydanticAI',
+    description: 'Python agent framework for production-grade Generative AI applications',
     category: 'Code',
-    url: 'https://boltai.com',
-    github: 'https://github.com/boltai/bolt',
+    url: 'https://ai.pydantic.dev',
+    github: 'https://github.com/pydantic/pydantic-ai',
     image: 'https://images.unsplash.com/photo-1687163155606-e769e7232c37',
-    pricing: 'Free / $15 monthly',
-    rating: 4.7,
-    dailyUsers: '2M+',
-    modelType: 'Custom LLM',
+    pricing: 'Free / Open Source',
+    rating: 4.6,
+    dailyUsers: '100K+',
+    modelType: 'Custom',
+    easeOfUse: 4.4,
+    codeQuality: 4.8,
+    userExperience: 4.5
+  },
+  {
+    name: 'Pipecat Flows',
+    description: 'Open source Voice AI agent builder',
+    category: 'APIs',
+    url: 'https://flows.pipecat.ai',
+    github: 'https://github.com/pipecat-ai/pipecat',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995',
+    pricing: 'Free / Open Source',
+    rating: 4.5,
+    dailyUsers: '50K+',
+    modelType: 'Various',
+    easeOfUse: 4.3,
+    codeQuality: 4.7,
+    userExperience: 4.4
+  },
+  {
+    name: 'Hyperwrite',
+    description: 'AI writer for content generation, research, and more',
+    category: 'Writing',
+    url: 'https://www.hyperwriteai.com',
+    image: 'https://images.unsplash.com/photo-1686191128892-3b37add4c844',
+    pricing: 'Free / Premium',
+    rating: 4.6,
+    dailyUsers: '1M+',
+    modelType: 'Custom GPT',
     easeOfUse: 4.8,
-    codeQuality: 4.9,
+    codeQuality: 'N/A',
     userExperience: 4.7
   }
 ];
 
-export const aiTools = [...existingTools, ...additionalTools];
+const newTools: AITool[] = [
+  {
+    name: 'Rendora AI',
+    description: 'Advanced text-to-3D model generation platform',
+    category: 'Design',
+    url: 'https://rendora.ai',
+    image: 'https://images.unsplash.com/photo-1682687220923-c58b9a4592ae',
+    pricing: 'Free beta',
+    rating: 4.6,
+    dailyUsers: '50K+',
+    modelType: '3D Gen',
+    easeOfUse: 4.4,
+    codeQuality: 'N/A',
+    userExperience: 4.5
+  },
+  {
+    name: 'Windsurf AI',
+    description: 'AI-powered UI/UX design assistant',
+    category: 'Design',
+    url: 'https://windsurf.ai',
+    image: 'https://images.unsplash.com/photo-1682687220923-c58b9a4592ae',
+    pricing: 'From $19/month',
+    rating: 4.5,
+    dailyUsers: '20K+',
+    modelType: 'Custom',
+    easeOfUse: 4.7,
+    codeQuality: 'N/A',
+    userExperience: 4.6
+  },
+  {
+    name: 'Groq Cloud',
+    description: 'Ultra-fast LLM inference platform',
+    category: 'APIs',
+    url: 'https://groq.com',
+    github: 'https://github.com/groq',
+    image: 'https://images.unsplash.com/photo-1687163155606-e769e7232c37',
+    pricing: 'Pay per use',
+    rating: 4.8,
+    dailyUsers: '100K+',
+    modelType: 'LLM',
+    easeOfUse: 4.6,
+    codeQuality: 4.8,
+    userExperience: 4.7
+  }
+];
+
+const additionalNewTools: AITool[] = [
+  {
+    name: 'Perplexity AI',
+    description: 'Advanced research assistant with real-time information access',
+    category: 'Research',
+    url: 'https://perplexity.ai',
+    image: 'https://images.unsplash.com/photo-1682687220742-aba19b11a105',
+    pricing: 'Free / $20 monthly',
+    rating: 4.7,
+    dailyUsers: '2M+',
+    modelType: 'Custom LLM',
+    easeOfUse: 4.8,
+    userExperience: 4.7
+  },
+  {
+    name: 'Synthesia',
+    description: 'Create professional AI videos with custom avatars',
+    category: 'Video',
+    url: 'https://synthesia.io',
+    image: 'https://images.unsplash.com/photo-1682687221073-53ad74c2cad7',
+    pricing: 'From $30/video',
+    rating: 4.6,
+    dailyUsers: '500K+',
+    modelType: 'Video Gen',
+    easeOfUse: 4.5,
+    userExperience: 4.6
+  },
+  {
+    name: 'Runway Gen-2',
+    description: 'Advanced AI video generation and editing platform',
+    category: 'Video',
+    url: 'https://runway.ml',
+    image: 'https://images.unsplash.com/photo-1682687221080-5cb261c645cb',
+    pricing: 'From $15/month',
+    rating: 4.8,
+    dailyUsers: '1M+',
+    modelType: 'Gen-2',
+    easeOfUse: 4.4,
+    userExperience: 4.7
+  },
+  {
+    name: 'Stable Audio',
+    description: 'Generate custom music and sound effects with AI',
+    category: 'Music',
+    url: 'https://stable.audio',
+    image: 'https://images.unsplash.com/photo-1682687221363-72518513620e',
+    pricing: 'Credits based',
+    rating: 4.5,
+    dailyUsers: '200K+',
+    modelType: 'Audio Gen',
+    easeOfUse: 4.3,
+    userExperience: 4.4
+  },
+  {
+    name: 'Gamma',
+    description: 'AI-powered presentation and document creation',
+    category: 'Business',
+    url: 'https://gamma.app',
+    image: 'https://images.unsplash.com/photo-1682687221203-d5bf269962b9',
+    pricing: 'Free / $10 monthly',
+    rating: 4.7,
+    dailyUsers: '300K+',
+    modelType: 'Custom',
+    easeOfUse: 4.8,
+    userExperience: 4.7
+  },
+  {
+    name: 'Codeium',
+    description: 'AI code completion and explanation assistant',
+    category: 'Code',
+    url: 'https://codeium.com',
+    image: 'https://images.unsplash.com/photo-1682687221248-3116ba6ab483',
+    pricing: 'Free for individuals',
+    rating: 4.6,
+    dailyUsers: '400K+',
+    modelType: 'Code LLM',
+    easeOfUse: 4.7,
+    userExperience: 4.6
+  },
+  {
+    name: 'Tome',
+    description: 'AI-powered storytelling and presentation platform',
+    category: 'Business',
+    url: 'https://tome.app',
+    image: 'https://images.unsplash.com/photo-1682687221123-4673装饰3',
+    pricing: 'Free / $20 monthly',
+    rating: 4.7,
+    dailyUsers: '250K+',
+    modelType: 'Custom',
+    easeOfUse: 4.6,
+    userExperience: 4.7
+  },
+  {
+    name: 'Soundraw',
+    description: 'AI music generation for content creators',
+    category: 'Music',
+    url: 'https://soundraw.io',
+    image: 'https://images.unsplash.com/photo-1682687221299-c29175402c9c',
+    pricing: 'From $15/month',
+    rating: 4.5,
+    dailyUsers: '150K+',
+    modelType: 'Music Gen',
+    easeOfUse: 4.4,
+    userExperience: 4.5
+  },
+  {
+    name: 'Pictory',
+    description: 'Automated video creation from long-form content',
+    category: 'Video',
+    url: 'https://pictory.ai',
+    image: 'https://images.unsplash.com/photo-1682687221213-c2dd49d75d97',
+    pricing: 'From $25/month',
+    rating: 4.6,
+    dailyUsers: '100K+',
+    modelType: 'Video Gen',
+    easeOfUse: 4.5,
+    userExperience: 4.6
+  },
+  {
+    name: 'Descript',
+    description: 'AI-powered video and audio editing platform',
+    category: 'Video',
+    url: 'https://descript.com',
+    image: 'https://images.unsplash.com/photo-1682687221459-82ae3e3f7d58',
+    pricing: 'Free / $15 monthly',
+    rating: 4.8,
+    dailyUsers: '800K+',
+    modelType: 'Custom',
+    easeOfUse: 4.7,
+    userExperience: 4.8
+  }
+];
+
+export const aiTools = [...existingTools, ...additionalTools, ...newTools, ...additionalNewTools];
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL || '',
@@ -471,41 +473,72 @@ function App() {
         return <CompareTools tools={aiTools} />;
       default:
         return (
-          <>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
             {/* Featured Tools */}
             {selectedCategory === 'All' && searchQuery === '' && (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Featured Tools</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <section>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  Featured Tools
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {aiTools.filter(tool => tool.featured).map(tool => (
                     <ToolCard
                       key={tool.name}
                       tool={tool}
                       isFavorite={favorites.includes(tool.name)}
-                      onToggleFavorite={toggleFavorite}
+                      onToggleFavorite={() => toggleFavorite(tool.name)}
                     />
                   ))}
                 </div>
-              </div>
+              </section>
+            )}
+
+            {/* Category Title */}
+            {selectedCategory !== 'All' && (
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                {selectedCategory}
+              </h2>
+            )}
+
+            {/* Search Results */}
+            {searchQuery && (
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Search Results for "{searchQuery}"
+              </h2>
             )}
 
             {/* All Tools Grid */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <section>
               {selectedCategory === 'All' && searchQuery === '' && (
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">All Tools</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  All Tools
+                </h2>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredTools.map(tool => (
                   <ToolCard
                     key={tool.name}
                     tool={tool}
                     isFavorite={favorites.includes(tool.name)}
-                    onToggleFavorite={toggleFavorite}
+                    onToggleFavorite={() => toggleFavorite(tool.name)}
                   />
                 ))}
               </div>
-            </div>
-          </>
+            </section>
+
+            {/* ```jsx
+            {/* No Results Message */}
+            {filteredTools.length === 0 && (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+                  No tools found
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                  Try adjusting your search or category filters
+                </p>
+              </div>
+            )}
+          </div>
         );
     }
   };
@@ -537,7 +570,7 @@ function App() {
                 <input
                   type="text"
                   placeholder="Search AI tools..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-300 text-gray-900 dark:text-white"
+                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-dark-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-dark-300 text-gray-900 dark:text-white w-full sm:w-64 md:w-80"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -549,7 +582,7 @@ function App() {
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-dark-300 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-dark-400 transition-colors"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span>Sign Out</span>
+                  <span className="hidden sm:inline">Sign Out</span>
                 </button>
               ) : (
                 <button
@@ -557,7 +590,7 @@ function App() {
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                 >
                   <LogIn className="h-5 w-5" />
-                  <span>Sign In</span>
+                  <span className="hidden sm:inline">Sign In</span>
                 </button>
               )}
             </div>
@@ -565,8 +598,8 @@ function App() {
         </div>
       </header>
 
+      {/* Main Content */}
       <div className="flex">
-        {/* Sidebar */}
         <Sidebar
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
@@ -574,9 +607,14 @@ function App() {
           setIsOpen={setIsSidebarOpen}
           onNavigate={setCurrentPage}
         />
-
-        {/* Main Content */}
-        <main className="flex-1 min-w-0 overflow-hidden">
+        <main className="flex-1 relative">
+          {/* Overlay when sidebar is open on mobile */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-10"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
           {renderContent()}
         </main>
       </div>
