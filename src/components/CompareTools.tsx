@@ -1,164 +1,216 @@
 import React, { useState } from 'react';
-import { BarChart3, DollarSign, Users, Zap, Star } from 'lucide-react';
+import { Search, X } from 'lucide-react';
+import { AITool } from '../types';
 
 interface CompareToolsProps {
-  tools: any[];
+  tools: AITool[];
 }
 
-export default function CompareTools({ tools }: CompareToolsProps) {
-  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
+  const [selectedTools, setSelectedTools] = useState<AITool[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleToolSelect = (toolName: string) => {
-    if (selectedTools.includes(toolName)) {
-      setSelectedTools(selectedTools.filter(t => t !== toolName));
-    } else if (selectedTools.length < 3) {
-      setSelectedTools([...selectedTools, toolName]);
+  const handleAddTool = (tool: AITool) => {
+    if (selectedTools.length < 3 && !selectedTools.find(t => t.name === tool.name)) {
+      setSelectedTools([...selectedTools, tool]);
     }
   };
 
-  const getComparisonData = () => {
-    return selectedTools.map(toolName => tools.find(t => t.name === toolName));
+  const handleRemoveTool = (toolName: string) => {
+    setSelectedTools(selectedTools.filter(tool => tool.name !== toolName));
   };
 
-  const renderMetricBar = (value: number, maxValue: number = 5) => {
-    const percentage = (value / maxValue) * 100;
+  const filteredTools = tools.filter(tool =>
+    tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tool.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderComparisonTable = () => {
+    if (selectedTools.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400">
+            Select up to 3 tools to compare
+          </p>
+        </div>
+      );
+    }
+
     return (
-      <div className="w-full bg-gray-200 dark:bg-dark-400 rounded-full h-2">
-        <div
-          className="bg-primary-600 h-2 rounded-full"
-          style={{ width: `${percentage}%` }}
-        ></div>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Feature
+              </th>
+              {selectedTools.map(tool => (
+                <th key={tool.name} className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {tool.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Category
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.category}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Pricing
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.pricing}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Rating
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.rating || 'N/A'}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Daily Users
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.dailyUsers || 'N/A'}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Model Type
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.modelType || 'N/A'}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Ease of Use
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.easeOfUse || 'N/A'}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                Code Quality
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.codeQuality || 'N/A'}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                User Experience
+              </td>
+              {selectedTools.map(tool => (
+                <td key={tool.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                  {tool.userExperience || 'N/A'}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
       </div>
     );
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-white dark:bg-dark-200 rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Compare AI Tools</h2>
-        
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Select up to 3 tools to compare:</h3>
-          <div className="flex flex-wrap gap-2">
-            {tools.map((tool) => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Compare AI Tools
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Select up to 3 tools to compare their features and capabilities
+        </p>
+      </div>
+
+      {/* Selected Tools */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        {selectedTools.map(tool => (
+          <div
+            key={tool.name}
+            className="flex items-center bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg"
+          >
+            <span className="text-blue-700 dark:text-blue-300 font-medium">
+              {tool.name}
+            </span>
+            <button
+              onClick={() => handleRemoveTool(tool.name)}
+              className="ml-2 text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Search and Tool Selection */}
+      <div className="mb-8">
+        <div className="relative max-w-xl">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search for tools to compare..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+        </div>
+
+        {searchQuery && (
+          <div className="mt-4 max-h-64 overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            {filteredTools.map(tool => (
               <button
                 key={tool.name}
-                onClick={() => handleToolSelect(tool.name)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedTools.includes(tool.name)
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 dark:bg-dark-300 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-dark-400'
+                onClick={() => handleAddTool(tool)}
+                disabled={selectedTools.find(t => t.name === tool.name)}
+                className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                  selectedTools.find(t => t.name === tool.name)
+                    ? 'opacity-50 cursor-not-allowed'
+                    : ''
                 }`}
               >
-                {tool.name}
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {tool.name}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {tool.category}
+                </div>
               </button>
             ))}
           </div>
-        </div>
-
-        {selectedTools.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b dark:border-dark-400">
-                  <th className="text-left py-4 px-6">Features</th>
-                  {getComparisonData().map((tool) => (
-                    <th key={tool.name} className="text-left py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={tool.image}
-                          alt={tool.name}
-                          className="w-8 h-8 rounded-lg object-cover"
-                        />
-                        <span className="font-semibold text-gray-900 dark:text-white">{tool.name}</span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b dark:border-dark-400">
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-gray-500" />
-                    <span>Pricing</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6 text-gray-700 dark:text-gray-300">
-                      {tool.pricing}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b dark:border-dark-400">
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <Users className="h-5 w-5 text-gray-500" />
-                    <span>Daily Active Users</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6 text-gray-700 dark:text-gray-300">
-                      {tool.dailyUsers}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b dark:border-dark-400">
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-gray-500" />
-                    <span>Model Type</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6 text-gray-700 dark:text-gray-300">
-                      {tool.modelType}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b dark:border-dark-400">
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <Star className="h-5 w-5 text-gray-500" />
-                    <span>Ease of Use</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-700 dark:text-gray-300">{tool.easeOfUse}</span>
-                        {renderMetricBar(tool.easeOfUse)}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b dark:border-dark-400">
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-gray-500" />
-                    <span>Code Quality</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-700 dark:text-gray-300">
-                          {tool.codeQuality === 'N/A' ? 'N/A' : tool.codeQuality}
-                        </span>
-                        {tool.codeQuality !== 'N/A' && renderMetricBar(tool.codeQuality)}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 flex items-center gap-2">
-                    <Users className="h-5 w-5 text-gray-500" />
-                    <span>User Experience</span>
-                  </td>
-                  {getComparisonData().map((tool) => (
-                    <td key={tool.name} className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-700 dark:text-gray-300">{tool.userExperience}</span>
-                        {renderMetricBar(tool.userExperience)}
-                      </div>
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
         )}
       </div>
+
+      {/* Comparison Table */}
+      {renderComparisonTable()}
     </div>
   );
-}
+};
+
+export default CompareTools;

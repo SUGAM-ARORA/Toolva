@@ -1,81 +1,104 @@
 import React from 'react';
-import { Heart, Star, Github } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
+import { AITool } from '../types';
 
 interface ToolCardProps {
-  tool: {
-    name: string;
-    description: string;
-    category: string;
-    url: string;
-    github?: string;
-    image: string;
-    pricing: string;
-    rating?: number;
-    featured?: boolean;
-  };
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
+  tool: AITool;
+  onFavorite: () => void;
+  isFavorited: boolean;
 }
 
-export default function ToolCard({ tool, isFavorite, onToggleFavorite }: ToolCardProps) {
+const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all transform hover:-translate-y-1">
-      <div className="relative h-48 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+      <div className="relative">
         <img
           src={tool.image}
           alt={tool.name}
-          className="w-full h-full object-cover"
+          className="w-full h-48 object-cover rounded-t-lg"
         />
-        <div className="absolute top-2 right-2 flex space-x-2">
-          <button
-            onClick={onToggleFavorite}
-            className={`p-2 rounded-full ${
-              isFavorite
-                ? 'bg-red-500 text-white'
-                : 'bg-white dark:bg-dark-200 text-gray-600 dark:text-gray-300'
+        <button
+          onClick={onFavorite}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <Heart
+            className={`h-5 w-5 ${
+              isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'
             }`}
-          >
-            <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
-          </button>
-        </div>
+          />
+        </button>
+        {tool.featured && (
+          <span className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full">
+            Featured
+          </span>
+        )}
       </div>
+
       <div className="p-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{tool.name}</h3>
-          <div className="flex items-center space-x-1">
-            <Star className="h-5 w-5 text-yellow-400" fill="currentColor" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{tool.rating}</span>
-          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {tool.name}
+          </h3>
+          {tool.rating && (
+            <div className="flex items-center">
+              <Star className="h-5 w-5 text-yellow-400 fill-current" />
+              <span className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
+                {tool.rating}
+              </span>
+            </div>
+          )}
         </div>
-        <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900/20 text-primary-800 dark:text-primary-300 rounded-full text-sm">
-          {tool.category}
-        </span>
-        <p className="mt-3 text-gray-600 dark:text-gray-300">{tool.description}</p>
-        <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm text-gray-500 dark:text-gray-400">{tool.pricing}</span>
-          <div className="flex space-x-2">
-            {tool.github && (
-              <a
-                href={tool.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center space-x-2"
-              >
-                <Github className="h-5 w-5" />
-                <span>GitHub</span>
-              </a>
-            )}
+
+        <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+          {tool.description}
+        </p>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">Category</span>
+            <p className="font-medium text-gray-900 dark:text-white">{tool.category}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">Pricing</span>
+            <p className="font-medium text-gray-900 dark:text-white">{tool.pricing}</p>
+          </div>
+          {tool.dailyUsers && (
+            <div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Daily Users</span>
+              <p className="font-medium text-gray-900 dark:text-white">{tool.dailyUsers}</p>
+            </div>
+          )}
+          {tool.modelType && (
+            <div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Model Type</span>
+              <p className="font-medium text-gray-900 dark:text-white">{tool.modelType}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {tool.github && (
             <a
-              href={tool.url}
+              href={tool.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
-              Visit Tool
+              GitHub Repository
             </a>
-          </div>
+          )}
+          <a
+            href={tool.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Try Now
+          </a>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ToolCard;
