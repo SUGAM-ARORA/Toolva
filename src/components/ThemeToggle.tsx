@@ -3,17 +3,23 @@ import { Sun, Moon } from 'lucide-react';
 
 interface ThemeToggleProps {
   isDark: boolean;
-  toggleTheme: () => void;
+  onToggle: () => void;
 }
 
-export default function ThemeToggle({ isDark, toggleTheme }: ThemeToggleProps) {
+const ThemeToggle: React.FC<ThemeToggleProps> = ({ isDark, onToggle }) => {
   return (
     <button
-      onClick={toggleTheme}
-      className="p-2 rounded-lg bg-primary-100 dark:bg-dark-200 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-dark-300 transition-colors"
-      aria-label="Toggle theme"
+      onClick={onToggle}
+      className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {isDark ? (
+        <Sun className="h-5 w-5" />
+      ) : (
+        <Moon className="h-5 w-5" />
+      )}
     </button>
   );
-}
+};
+
+export default ThemeToggle;
