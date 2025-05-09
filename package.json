@@ -13,7 +13,7 @@
     "@supabase/supabase-js": "^2.39.7",
     "@types/lodash": "^4.17.16",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.509.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1"
