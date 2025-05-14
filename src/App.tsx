@@ -11,6 +11,7 @@ import CompareTools from './components/CompareTools';
 import SubmitTool from './components/SubmitTool';
 import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
+import Pagination from './components/Pagination';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -25,6 +26,8 @@ function App() {
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -70,6 +73,16 @@ function App() {
   const filteredTools = aiTools.filter(tool => 
     selectedCategory === 'All' || tool.category === selectedCategory
   );
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTools.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTools = filteredTools.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to first page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -170,7 +183,6 @@ function App() {
               onPriceFilterChange={() => {}}
               onRatingFilterChange={() => {}}
               onUserCountFilterChange={() => {}}
-              toolCount={filteredTools.length}
               isOpen={showMobileSidebar}
               onClose={() => setShowMobileSidebar(false)}
             />
@@ -178,16 +190,27 @@ function App() {
             {/* Main Content */}
             <div className="flex-1">
               {view === 'grid' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredTools.map(tool => (
-                    <ToolCard
-                      key={tool.name}
-                      tool={tool}
-                      onFavorite={() => handleFavorite(tool.name)}
-                      isFavorited={favorites.includes(tool.name)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedTools.map(tool => (
+                      <ToolCard
+                        key={tool.name}
+                        tool={tool}
+                        onFavorite={() => handleFavorite(tool.name)}
+                        isFavorited={favorites.includes(tool.name)}
+                      />
+                    ))}
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                      />
+                    </div>
+                  )}
+                </>
               )}
               {view === 'finder' && <ToolFinder tools={aiTools} />}
               {view === 'compare' && <CompareTools tools={aiTools} />}
