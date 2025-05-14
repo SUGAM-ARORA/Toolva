@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { categories } from '../App';
+import { categories } from '../data/categories';
 import { ToolSubmission } from '../types';
 
 interface SubmitToolProps {
@@ -345,4 +345,4 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
   );
 };
 
-export default SubmitTool; 
+export default SubmitTool;
