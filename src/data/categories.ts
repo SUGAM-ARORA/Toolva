@@ -1,4 +1,5 @@
 import { ToolCategory } from '../types';
+import { aiTools } from './aiTools';
 import {
   Bot,
   Image,
@@ -22,125 +23,133 @@ import {
   Rocket
 } from 'lucide-react';
 
+// Function to get the actual count of tools in each category
+const getCategoryCount = (categoryName: string): number => {
+  if (categoryName === 'All') {
+    return aiTools.length;
+  }
+  return aiTools.filter(tool => tool.category === categoryName).length;
+};
+
 export const categories: ToolCategory[] = [
   {
     name: 'All',
     description: 'Browse all AI tools',
     icon: Brain,
-    count: 300
+    count: getCategoryCount('All')
   },
   {
     name: 'Chatbots',
     description: 'AI-powered conversational agents',
     icon: Bot,
-    count: 45
+    count: getCategoryCount('Chatbots')
   },
   {
     name: 'Image Generation',
     description: 'Create and edit images with AI',
     icon: Image,
-    count: 35
+    count: getCategoryCount('Image Generation')
   },
   {
     name: 'Code',
     description: 'AI-powered development tools',
     icon: Code,
-    count: 40
+    count: getCategoryCount('Code')
   },
   {
     name: 'Music',
     description: 'AI music creation and processing',
     icon: Music,
-    count: 20
+    count: getCategoryCount('Music')
   },
   {
     name: 'Video',
     description: 'AI video creation and editing',
     icon: Video,
-    count: 25
+    count: getCategoryCount('Video')
   },
   {
     name: 'Writing',
     description: 'AI writing and content creation',
     icon: PenTool,
-    count: 30
+    count: getCategoryCount('Writing')
   },
   {
     name: 'Education',
     description: 'AI-powered learning tools',
     icon: GraduationCap,
-    count: 15
+    count: getCategoryCount('Education')
   },
   {
     name: 'Business',
     description: 'AI tools for business',
     icon: Briefcase,
-    count: 25
+    count: getCategoryCount('Business')
   },
   {
     name: 'Design',
     description: 'AI-powered design tools',
     icon: Layout,
-    count: 20
+    count: getCategoryCount('Design')
   },
   {
     name: 'Audio',
     description: 'AI audio processing tools',
     icon: Mic2,
-    count: 15
+    count: getCategoryCount('Audio')
   },
   {
     name: 'APIs',
     description: 'AI APIs and integrations',
     icon: Globe,
-    count: 30
+    count: getCategoryCount('APIs')
   },
   {
     name: 'Machine Learning',
     description: 'ML tools and frameworks',
     icon: Cpu,
-    count: 20
+    count: getCategoryCount('Machine Learning')
   },
   {
     name: 'Analytics',
     description: 'AI-powered analytics tools',
     icon: LineChart,
-    count: 15
+    count: getCategoryCount('Analytics')
   },
   {
     name: 'Security',
     description: 'AI security tools',
     icon: Shield,
-    count: 10
+    count: getCategoryCount('Security')
   },
   {
     name: 'Database',
     description: 'AI-powered databases',
     icon: Database,
-    count: 10
+    count: getCategoryCount('Database')
   },
   {
     name: 'DevOps',
     description: 'AI tools for DevOps',
     icon: Layers,
-    count: 15
+    count: getCategoryCount('DevOps')
   },
   {
     name: 'Research',
     description: 'AI research tools',
     icon: Microscope,
-    count: 10
+    count: getCategoryCount('Research')
   },
   {
     name: 'Productivity',
     description: 'AI productivity tools',
     icon: Lightbulb,
-    count: 20
+    count: getCategoryCount('Productivity')
   },
   {
     name: 'Startups',
     description: 'AI tools for startups',
     icon: Rocket,
-    count: 15
+    count: getCategoryCount('Startups')
   }
 ];
