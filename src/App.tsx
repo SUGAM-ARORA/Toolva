@@ -9,6 +9,7 @@ import AuthModal from './components/AuthModal';
 import ToolFinder from './components/ToolFinder';
 import CompareTools from './components/CompareTools';
 import SubmitTool from './components/SubmitTool';
+import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -71,7 +72,7 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Toaster position="top-right" />
       
       {/* Header */}
@@ -122,6 +123,16 @@ function App() {
                 >
                   Compare
                 </button>
+                <button
+                  onClick={() => setView('submit')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    view === 'submit'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  Submit Tool
+                </button>
               </nav>
 
               <div className="flex items-center space-x-2">
@@ -148,41 +159,46 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <Sidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            onPriceFilterChange={() => {}}
-            onRatingFilterChange={() => {}}
-            onUserCountFilterChange={() => {}}
-            toolCount={filteredTools.length}
-            isOpen={showMobileSidebar}
-            onClose={() => setShowMobileSidebar(false)}
-          />
+      <div className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex gap-8">
+            {/* Sidebar */}
+            <Sidebar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              onPriceFilterChange={() => {}}
+              onRatingFilterChange={() => {}}
+              onUserCountFilterChange={() => {}}
+              toolCount={filteredTools.length}
+              isOpen={showMobileSidebar}
+              onClose={() => setShowMobileSidebar(false)}
+            />
 
-          {/* Main Content */}
-          <div className="flex-1">
-            {view === 'grid' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTools.map(tool => (
-                  <ToolCard
-                    key={tool.name}
-                    tool={tool}
-                    onFavorite={() => handleFavorite(tool.name)}
-                    isFavorited={favorites.includes(tool.name)}
-                  />
-                ))}
-              </div>
-            )}
-            {view === 'finder' && <ToolFinder tools={aiTools} />}
-            {view === 'compare' && <CompareTools tools={aiTools} />}
-            {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
+            {/* Main Content */}
+            <div className="flex-1">
+              {view === 'grid' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredTools.map(tool => (
+                    <ToolCard
+                      key={tool.name}
+                      tool={tool}
+                      onFavorite={() => handleFavorite(tool.name)}
+                      isFavorited={favorites.includes(tool.name)}
+                    />
+                  ))}
+                </div>
+              )}
+              {view === 'finder' && <ToolFinder tools={aiTools} />}
+              {view === 'compare' && <CompareTools tools={aiTools} />}
+              {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Auth Modal */}
       {showAuthModal && (
