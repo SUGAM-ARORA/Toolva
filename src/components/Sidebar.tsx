@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { ToolCategory } from '../types';
+import { aiTools } from '../data/aiTools';
 
 interface SidebarProps {
   categories: ToolCategory[];
@@ -21,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onPriceFilterChange,
   onRatingFilterChange,
   onUserCountFilterChange,
-  toolCount,
   isOpen = true,
   onClose
 }) => {
@@ -29,9 +29,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   const userCountOptions = ['1K+', '10K+', '100K+', '1M+', '10M+'];
   const ratingOptions = [4, 4.5, 4.8];
 
+  // Calculate actual counts for each category
+  const getCategoryCount = (categoryName: string) => {
+    if (categoryName === 'All') {
+      return aiTools.length;
+    }
+    return aiTools.filter(tool => tool.category === categoryName).length;
+  };
+
   return (
     <div 
-      className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white dark:bg-gray-800 shadow-lg transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      className={`fixed lg:relative inset-y-0 left-0 z-30 w-64 transform bg-white dark:bg-gray-800 shadow-lg transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
@@ -54,6 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-1">
               {categories.map((category) => {
                 const Icon = category.icon;
+                const actualCount = getCategoryCount(category.name);
                 return (
                   <button
                     key={category.name}
@@ -67,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <Icon className="h-5 w-5 mr-3" />
                     <span className="flex-1 text-left">{category.name}</span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {category.count}
+                      {actualCount}
                     </span>
                   </button>
                 );
@@ -141,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Total Tools: <span className="font-medium">{toolCount}</span>
+              Total Tools: <span className="font-medium">{aiTools.length}</span>
             </div>
           </div>
         </div>
