@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, Sun, Moon, Search, Filter, Heart, Share2, Zap, BookOpen } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -50,22 +50,6 @@ function App() {
     }
   };
 
-  const handleShare = async (tool: any) => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: tool.name,
-          text: tool.description,
-          url: tool.url
-        });
-      } else {
-        await navigator.clipboard.writeText(tool.url);
-        toast.success('Link copied to clipboard');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
 
   const filteredTools = aiTools.filter(tool => 
     selectedCategory === 'All' || tool.category === selectedCategory
