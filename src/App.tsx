@@ -177,7 +177,6 @@ function App() {
               onUserCountFilterChange={() => {}}
               isOpen={showMobileSidebar}
               onClose={() => setShowMobileSidebar(false)}
-              toolCount={filteredTools.length}
             />
 
             {/* Main Content */}
