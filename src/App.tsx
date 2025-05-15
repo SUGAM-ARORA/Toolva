@@ -27,7 +27,7 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<supabase.auth.User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -177,6 +177,7 @@ function App() {
               onUserCountFilterChange={() => {}}
               isOpen={showMobileSidebar}
               onClose={() => setShowMobileSidebar(false)}
+              toolCount={filteredTools.length}
             />
 
             {/* Main Content */}
