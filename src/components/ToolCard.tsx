@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
 import { AITool } from '../types';
+import { motion } from 'framer-motion';
 
 interface ToolCardProps {
   tool: AITool;
@@ -10,14 +11,20 @@ interface ToolCardProps {
 
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+    <motion.div
+      whileHover={{ y: -5, scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden"
+    >
       <div className="relative">
         <img
           src={tool.image}
           alt={tool.name}
-          className="w-full h-48 object-cover rounded-t-lg"
+          className="w-full h-48 object-cover"
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={onFavorite}
           className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
@@ -26,11 +33,15 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
               isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'
             }`}
           />
-        </button>
+        </motion.button>
         {tool.featured && (
-          <span className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full">
+          <motion.span
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full"
+          >
             Featured
-          </span>
+          </motion.span>
         )}
       </div>
 
@@ -87,17 +98,19 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
               GitHub Repository
             </a>
           )}
-          <a
+          <motion.a
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             href={tool.url}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Try Now
-          </a>
+          </motion.a>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
