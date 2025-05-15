@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -26,9 +27,9 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [user, setUser] = useState<supabase.auth.User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -177,6 +178,7 @@ function App() {
               onUserCountFilterChange={() => {}}
               isOpen={showMobileSidebar}
               onClose={() => setShowMobileSidebar(false)}
+              toolCount={filteredTools.length}
             />
 
             {/* Main Content */}
