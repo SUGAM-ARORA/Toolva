@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
+import { motion } from 'framer-motion';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -27,17 +28,16 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [user, setUser] = useState<supabase.auth.User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 12;
 
   useEffect(() => {
-    // Check current auth status
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -70,7 +70,10 @@ function App() {
   };
 
   const filteredTools = aiTools.filter(tool => 
-    selectedCategory === 'All' || tool.category === selectedCategory
+    (selectedCategory === 'All' || tool.category === selectedCategory) &&
+    (searchQuery === '' || 
+      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tool.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const totalPages = Math.ceil(filteredTools.length / itemsPerPage);
@@ -79,7 +82,7 @@ function App() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -163,6 +166,77 @@ function App() {
         </div>
       </header>
 
+      {/* Hero Section */}
+      {view === 'grid' && (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20 px-4 sm:px-6 lg:px-8"
+        >
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center">
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="text-4xl md:text-6xl font-bold mb-6"
+              >
+                Discover the Best AI Tools
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-xl md:text-2xl text-blue-100 mb-8"
+              >
+                Find, compare, and choose from {aiTools.length}+ AI tools to enhance your workflow
+              </motion.p>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="max-w-3xl mx-auto"
+              >
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search AI tools by name, description, or category..."
+                    className="w-full pl-12 pr-4 py-4 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  />
+                </div>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="mt-8 flex flex-wrap justify-center gap-4"
+              >
+                {categories.slice(0, 6).map((category) => (
+                  <button
+                    key={category.name}
+                    onClick={() => setSelectedCategory(category.name)}
+                    className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-sm font-medium"
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Animated Background */}
+          <div className="absolute inset-0 overflow-hidden -z-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-3xl" />
+            <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-r from-blue-500/30 to-purple-500/30 rotate-12 transform-gpu animate-pulse" />
+            <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-r from-purple-500/30 to-blue-500/30 -rotate-12 transform-gpu animate-pulse" />
+          </div>
+        </motion.div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -182,15 +256,25 @@ function App() {
             {/* Main Content */}
             <div className="flex-1">
               {view === 'grid' && (
-                <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {paginatedTools.map(tool => (
-                      <ToolCard
+                    {paginatedTools.map((tool, index) => (
+                      <motion.div
                         key={tool.name}
-                        tool={tool}
-                        onFavorite={() => handleFavorite(tool.name)}
-                        isFavorited={favorites.includes(tool.name)}
-                      />
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.5 }}
+                      >
+                        <ToolCard
+                          tool={tool}
+                          onFavorite={() => handleFavorite(tool.name)}
+                          isFavorited={favorites.includes(tool.name)}
+                        />
+                      </motion.div>
                     ))}
                   </div>
                   {totalPages > 1 && (
@@ -202,7 +286,7 @@ function App() {
                       />
                     </div>
                   )}
-                </>
+                </motion.div>
               )}
               {view === 'finder' && <ToolFinder tools={aiTools} />}
               {view === 'compare' && <CompareTools tools={aiTools} />}
