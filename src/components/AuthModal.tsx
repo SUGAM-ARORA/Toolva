@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -21,14 +23,35 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
     try {
       if (isLogin) {
-        // Handle login
-        console.log('Login:', { email, password });
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+
+        toast.success('Successfully signed in!');
+        onClose();
       } else {
-        // Handle registration
-        console.log('Register:', { name, email, password });
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name,
+            },
+          },
+        });
+
+        if (signUpError) throw signUpError;
+
+        toast.success('Account created successfully!');
+        onClose();
       }
     } catch (err) {
-      setError('Authentication failed. Please try again.');
+      console.error('Authentication error:', err);
+      setError(err instanceof Error ? err.message : 'Authentication failed');
+      toast.error('Authentication failed');
     } finally {
       setIsLoading(false);
     }
