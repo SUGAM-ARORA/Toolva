@@ -6,12 +6,14 @@ import Sidebar from './components/Sidebar';
 import ToolCard from './components/ToolCard';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
+import UserMenu from './components/UserMenu';
 import ToolFinder from './components/ToolFinder';
 import CompareTools from './components/CompareTools';
 import SubmitTool from './components/SubmitTool';
 import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
+import { supabase } from './lib/supabase';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -25,9 +27,23 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  useEffect(() => {
+    // Check current auth status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -39,7 +55,7 @@ function App() {
   };
 
   const handleFavorite = (toolName: string) => {
-    if (!isAuthenticated) {
+    if (!user) {
       setShowAuthModal(true);
       return;
     }
@@ -53,33 +69,14 @@ function App() {
     }
   };
 
-  const handleShare = async (tool: any) => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: tool.name,
-          text: tool.description,
-          url: tool.url
-        });
-      } else {
-        await navigator.clipboard.writeText(tool.url);
-        toast.success('Link copied to clipboard');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
   const filteredTools = aiTools.filter(tool => 
     selectedCategory === 'All' || tool.category === selectedCategory
   );
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredTools.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedTools = filteredTools.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset to first page when category changes
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory]);
@@ -150,13 +147,8 @@ function App() {
 
               <div className="flex items-center space-x-2">
                 <ThemeToggle isDark={isDark} onToggle={handleToggleTheme} />
-                {isAuthenticated ? (
-                  <button
-                    onClick={() => setIsAuthenticated(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                  >
-                    Sign Out
-                  </button>
+                {user ? (
+                  <UserMenu user={user} />
                 ) : (
                   <button
                     onClick={() => setShowAuthModal(true)}
