@@ -12,15 +12,15 @@ interface ToolCardProps {
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
   return (
     <motion.div
-      whileHover={{ y: -5, scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden"
+      whileHover={{ y: -5 }}
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden"
     >
       <div className="relative">
         <img
           src={tool.image}
           alt={tool.name}
           className="w-full h-48 object-cover"
+          loading="lazy"
         />
         <motion.button
           whileHover={{ scale: 1.1 }}
@@ -35,13 +35,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           />
         </motion.button>
         {tool.featured && (
-          <motion.span
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full"
-          >
+          <span className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full">
             Featured
-          </motion.span>
+          </span>
         )}
       </div>
 
@@ -50,14 +46,12 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             {tool.name}
           </h3>
-          {tool.rating && (
-            <div className="flex items-center">
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <span className="ml-1 text-sm font-medium text-gray-600 dark:text-gray-300">
-                {tool.rating}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full">
+            <Star className="h-4 w-4 text-yellow-400" />
+            <span className="ml-1 text-sm font-medium text-gray-900 dark:text-white">
+              {tool.rating}
+            </span>
+          </div>
         </div>
 
         <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
@@ -93,9 +87,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
               href={tool.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="block text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              GitHub Repository
+              View on GitHub
             </a>
           )}
           <motion.a
