@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, Eye, EyeOff, Github, Facebook } from 'lucide-react';
+import { X, Mail, Lock, Eye, EyeOff, Github } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
@@ -40,6 +40,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         toast.success('Successfully signed in!');
         onClose();
       } else {
+        if (password.length < 6) {
+          throw new Error('Password must be at least 6 characters long');
+        }
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -51,19 +55,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         });
 
         if (signUpError) throw signUpError;
-        toast.success('Account created successfully!');
+        toast.success('Account created successfully! Please check your email to verify your account.');
         onClose();
       }
     } catch (err) {
       console.error('Authentication error:', err);
       setError(err instanceof Error ? err.message : 'Authentication failed');
-      toast.error('Authentication failed');
+      toast.error(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github' | 'facebook') => {
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -181,14 +185,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
               <Github className="w-5 h-5 mr-3" />
               Continue with GitHub
             </button>
-
-            <button
-              onClick={() => handleSocialLogin('facebook')}
-              className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <Facebook className="w-5 h-5 mr-3" />
-              Continue with Facebook
-            </button>
           </div>
 
           <div className="relative mb-6">
@@ -246,6 +242,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                   className="w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter your password"
                   required
+                  minLength={6}
                 />
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <button
@@ -260,6 +257,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                   )}
                 </button>
               </div>
+              {!isLogin && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Password must be at least 6 characters long
+                </p>
+              )}
             </div>
 
             {isLogin && (
@@ -295,7 +297,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                }}
                 className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 {isLogin
