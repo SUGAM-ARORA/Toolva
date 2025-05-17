@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
     "@types/lodash": "^4.17.16",
+    "@types/react-router-dom": "^5.3.3",
     "framer-motion": "^11.0.3",
     "lodash": "^4.17.21",
     "lucide-react": "^0.344.0",
@@ -19,7 +20,7 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
     "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "^6.30.0",
     "react-syntax-highlighter": "^15.5.0",
     "recharts": "^2.12.2",
     "tailwind-merge": "^2.2.1"
