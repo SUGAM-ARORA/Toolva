@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, Eye, EyeOff, Github } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, checkSupabaseConnection } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface AuthModalProps {
@@ -16,9 +16,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isConnectionHealthy, setIsConnectionHealthy] = useState(true);
+
+  useEffect(() => {
+    checkSupabaseConnection().then(isHealthy => {
+      setIsConnectionHealthy(isHealthy);
+      if (!isHealthy) {
+        setError('Unable to connect to authentication service. Please try again later.');
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isConnectionHealthy) {
+      toast.error('Authentication service is currently unavailable. Please try again later.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
 
@@ -28,6 +43,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           redirectTo: `${window.location.origin}/reset-password`,
         });
         if (resetError) throw resetError;
+        
         toast.success('Password reset email sent!');
         setShowForgotPassword(false);
       } else if (isLogin) {
@@ -37,6 +53,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         });
 
         if (signInError) throw signInError;
+        
         toast.success('Successfully signed in!');
         onClose();
       } else {
@@ -44,42 +61,84 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           throw new Error('Password must be at least 6 characters long');
         }
 
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name,
+        try {
+          const { data, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name },
+              emailRedirectTo: `${window.location.origin}/auth/callback`
             },
-          },
-        });
+          });
 
-        if (signUpError) throw signUpError;
-        toast.success('Account created successfully! Please check your email to verify your account.');
-        onClose();
+          if (signUpError) throw signUpError;
+          
+          if (!data?.user) {
+            throw new Error('Failed to create user account');
+          }
+
+          toast.success('Account created successfully! Please check your email to verify your account.');
+          onClose();
+        } catch (signUpError: any) {
+          if (!navigator.onLine) {
+            throw new Error('No internet connection. Please check your network and try again.');
+          }
+          if (signUpError.message?.includes('Failed to fetch')) {
+            throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
+          }
+          throw signUpError;
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Authentication error:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
-      toast.error(err instanceof Error ? err.message : 'Authentication failed');
+      let errorMessage = 'Authentication failed. ';
+      
+      if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your network and try again.';
+      } else if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        errorMessage = 'Unable to connect to the authentication service. Please check your internet connection.';
+      } else if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password.';
+      } else if (err.message?.includes('Email rate limit exceeded')) {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else {
+        errorMessage += err.message || 'Please try again.';
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
+    if (!isConnectionHealthy) {
+      toast.error('Authentication service is currently unavailable. Please try again later.');
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-        },
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
       });
 
       if (error) throw error;
-    } catch (err) {
+    } catch (err: any) {
       console.error(`${provider} login error:`, err);
-      toast.error(`${provider} login failed`);
+      const errorMessage = !navigator.onLine
+        ? 'No internet connection. Please check your network and try again.'
+        : err.message?.includes('Failed to fetch')
+        ? `Unable to connect to ${provider} login service. Please check your internet connection.`
+        : `${provider} login failed. Please try again.`;
+      toast.error(errorMessage);
     }
   };
 
