@@ -27,7 +27,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
         });
-        if (resetError) throw resetError;
+        if (resetError) {
+          console.error('Password reset error:', resetError);
+          throw resetError;
+        }
         toast.success('Password reset email sent!');
         setShowForgotPassword(false);
       } else if (isLogin) {
@@ -36,13 +39,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           password,
         });
 
-        if (signInError) throw signInError;
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw signInError;
+        }
         toast.success('Successfully signed in!');
         onClose();
       } else {
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters long');
         }
+
+        // Log the signup attempt
+        console.log('Attempting signup with email:', email);
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -54,14 +63,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           },
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          console.error('Sign up error:', signUpError);
+          throw signUpError;
+        }
+        
+        if (data?.user === null) {
+          throw new Error('Failed to create user account');
+        }
+
         toast.success('Account created successfully! Please check your email to verify your account.');
         onClose();
       }
     } catch (err) {
       console.error('Authentication error:', err);
-      setError(err instanceof Error ? err.message : 'Authentication failed');
-      toast.error(err instanceof Error ? err.message : 'Authentication failed');
+      // Provide more detailed error messages
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Authentication failed. Please check your network connection and try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -76,10 +97,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error(`${provider} login error:`, error);
+        throw error;
+      }
     } catch (err) {
       console.error(`${provider} login error:`, err);
-      toast.error(`${provider} login failed`);
+      toast.error(`${provider} login failed. Please try again.`);
     }
   };
 
