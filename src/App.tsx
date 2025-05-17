@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, X, Heart, Info, User, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -204,6 +204,7 @@ function App() {
                       <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.8 }}
                         className="text-center max-w-4xl mx-auto"
                       >
                         <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
@@ -213,8 +214,9 @@ function App() {
                           Browse our directory of {aiTools.length}+ AI tools to find the right solution for your needs
                         </p>
 
+                        {/* Search Input */}
                         <div className="relative max-w-2xl mx-auto mb-12">
-                          <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20"></div>
+                          <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20" />
                           <div className="relative">
                             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
@@ -226,11 +228,39 @@ function App() {
                             />
                           </div>
                         </div>
+<motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4, duration: 0.8 }}
+                          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 px-4"
+                        >
+                          {categories.slice(0, 8).map((category) => {
+                            const Icon = category.icon;
+                            return (
+                              <motion.button
+                                key={category.name}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setSelectedCategory(category.name)}
+                                className={`flex flex-col items-center justify-center p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
+selectedCategory === category.name
+                                    ? 'bg-blue-600/30 border-blue-400'
+                                    : 'bg-white/5 hover:bg-white/10'}
+                                `}
+                              >
+                                <Icon className="mb-2 text-2xl text-blue-400" />
+                                <span className="mt-1 text-sm font-semibold text-white">{category.name}</span>
+                              </motion.button>
+                            );
+                          })}
+                        </motion.div>
+
                       </motion.div>
                     </div>
                   </div>
                 )}
 
+                {/* Main content */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                   {view === 'grid' && (
                     <motion.div
@@ -280,6 +310,7 @@ function App() {
           <AuthModal onClose={() => setShowAuthModal(false)} />
         )}
 
+        {/* Mobile nav */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <nav className="flex justify-around p-2">
             {navItems.map(item => (
