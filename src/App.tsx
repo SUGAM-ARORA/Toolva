@@ -278,7 +278,7 @@ function App() {
                                     : 'bg-white/5 hover:bg-white/10'
                                 }`}
                               >
-                                <Icon />
+                                <Icon className="mb-2 text-2xl text-blue-400" />
                                 <span className="mt-1 text-sm font-semibold text-white">{category.name}</span>
                               </motion.button>
                             );
