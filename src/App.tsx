@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen, Share2 } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -35,6 +35,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -87,6 +88,34 @@ function App() {
     } catch (error) {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
+    }
+  };
+
+  const handleShare = async (toolName: string) => {
+    try {
+      const shareData = {
+        title: 'Check out this AI tool!',
+        text: `I found this amazing AI tool: ${toolName}`,
+        url: `${window.location.origin}/tool/${toolName}`,
+      };
+      
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast.success('Shared successfully!');
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast.error('Failed to share');
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() && !searchHistory.includes(query.trim())) {
+      setSearchHistory(prev => [query.trim(), ...prev].slice(0, 5));
     }
   };
 
@@ -214,7 +243,6 @@ function App() {
                           Browse our directory of {aiTools.length}+ AI tools to find the right solution for your needs
                         </p>
 
-                        {/* Search Input */}
                         <div className="relative max-w-2xl mx-auto mb-12">
                           <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20" />
                           <div className="relative">
@@ -222,13 +250,14 @@ function App() {
                             <input
                               type="text"
                               value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onChange={(e) => handleSearch(e.target.value)}
                               placeholder="Search AI tools by name, description, or category..."
                               className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </div>
                         </div>
-<motion.div
+
+                        <motion.div
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4, duration: 0.8 }}
@@ -243,10 +272,10 @@ function App() {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setSelectedCategory(category.name)}
                                 className={`flex flex-col items-center justify-center p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
-selectedCategory === category.name
+                                  selectedCategory === category.name
                                     ? 'bg-blue-600/30 border-blue-400'
-                                    : 'bg-white/5 hover:bg-white/10'}
-                                `}
+                                    : 'bg-white/5 hover:bg-white/10'
+                                }`}
                               >
                                 <Icon className="mb-2 text-2xl text-blue-400" />
                                 <span className="mt-1 text-sm font-semibold text-white">{category.name}</span>
@@ -254,13 +283,11 @@ selectedCategory === category.name
                             );
                           })}
                         </motion.div>
-
                       </motion.div>
                     </div>
                   </div>
                 )}
 
-                {/* Main content */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                   {view === 'grid' && (
                     <motion.div
@@ -279,6 +306,7 @@ selectedCategory === category.name
                             <ToolCard
                               tool={tool}
                               onFavorite={() => handleFavorite(tool.name)}
+                              onShare={() => handleShare(tool.name)}
                               isFavorited={favorites.includes(tool.name)}
                             />
                           </motion.div>
@@ -310,7 +338,6 @@ selectedCategory === category.name
           <AuthModal onClose={() => setShowAuthModal(false)} />
         )}
 
-        {/* Mobile nav */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <nav className="flex justify-around p-2">
             {navItems.map(item => (
