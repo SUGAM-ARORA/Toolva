@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Share2 } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -160,6 +160,7 @@ function App() {
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
                 onClose={() => setShowSidebar(false)}
+                onFilterChange={() => {}}
               />
             </motion.div>
           )}
@@ -277,7 +278,7 @@ function App() {
                                     : 'bg-white/5 hover:bg-white/10'
                                 }`}
                               >
-                                <Icon className="mb-2 text-2xl text-blue-400" />
+                                <Icon />
                                 <span className="mt-1 text-sm font-semibold text-white">{category.name}</span>
                               </motion.button>
                             );
