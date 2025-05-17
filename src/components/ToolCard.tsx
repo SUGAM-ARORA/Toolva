@@ -1,7 +1,8 @@
 import React from 'react';
-import { Star, Heart } from 'lucide-react';
+import { Star, Heart, Share2, BookmarkPlus, ExternalLink } from 'lucide-react';
 import { AITool } from '../types';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 interface ToolCardProps {
   tool: AITool;
@@ -10,6 +11,20 @@ interface ToolCardProps {
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: tool.name,
+        text: tool.description,
+        url: tool.url
+      });
+    } catch (err) {
+      // Fallback for browsers that don't support native sharing
+      navigator.clipboard.writeText(tool.url);
+      toast.success('Link copied to clipboard!');
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ y: -5 }}
@@ -22,22 +37,32 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           className="w-full h-48 object-cover"
           loading="lazy"
         />
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onFavorite}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        >
-          <Heart
-            className={`h-5 w-5 ${
-              isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'
-            }`}
-          />
-        </motion.button>
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onFavorite}
+            className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Heart
+              className={`h-5 w-5 ${
+                isFavorited ? 'text-red-500 fill-current' : 'text-gray-400'
+              }`}
+            />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Share2 className="h-5 w-5 text-gray-400" />
+          </motion.button>
+        </div>
         {tool.featured && (
-          <span className="absolute top-4 left-4 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 text-xs font-medium rounded-full">
+          <div className="absolute top-4 left-4 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-medium rounded-full">
             Featured
-          </span>
+          </div>
         )}
       </div>
 
@@ -46,9 +71,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             {tool.name}
           </h3>
-          <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full">
+          <div className="flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full">
             <Star className="h-4 w-4 text-yellow-400" />
-            <span className="ml-1 text-sm font-medium text-gray-900 dark:text-white">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {tool.rating}
             </span>
           </div>
@@ -81,14 +106,15 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {tool.github && (
             <a
               href={tool.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
+              <BookmarkPlus className="h-4 w-4 mr-1" />
               View on GitHub
             </a>
           )}
@@ -98,8 +124,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
             href={tool.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors"
           >
+            <ExternalLink className="h-4 w-4 mr-2" />
             Try Now
           </motion.a>
         </div>
