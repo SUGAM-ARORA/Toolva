@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, X, Settings, Heart, Info, User } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen, X, Heart, Info, User, Settings as SettingsIcon } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
