@@ -50,37 +50,52 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           throw new Error('Password must be at least 6 characters long');
         }
 
-        // Log the signup attempt
-        console.log('Attempting signup with email:', email);
-
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name,
+        // Enhanced error handling for signup
+        try {
+          const { data, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name,
+              },
             },
-          },
-        });
+          });
 
-        if (signUpError) {
-          console.error('Sign up error:', signUpError);
+          if (signUpError) {
+            console.error('Sign up error:', signUpError);
+            throw signUpError;
+          }
+          
+          if (!data?.user) {
+            throw new Error('Failed to create user account');
+          }
+
+          toast.success('Account created successfully! Please check your email to verify your account.');
+          onClose();
+        } catch (signUpError) {
+          // Check for specific network-related errors
+          if (signUpError.message?.includes('Failed to fetch')) {
+            throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
+          }
           throw signUpError;
         }
-        
-        if (data?.user === null) {
-          throw new Error('Failed to create user account');
-        }
-
-        toast.success('Account created successfully! Please check your email to verify your account.');
-        onClose();
       }
     } catch (err) {
       console.error('Authentication error:', err);
-      // Provide more detailed error messages
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Authentication failed. Please check your network connection and try again.';
+      let errorMessage = 'Authentication failed. ';
+      
+      // Provide more specific error messages based on error type
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        errorMessage += 'Unable to connect to the authentication service. Please check your internet connection.';
+      } else if (err.message?.includes('Invalid login credentials')) {
+        errorMessage += 'Invalid email or password.';
+      } else if (err.message?.includes('Email rate limit exceeded')) {
+        errorMessage += 'Too many attempts. Please try again later.';
+      } else {
+        errorMessage += err.message || 'Please try again.';
+      }
+      
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -103,7 +118,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       }
     } catch (err) {
       console.error(`${provider} login error:`, err);
-      toast.error(`${provider} login failed. Please try again.`);
+      const errorMessage = err.message?.includes('Failed to fetch')
+        ? `Unable to connect to ${provider} login service. Please check your internet connection.`
+        : `${provider} login failed. Please try again.`;
+      toast.error(errorMessage);
     }
   };
 
