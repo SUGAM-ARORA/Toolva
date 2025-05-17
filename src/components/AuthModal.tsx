@@ -375,3 +375,5 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 };
 
 export default AuthModal;
+
+export default AuthModal
