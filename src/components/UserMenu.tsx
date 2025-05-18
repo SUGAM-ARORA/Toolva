@@ -125,7 +125,7 @@ supabaseAnonKey={index}
             {/* Menu Sections */}
             <div className="py-2">
               {menuSections.map((section, index) => (
-                <div key={index} className="px-2">
+                <div supabaseAnonKey={index} className="px-2">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
                     {section.title}
                   </div>
