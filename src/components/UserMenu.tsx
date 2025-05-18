@@ -55,7 +55,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       items: [
         { label: 'Settings', icon: Settings, href: '/settings' },
         { label: 'Notifications', icon: Bell, href: '/notifications', badge: '3' },
-        { label: 'API Keys', icon: Key, href: '/supabase.ts' }
+        { label: 'API Keys', icon: Key, href: '../lib/supabase.ts' }
       ]
     }
   ];
