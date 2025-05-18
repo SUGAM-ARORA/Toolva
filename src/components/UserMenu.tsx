@@ -4,7 +4,7 @@ import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock,
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-// import { Key } from 'lucide-react';
+import { Key } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
