@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import { supabaseAnonKey } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 interface UserMenuProps {
   user: any;
 }
