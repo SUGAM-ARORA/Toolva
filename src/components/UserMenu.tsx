@@ -4,8 +4,7 @@ import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock,
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { supabaseAnonKey } from '@supabase/supabase-js';
-import { createClient } from '@supabase/supabase-js';
+import { Key } from 'lucide-react';
 
 interface UserMenuProps {
   user: any;
@@ -55,7 +54,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       items: [
         { label: 'Settings', icon: Settings, href: '/settings' },
         { label: 'Notifications', icon: Bell, href: '/notifications', badge: '3' },
-        { label: 'API Keys', icon: Key, href: '../lib/supabase.ts' }
+        { label: 'API Keys', icon: Key, href: '/api-keys' }
       ]
     }
   ];
@@ -112,7 +111,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
             <div className="grid grid-cols-3 gap-2 p-4 border-b border-gray-200 dark:border-gray-700">
               {stats.map((stat, index) => (
                 <div
-supabaseAnonKey={index}
+                  key={index}
                   className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700"
                 >
                   <stat.icon className="w-4 h-4 mx-auto mb-1 text-gray-600 dark:text-gray-300" />
@@ -125,7 +124,7 @@ supabaseAnonKey={index}
             {/* Menu Sections */}
             <div className="py-2">
               {menuSections.map((section, index) => (
-                <div supabaseAnonKey={index} className="px-2">
+                <div key={index} className="px-2">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
                     {section.title}
                   </div>
