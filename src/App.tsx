@@ -15,7 +15,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
@@ -41,14 +41,36 @@ function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchFavorites(session.user.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchFavorites(session.user.id);
+      } else {
+        setFavorites([]);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchFavorites = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('tool_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      setFavorites(data.map(f => f.tool_id));
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
@@ -59,56 +81,35 @@ function App() {
     setIsDark(!isDark);
   };
 
-  const handleFavorite = async (toolName: string) => {
+  const handleFavorite = async (toolId: string) => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
     try {
-      if (favorites.includes(toolName)) {
+      if (favorites.includes(toolId)) {
         const { error } = await supabase
           .from('favorites')
           .delete()
           .eq('user_id', user.id)
-          .eq('tool_name', toolName);
+          .eq('tool_id', toolId);
 
         if (error) throw error;
-        setFavorites(favorites.filter(name => name !== toolName));
+        setFavorites(favorites.filter(id => id !== toolId));
         toast.success('Removed from favorites');
       } else {
         const { error } = await supabase
           .from('favorites')
-          .insert([{ user_id: user.id, tool_name: toolName }]);
+          .insert([{ user_id: user.id, tool_id: toolId }]);
 
         if (error) throw error;
-        setFavorites([...favorites, toolName]);
+        setFavorites([...favorites, toolId]);
         toast.success('Added to favorites');
       }
     } catch (error) {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
-    }
-  };
-
-  const handleShare = async (toolName: string) => {
-    try {
-      const shareData = {
-        title: 'Check out this AI tool!',
-        text: `I found this amazing AI tool: ${toolName}`,
-        url: `${window.location.origin}/tool/${toolName}`,
-      };
-      
-      if (navigator.share) {
-        await navigator.share(shareData);
-        toast.success('Shared successfully!');
-      } else {
-        await navigator.clipboard.writeText(shareData.url);
-        toast.success('Link copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      toast.error('Failed to share');
     }
   };
 
@@ -237,10 +238,10 @@ function App() {
                         transition={{ delay: 0.2, duration: 0.8 }}
                         className="text-center max-w-4xl mx-auto"
                       >
-                        <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
                           Discover the Best AI Tools
                         </h1>
-                        <p className="text-xl md:text-2xl text-gray-300 mb-12">
+                        <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12">
                           Browse our directory of {aiTools.length}+ AI tools to find the right solution for your needs
                         </p>
 
@@ -262,7 +263,7 @@ function App() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.4, duration: 0.8 }}
-                          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 px-4"
+                          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-12 px-4"
                         >
                           {categories.slice(0, 8).map((category) => {
                             const Icon = category.icon;
@@ -272,14 +273,14 @@ function App() {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setSelectedCategory(category.name)}
-                                className={`flex flex-col items-center justify-center p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
+                                className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
                                   selectedCategory === category.name
                                     ? 'bg-blue-600/30 border-blue-400'
                                     : 'bg-white/5 hover:bg-white/10'
                                 }`}
                               >
-                                <Icon className="mb-2 text-2xl text-blue-400" />
-                                <span className="mt-1 text-sm font-semibold text-white">{category.name}</span>
+                                <Icon className="mb-2 text-xl sm:text-2xl text-blue-400" />
+                                <span className="mt-1 text-xs sm:text-sm font-semibold text-white">{category.name}</span>
                               </motion.button>
                             );
                           })}
@@ -296,18 +297,18 @@ function App() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {paginatedTools.map((tool, index) => (
                           <motion.div
                             key={tool.name}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1, duration: 0.5 }}
+                            className="h-full"
                           >
                             <ToolCard
                               tool={tool}
                               onFavorite={() => handleFavorite(tool.name)}
-                              onShare={() => handleShare(tool.name)}
                               isFavorited={favorites.includes(tool.name)}
                             />
                           </motion.div>

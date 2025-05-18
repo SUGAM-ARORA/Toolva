@@ -37,7 +37,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools, favorites, onFavorite }) => 
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 sm:p-6"
     >
       {tools.map((tool, index) => {
         const [ref, inView] = inViewStates[index];
