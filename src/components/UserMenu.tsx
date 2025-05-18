@@ -4,8 +4,10 @@ import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock,
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Key } from 'lucide-react';
+// import { Key } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 interface UserMenuProps {
   user: any;
 }
@@ -54,7 +56,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       items: [
         { label: 'Settings', icon: Settings, href: '/settings' },
         { label: 'Notifications', icon: Bell, href: '/notifications', badge: '3' },
-        { label: 'API Keys', icon: Key, href: '/api-keys' }
+        { label: 'API Keys', icon: Key, href: 'supabaseUrl' }
       ]
     }
   ];
