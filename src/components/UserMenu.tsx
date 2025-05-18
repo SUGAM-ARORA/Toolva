@@ -112,7 +112,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
             <div className="grid grid-cols-3 gap-2 p-4 border-b border-gray-200 dark:border-gray-700">
               {stats.map((stat, index) => (
                 <div
-                  key={index}
+supabaseAnonKey={index}
                   className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700"
                 >
                   <stat.icon className="w-4 h-4 mx-auto mb-1 text-gray-600 dark:text-gray-300" />
