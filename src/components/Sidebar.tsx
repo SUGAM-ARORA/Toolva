@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { X, ChevronRight, Star, Users, DollarSign, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database } from 'lucide-react';
 import { ToolCategory } from '../types';
 import { motion } from 'framer-motion';
+import { aiTools } from '../data/aiTools';
 
 interface SidebarProps {
   categories: ToolCategory[];
@@ -18,18 +19,51 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onFilterChange
 }) => {
+  // Dynamic filters based on actual data
   const [filters, setFilters] = useState({
     minRating: 0,
     maxPrice: '',
     minUsers: '',
     modelTypes: [] as string[],
     features: [] as string[],
+    techStack: [] as string[],
+    lastUpdated: '',
+    hasGithub: false,
+    hasAPI: false,
+    hasDocumentation: false,
+    easeOfUse: 0,
+    codeQuality: 0,
+    userExperience: 0,
   });
+
+  // Extract unique values from tools
+  const uniqueModelTypes = [...new Set(aiTools.map(tool => tool.modelType))];
+  const uniqueTechStack = [...new Set(aiTools.flatMap(tool => tool.techStack || []))];
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
+  };
+
+  // Calculate tool counts for each filter
+  const getFilterCount = (filterKey: string, value: any) => {
+    return aiTools.filter(tool => {
+      switch (filterKey) {
+        case 'hasGithub':
+          return !!tool.github;
+        case 'hasAPI':
+          return !!tool.apiEndpoint;
+        case 'hasDocumentation':
+          return !!tool.documentation;
+        case 'modelTypes':
+          return tool.modelType === value;
+        case 'techStack':
+          return tool.techStack?.includes(value);
+        default:
+          return true;
+      }
+    }).length;
   };
 
   return (
@@ -40,10 +74,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="h-full overflow-y-auto bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl"
     >
+      {/* Header */}
       <div className="sticky top-0 z-10 backdrop-blur-md bg-gray-900/50">
         <div className="p-4 flex justify-between items-center border-b border-gray-700">
           <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Discover
+            Advanced Filters
           </h2>
           <button
             onClick={onClose}
@@ -54,15 +89,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-400 mb-4 flex items-center">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </h3>
+      <div className="p-4 space-y-6">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search filters..."
+            className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+          />
+        </div>
 
         {/* Rating Filter */}
-        <div className="mb-4">
+        <div>
           <label className="block text-sm text-gray-400 mb-2 flex items-center">
             <Star className="h-4 w-4 mr-2 text-yellow-400" />
             Minimum Rating
@@ -83,120 +122,235 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Price Filter */}
-        <div className="mb-4">
+        {/* Model Types */}
+        <div>
           <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <DollarSign className="h-4 w-4 mr-2 text-green-400" />
-            Price Range
+            <Brain className="h-4 w-4 mr-2 text-purple-400" />
+            Model Types
           </label>
-          <select
-            value={filters.maxPrice}
-            onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm"
-          >
-            <option value="">All Prices</option>
-            <option value="free">Free Only</option>
-            <option value="paid">Paid Only</option>
-            <option value="freemium">Freemium</option>
-          </select>
-        </div>
-
-        {/* Users Filter */}
-        <div className="mb-4">
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Users className="h-4 w-4 mr-2 text-purple-400" />
-            Minimum Daily Users
-          </label>
-          <select
-            value={filters.minUsers}
-            onChange={(e) => handleFilterChange('minUsers', e.target.value)}
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm"
-          >
-            <option value="">Any</option>
-            <option value="1000">1K+</option>
-            <option value="10000">10K+</option>
-            <option value="100000">100K+</option>
-            <option value="1000000">1M+</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Categories Section */}
-      <div className="p-4 space-y-2">
-        <h3 className="text-sm font-semibold text-gray-400 mb-4">Categories</h3>
-        {categories.map((category) => {
-          const Icon = category.icon;
-          const isSelected = selectedCategory === category.name;
-          
-          return (
-            <motion.button
-              key={category.name}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                onCategoryChange(category.name);
-              }}
-              className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${
-                isSelected
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                  : 'hover:bg-gray-700/50 text-gray-300'
-              }`}
-            >
-              <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
-              <span className="flex-1 text-left font-medium">{category.name}</span>
-              <div className="flex items-center">
-                <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
-                  {category.count}
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {uniqueModelTypes.map((type) => (
+              <label key={type} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={filters.modelTypes.includes(type)}
+                  onChange={(e) => {
+                    const newTypes = e.target.checked
+                      ? [...filters.modelTypes, type]
+                      : filters.modelTypes.filter(t => t !== type);
+                    handleFilterChange('modelTypes', newTypes);
+                  }}
+                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+                />
+                <span className="ml-2 text-sm text-gray-300">{type}</span>
+                <span className="ml-auto text-xs text-gray-500">
+                  ({getFilterCount('modelTypes', type)})
                 </span>
-                <ChevronRight className={`h-4 w-4 ml-2 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
-              </div>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Quick Stats */}
-      <div className="mt-4 p-4 bg-gray-800/50">
-        <h3 className="text-sm font-semibold text-gray-400 mb-4">Quick Stats</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg p-3">
-            <div className="text-2xl font-bold text-blue-400">{categories.length}</div>
-            <div className="text-sm text-gray-400">Categories</div>
-          </div>
-          <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg p-3">
-            <div className="text-2xl font-bold text-purple-400">
-              {categories.reduce((acc, cat) => acc + cat.count, 0)}
-            </div>
-            <div className="text-sm text-gray-400">Total Tools</div>
+              </label>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Trending Categories */}
-      <div className="mt-4 p-4">
-        <h3 className="text-sm font-semibold text-gray-400 mb-4">Trending Categories</h3>
-        <div className="space-y-2">
-          {categories
-            .filter(cat => cat.count > 50)
-            .slice(0, 3)
-            .map(category => (
-              <motion.div
-                key={category.name}
-                whileHover={{ scale: 1.02 }}
-                className="bg-gradient-to-r from-gray-700/30 to-gray-600/30 rounded-lg p-3 cursor-pointer"
-                onClick={() => onCategoryChange(category.name)}
-              >
-                <div className="flex items-center">
-                  <category.icon className="h-4 w-4 text-blue-400 mr-2" />
-                  <span className="text-sm font-medium text-gray-300">{category.name}</span>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">{category.description}</div>
-                <div className="mt-2 flex items-center">
-                  <Users className="h-3 w-3 text-gray-500 mr-1" />
-                  <span className="text-xs text-gray-500">{category.count} tools</span>
-                </div>
-              </motion.div>
+        {/* Tech Stack */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+            <Code className="h-4 w-4 mr-2 text-green-400" />
+            Tech Stack
+          </label>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {uniqueTechStack.map((tech) => (
+              <label key={tech} className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={filters.techStack.includes(tech)}
+                  onChange={(e) => {
+                    const newTech = e.target.checked
+                      ? [...filters.techStack, tech]
+                      : filters.techStack.filter(t => t !== tech);
+                    handleFilterChange('techStack', newTech);
+                  }}
+                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+                />
+                <span className="ml-2 text-sm text-gray-300">{tech}</span>
+                <span className="ml-auto text-xs text-gray-500">
+                  ({getFilterCount('techStack', tech)})
+                </span>
+              </label>
             ))}
+          </div>
+        </div>
+
+        {/* Features */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+            <Zap className="h-4 w-4 mr-2 text-yellow-400" />
+            Features
+          </label>
+          <div className="space-y-2">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.hasGithub}
+                onChange={(e) => handleFilterChange('hasGithub', e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+              />
+              <span className="ml-2 text-sm text-gray-300">GitHub Repository</span>
+              <span className="ml-auto text-xs text-gray-500">
+                ({getFilterCount('hasGithub', true)})
+              </span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.hasAPI}
+                onChange={(e) => handleFilterChange('hasAPI', e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+              />
+              <span className="ml-2 text-sm text-gray-300">API Available</span>
+              <span className="ml-auto text-xs text-gray-500">
+                ({getFilterCount('hasAPI', true)})
+              </span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={filters.hasDocumentation}
+                onChange={(e) => handleFilterChange('hasDocumentation', e.target.checked)}
+                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+              />
+              <span className="ml-2 text-sm text-gray-300">Documentation</span>
+              <span className="ml-auto text-xs text-gray-500">
+                ({getFilterCount('hasDocumentation', true)})
+              </span>
+            </label>
+          </div>
+        </div>
+
+        {/* Quality Metrics */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+            <Shield className="h-4 w-4 mr-2 text-blue-400" />
+            Quality Metrics
+          </label>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-400">Ease of Use (min)</label>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="0.5"
+                value={filters.easeOfUse}
+                onChange={(e) => handleFilterChange('easeOfUse', parseFloat(e.target.value))}
+                className="w-full accent-blue-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0</span>
+                <span>{filters.easeOfUse}</span>
+                <span>5</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-gray-400">Code Quality (min)</label>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="0.5"
+                value={filters.codeQuality}
+                onChange={(e) => handleFilterChange('codeQuality', parseFloat(e.target.value))}
+                className="w-full accent-blue-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0</span>
+                <span>{filters.codeQuality}</span>
+                <span>5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Last Updated */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+            <Clock className="h-4 w-4 mr-2 text-orange-400" />
+            Last Updated
+          </label>
+          <select
+            value={filters.lastUpdated}
+            onChange={(e) => handleFilterChange('lastUpdated', e.target.value)}
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm text-white"
+          >
+            <option value="">Any time</option>
+            <option value="day">Last 24 hours</option>
+            <option value="week">Last week</option>
+            <option value="month">Last month</option>
+            <option value="year">Last year</option>
+          </select>
+        </div>
+
+        {/* Categories */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+            <Database className="h-4 w-4 mr-2 text-indigo-400" />
+            Categories
+          </label>
+          <div className="space-y-2">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const isSelected = selectedCategory === category.name;
+              
+              return (
+                <motion.button
+                  key={category.name}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onCategoryChange(category.name)}
+                  className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : 'hover:bg-gray-700/50 text-gray-300'
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                  <span className="flex-1 text-left font-medium">{category.name}</span>
+                  <div className="flex items-center">
+                    <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
+                      {category.count}
+                    </span>
+                    <ChevronRight className={`h-4 w-4 ml-2 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Reset Filters */}
+        <div className="pt-4 border-t border-gray-700">
+          <button
+            onClick={() => {
+              setFilters({
+                minRating: 0,
+                maxPrice: '',
+                minUsers: '',
+                modelTypes: [],
+                features: [],
+                techStack: [],
+                lastUpdated: '',
+                hasGithub: false,
+                hasAPI: false,
+                hasDocumentation: false,
+                easeOfUse: 0,
+                codeQuality: 0,
+                userExperience: 0,
+              });
+              onFilterChange({});
+            }}
+            className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium text-white transition-colors"
+          >
+            Reset All Filters
+          </button>
         </div>
       </div>
     </motion.div>
