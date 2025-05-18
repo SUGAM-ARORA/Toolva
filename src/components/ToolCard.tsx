@@ -1,7 +1,7 @@
-import React from 'react';
-import { Star, Heart, Share2, BookmarkPlus, ExternalLink, Zap, Users, Clock, Code } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, Heart, Share2, BookmarkPlus, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
 import { AITool } from '../types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 interface ToolCardProps {
@@ -11,6 +11,8 @@ interface ToolCardProps {
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
   const handleShare = async () => {
     try {
       await navigator.share({
@@ -24,11 +26,19 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
     }
   };
 
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="h-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
+      className="h-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden relative group"
     >
       {/* Animated Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -139,6 +149,45 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           </span>
         </div>
 
+        {/* Additional Features */}
+        <div className="space-y-2 mb-6">
+          {tool.github && (
+            <div className="flex items-center text-gray-600 dark:text-gray-400">
+              <GitBranch className="w-4 h-4 mr-2" />
+              <span className="text-sm">GitHub Repository Available</span>
+            </div>
+          )}
+          {tool.documentation && (
+            <div className="flex items-center text-gray-600 dark:text-gray-400">
+              <Book className="w-4 h-4 mr-2" />
+              <span className="text-sm">Documentation Available</span>
+            </div>
+          )}
+          {tool.apiEndpoint && (
+            <div className="flex items-center text-gray-600 dark:text-gray-400">
+              <Globe className="w-4 h-4 mr-2" />
+              <span className="text-sm">API Access</span>
+            </div>
+          )}
+        </div>
+
+        {/* Tech Stack */}
+        {tool.techStack && tool.techStack.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tech Stack</h4>
+            <div className="flex flex-wrap gap-2">
+              {tool.techStack.map((tech, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-3">
           {tool.github && (
@@ -150,7 +199,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
               rel="noopener noreferrer"
               className="flex items-center justify-center w-full py-2 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
             >
-              <BookmarkPlus className="h-4 w-4 mr-2" />
+              <GitBranch className="h-4 w-4 mr-2" />
               View on GitHub
             </motion.a>
           )}
@@ -166,6 +215,89 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
             Try Now
           </motion.a>
         </div>
+
+        {/* Show More/Less Button */}
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+        >
+          {showDetails ? 'Show Less' : 'Show More'}
+        </button>
+
+        {/* Additional Details */}
+        <AnimatePresence>
+          {showDetails && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              {tool.integrations && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Integrations
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {tool.integrations.map((integration, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full"
+                      >
+                        {integration}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {tool.pricingDetails && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Pricing Details
+                  </h4>
+                  {tool.pricingDetails.free && (
+                    <div className="mb-2">
+                      <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Free Plan
+                      </h5>
+                      <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400">
+                        {tool.pricingDetails.free.features.map((feature, index) => (
+                          <li key={index}>{feature}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {tool.pricingDetails.paid && (
+                    <div>
+                      <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Paid Plans
+                      </h5>
+                      {tool.pricingDetails.paid.plans.map((plan, index) => (
+                        <div key={index} className="mb-2">
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            {plan.name} - {plan.price}
+                          </p>
+                          <ul className="list-disc list-inside text-sm text-gray-500 dark:text-gray-400">
+                            {plan.features.map((feature, featureIndex) => (
+                              <li key={featureIndex}>{feature}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tool.lastUpdated && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Last Updated: {formatDate(tool.lastUpdated)}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
