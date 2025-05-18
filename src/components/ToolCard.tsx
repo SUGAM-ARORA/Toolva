@@ -28,13 +28,13 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
+      className="h-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
     >
       {/* Animated Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       {/* Image Section */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 sm:h-56 overflow-hidden">
         <motion.img
           src={tool.image}
           alt={tool.name}
@@ -48,7 +48,11 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={onFavorite}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onFavorite();
+            }}
             className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
           >
             <Heart
@@ -60,7 +64,11 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={handleShare}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleShare();
+            }}
             className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
           >
             <Share2 className="h-5 w-5 text-white" />

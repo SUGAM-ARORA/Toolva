@@ -1,34 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { AITool } from '../types';
 import ToolCard from '../components/ToolCard';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const Favorites = () => {
-  const [favorites, setFavorites] = React.useState<AITool[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [favorites, setFavorites] = useState<AITool[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchFavorites();
   }, []);
 
   const fetchFavorites = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data: favoritesData, error } = await supabase
         .from('favorites')
-        .select('*')
+        .select(`
+          *,
+          tool:tools(*)
+        `)
         .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setFavorites(favoritesData);
+      setFavorites(favoritesData.map(f => f.tool));
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      toast.error('Failed to load favorites');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveFavorite = async (toolId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('tool_id', toolId);
+
+      if (error) throw error;
+
+      setFavorites(favorites.filter(f => f.id !== toolId));
+      toast.success('Removed from favorites');
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      toast.error('Failed to remove from favorites');
     }
   };
 
@@ -57,15 +86,20 @@ const Favorites = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {favorites.map((tool, index) => (
             <motion.div
               key={tool.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              className="h-full"
             >
-              <ToolCard tool={tool} onFavorite={() => {}} isFavorited={true} />
+              <ToolCard
+                tool={tool}
+                onFavorite={() => handleRemoveFavorite(tool.id)}
+                isFavorited={true}
+              />
             </motion.div>
           ))}
         </div>
