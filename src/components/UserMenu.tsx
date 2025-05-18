@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock, Star, Tool, Code, Brain, Shield, Database, GitBranch } from 'lucide-react';
+import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock, Star, PenTool as Tool, Code, Brain, Shield, Database, GitBranch } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
