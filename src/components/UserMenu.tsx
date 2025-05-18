@@ -4,6 +4,7 @@ import { User, LogOut, Settings, Heart, Info, UserCircle, Bell, Bookmark, Clock,
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { Key } from 'lucide-react';
 
 interface UserMenuProps {
   user: any;
