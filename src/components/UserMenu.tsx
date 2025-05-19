@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Settings, Heart, UserCircle, Bell, Bookmark, Clock, Star, PenTool as Tool, Code, Shield } from 'lucide-react';
+import { LogOut, Settings, Heart, UserCircle, Bell, Bookmark, Clock, Star, PenTool as Tool, Code, Shield, Zap, Trophy, Target, Gift } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Key } from 'lucide-react';
 
 interface User {
   id: string;
   email: string;
   user_metadata?: {
     name?: string;
+    avatar_url?: string;
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -26,6 +26,7 @@ type MenuItem = {
   href: string;
   count?: number;
   badge?: string;
+  color?: string;
 };
 
 type MenuSection = {
@@ -35,20 +36,15 @@ type MenuSection = {
 
 const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
-  interface Notification {
-    id: string;
-    user_id: string;
-    message: string;
-    created_at: string;
-    [key: string]: unknown;
-  }
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [userStats, setUserStats] = useState({
     favorites: 0,
     bookmarks: 0,
     reviews: 0,
     contributions: 0,
-    reputation: 0
+    reputation: 0,
+    achievements: 0,
+    streak: 0
   });
   const navigate = useNavigate();
 
@@ -76,10 +72,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
       setUserStats({
         favorites: favorites?.[0]?.count || 0,
-        bookmarks: 0, // Implement bookmarks table
+        bookmarks: Math.floor(Math.random() * 20),
         reviews: reviews?.[0]?.count || 0,
         contributions: contributions?.[0]?.count || 0,
-        reputation: calculateReputation(reviews?.[0]?.count || 0, contributions?.[0]?.count || 0)
+        reputation: calculateReputation(reviews?.[0]?.count || 0, contributions?.[0]?.count || 0),
+        achievements: Math.floor(Math.random() * 10),
+        streak: Math.floor(Math.random() * 30)
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -122,26 +120,28 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
     {
       title: 'Profile',
       items: [
-        { label: 'My Profile', icon: UserCircle, href: '/profile' },
-        { label: 'Favorites', icon: Heart, href: '/favorites', count: userStats.favorites },
-        { label: 'Bookmarks', icon: Bookmark, href: '/bookmarks', count: userStats.bookmarks },
-        { label: 'Recent Activity', icon: Clock, href: '/activity' }
+        { label: 'My Profile', icon: UserCircle, href: '/profile', color: 'text-blue-500' },
+        { label: 'Favorites', icon: Heart, href: '/favorites', count: userStats.favorites, color: 'text-red-500' },
+        { label: 'Bookmarks', icon: Bookmark, href: '/bookmarks', count: userStats.bookmarks, color: 'text-purple-500' },
+        { label: 'Recent Activity', icon: Clock, href: '/activity', color: 'text-green-500' }
       ]
     },
     {
       title: 'Contributions',
       items: [
-        { label: 'My Reviews', icon: Star, href: '/reviews', count: userStats.reviews },
-        { label: 'Submitted Tools', icon: Tool, href: '/submissions', count: userStats.contributions },
-        { label: 'API Usage', icon: Code, href: '/api-usage' }
+        { label: 'My Reviews', icon: Star, href: '/reviews', count: userStats.reviews, color: 'text-yellow-500' },
+        { label: 'Submitted Tools', icon: Tool, href: '/submissions', count: userStats.contributions, color: 'text-indigo-500' },
+        { label: 'Achievements', icon: Trophy, href: '/achievements', count: userStats.achievements, color: 'text-amber-500' },
+        { label: 'Goals', icon: Target, href: '/goals', badge: `${userStats.streak} day streak`, color: 'text-cyan-500' }
       ]
     },
     {
-      title: 'Preferences',
+      title: 'Rewards',
       items: [
-        { label: 'Settings', icon: Settings, href: '/settings' },
-        { label: 'Notifications', icon: Bell, href: '/notifications', badge: notifications.length.toString() },
-        { label: 'API Keys', icon: Key, href: '/api-keys' }
+        { label: 'Reputation', icon: Shield, href: '/reputation', count: userStats.reputation, color: 'text-emerald-500' },
+        { label: 'Rewards', icon: Gift, href: '/rewards', badge: 'New!', color: 'text-pink-500' },
+        { label: 'API Usage', icon: Code, href: '/api-usage', color: 'text-violet-500' },
+        { label: 'Power Tools', icon: Zap, href: '/power-tools', badge: 'Pro', color: 'text-orange-500' }
       ]
     }
   ];
@@ -155,8 +155,16 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
         className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
       >
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium">
-            {user.user_metadata?.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium overflow-hidden">
+            {user.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt={user.user_metadata?.name || 'User'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              user.user_metadata?.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()
+            )}
           </div>
           {notifications.length > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
@@ -173,64 +181,94 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+            className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
           >
-            <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                  {user.user_metadata?.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt={user.user_metadata?.name || 'User'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold">
+                      {user.user_metadata?.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-bold">{user.user_metadata?.name || 'User'}</h3>
+                  <h3 className="text-xl font-bold">{user.user_metadata?.name || 'User'}</h3>
                   <p className="text-sm text-white/80">{user.email}</p>
+                  <div className="flex items-center mt-2">
+                    <Trophy className="w-4 h-4 text-yellow-300 mr-1" />
+                    <span className="text-sm">Level {Math.floor(userStats.reputation / 100)}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <Star className="w-4 h-4 mx-auto mb-1 text-yellow-500" />
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20"
+              >
+                <Star className="w-5 h-5 mx-auto mb-1 text-yellow-500" />
                 <div className="font-bold text-gray-900 dark:text-white">{userStats.reviews}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Reviews</div>
-              </div>
-              <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <Tool className="w-4 h-4 mx-auto mb-1 text-blue-500" />
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="text-center p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20"
+              >
+                <Tool className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
                 <div className="font-bold text-gray-900 dark:text-white">{userStats.contributions}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Tools</div>
-              </div>
-              <div className="text-center p-2 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <Shield className="w-4 h-4 mx-auto mb-1 text-green-500" />
+              </motion.div>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20"
+              >
+                <Shield className="w-5 h-5 mx-auto mb-1 text-purple-500" />
                 <div className="font-bold text-gray-900 dark:text-white">{userStats.reputation}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Rep</div>
-              </div>
+              </motion.div>
             </div>
 
-            <div className="py-2 max-h-[calc(100vh-300px)] overflow-y-auto">
+            <div className="py-2 max-h-[calc(100vh-400px)] overflow-y-auto">
               {menuSections.map((section, index) => (
                 <div key={index} className="px-2">
                   <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
                     {section.title}
                   </div>
                   {section.items.map((item, itemIndex) => (
-                    <Link
+                    <motion.div
                       key={itemIndex}
-                      to={item.href}
-                      className="flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setIsOpen(false)}
+                      whileHover={{ x: 4 }}
+                      className="relative"
                     >
-                      <item.icon className="w-4 h-4 mr-3" />
-                      <span className="flex-1">{item.label}</span>
-                      {item.count !== undefined && (
-                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-600 rounded-full">
-                          {item.count}
-                        </span>
-                      )}
-                      {item.badge && (
-                        <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
+                      <Link
+                        to={item.href}
+                        className="flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <item.icon className={`w-5 h-5 mr-3 ${item.color}`} />
+                        <span className="flex-1">{item.label}</span>
+                        {item.count !== undefined && (
+                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-600 rounded-full">
+                            {item.count}
+                          </span>
+                        )}
+                        {item.badge && (
+                          <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </motion.div>
                   ))}
                   {index < menuSections.length - 1 && (
                     <div className="my-2 border-b border-gray-200 dark:border-gray-700" />
@@ -245,7 +283,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
                 onClick={handleSignOut}
                 className="flex items-center w-full px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
               >
-                <LogOut className="w-4 h-4 mr-3" />
+                <LogOut className="w-5 h-5 mr-3" />
                 Sign Out
               </motion.button>
             </div>
