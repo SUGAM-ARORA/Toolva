@@ -25,7 +25,7 @@
     "react-select": "^5.10.1",
     "react-syntax-highlighter": "^15.5.0",
     "recharts": "^2.12.2",
-    "tailwind-merge": "^2.2.1"
+    "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
