@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database } from 'lucide-react';
+import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy } from 'lucide-react';
 import { ToolCategory } from '../types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { aiTools } from '../data/aiTools';
+import toast from 'react-hot-toast';
 
 interface SidebarProps {
   categories: ToolCategory[];
@@ -19,7 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onFilterChange
 }) => {
-  // Dynamic filters based on actual data
   const [filters, setFilters] = useState({
     minRating: 0,
     maxPrice: '',
@@ -34,7 +34,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     easeOfUse: 0,
     codeQuality: 0,
     userExperience: 0,
+    priceRange: [0, 1000],
+    popularity: 'all',
+    sortBy: 'relevance',
   });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Extract unique values from tools
   const uniqueModelTypes = [...new Set(aiTools.map(tool => tool.modelType))];
@@ -46,25 +52,34 @@ const Sidebar: React.FC<SidebarProps> = ({
     onFilterChange(newFilters);
   };
 
-  // Calculate tool counts for each filter
-  const getFilterCount = (filterKey: string, value: any) => {
-    return aiTools.filter(tool => {
-      switch (filterKey) {
-        case 'hasGithub':
-          return !!tool.github;
-        case 'hasAPI':
-          return !!tool.apiEndpoint;
-        case 'hasDocumentation':
-          return !!tool.documentation;
-        case 'modelTypes':
-          return tool.modelType === value;
-        case 'techStack':
-          return tool.techStack?.includes(value);
-        default:
-          return true;
-      }
-    }).length;
+  const resetFilters = () => {
+    const defaultFilters = {
+      minRating: 0,
+      maxPrice: '',
+      minUsers: '',
+      modelTypes: [],
+      features: [],
+      techStack: [],
+      lastUpdated: '',
+      hasGithub: false,
+      hasAPI: false,
+      hasDocumentation: false,
+      easeOfUse: 0,
+      codeQuality: 0,
+      userExperience: 0,
+      priceRange: [0, 1000],
+      popularity: 'all',
+      sortBy: 'relevance',
+    };
+    setFilters(defaultFilters);
+    onFilterChange(defaultFilters);
+    toast.success('Filters reset successfully');
   };
+
+  // Filter categories based on search
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <motion.div 
@@ -74,11 +89,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="h-full overflow-y-auto bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl"
     >
-      {/* Header */}
-      <div className="sticky top-0 z-10 backdrop-blur-md bg-gray-900/50">
-        <div className="p-4 flex justify-between items-center border-b border-gray-700">
+      {/* Header with Search */}
+      <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
+        <div className="p-4 flex justify-between items-center">
           <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Advanced Filters
+            Discover Tools
           </h2>
           <button
             onClick={onClose}
@@ -87,207 +102,179 @@ const Sidebar: React.FC<SidebarProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
+        
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search filters..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search filters..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
-          />
-        </div>
-
-        {/* Rating Filter */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Star className="h-4 w-4 mr-2 text-yellow-400" />
-            Minimum Rating
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="5"
-            step="0.5"
-            value={filters.minRating}
-            onChange={(e) => handleFilterChange('minRating', parseFloat(e.target.value))}
-            className="w-full accent-blue-500"
-          />
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>0</span>
-            <span>{filters.minRating}</span>
-            <span>5</span>
-          </div>
-        </div>
-
-        {/* Model Types */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Brain className="h-4 w-4 mr-2 text-purple-400" />
-            Model Types
-          </label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {uniqueModelTypes.map((type) => (
-              <label key={type} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.modelTypes.includes(type)}
-                  onChange={(e) => {
-                    const newTypes = e.target.checked
-                      ? [...filters.modelTypes, type]
-                      : filters.modelTypes.filter(t => t !== type);
-                    handleFilterChange('modelTypes', newTypes);
-                  }}
-                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-                />
-                <span className="ml-2 text-sm text-gray-300">{type}</span>
-                <span className="ml-auto text-xs text-gray-500">
-                  ({getFilterCount('modelTypes', type)})
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Tech Stack */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Code className="h-4 w-4 mr-2 text-green-400" />
-            Tech Stack
-          </label>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {uniqueTechStack.map((tech) => (
-              <label key={tech} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.techStack.includes(tech)}
-                  onChange={(e) => {
-                    const newTech = e.target.checked
-                      ? [...filters.techStack, tech]
-                      : filters.techStack.filter(t => t !== tech);
-                    handleFilterChange('techStack', newTech);
-                  }}
-                  className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-                />
-                <span className="ml-2 text-sm text-gray-300">{tech}</span>
-                <span className="ml-auto text-xs text-gray-500">
-                  ({getFilterCount('techStack', tech)})
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Features */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Zap className="h-4 w-4 mr-2 text-yellow-400" />
-            Features
-          </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.hasGithub}
-                onChange={(e) => handleFilterChange('hasGithub', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-              />
-              <span className="ml-2 text-sm text-gray-300">GitHub Repository</span>
-              <span className="ml-auto text-xs text-gray-500">
-                ({getFilterCount('hasGithub', true)})
-              </span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.hasAPI}
-                onChange={(e) => handleFilterChange('hasAPI', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-              />
-              <span className="ml-2 text-sm text-gray-300">API Available</span>
-              <span className="ml-auto text-xs text-gray-500">
-                ({getFilterCount('hasAPI', true)})
-              </span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={filters.hasDocumentation}
-                onChange={(e) => handleFilterChange('hasDocumentation', e.target.checked)}
-                className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-              />
-              <span className="ml-2 text-sm text-gray-300">Documentation</span>
-              <span className="ml-auto text-xs text-gray-500">
-                ({getFilterCount('hasDocumentation', true)})
-              </span>
-            </label>
-          </div>
-        </div>
-
-        {/* Quality Metrics */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Shield className="h-4 w-4 mr-2 text-blue-400" />
-            Quality Metrics
-          </label>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-400">Ease of Use (min)</label>
-              <input
-                type="range"
-                min="0"
-                max="5"
-                step="0.5"
-                value={filters.easeOfUse}
-                onChange={(e) => handleFilterChange('easeOfUse', parseFloat(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>0</span>
-                <span>{filters.easeOfUse}</span>
-                <span>5</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm text-gray-400">Code Quality (min)</label>
-              <input
-                type="range"
-                min="0"
-                max="5"
-                step="0.5"
-                value={filters.codeQuality}
-                onChange={(e) => handleFilterChange('codeQuality', parseFloat(e.target.value))}
-                className="w-full accent-blue-500"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>0</span>
-                <span>{filters.codeQuality}</span>
-                <span>5</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Last Updated */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
-            <Clock className="h-4 w-4 mr-2 text-orange-400" />
-            Last Updated
-          </label>
-          <select
-            value={filters.lastUpdated}
-            onChange={(e) => handleFilterChange('lastUpdated', e.target.value)}
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm text-white"
+        {/* Quick Filters */}
+        <div className="grid grid-cols-2 gap-2">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleFilterChange('popularity', 'trending')}
+            className={`p-3 rounded-lg ${
+              filters.popularity === 'trending'
+                ? 'bg-blue-600'
+                : 'bg-gray-800 hover:bg-gray-700'
+            } flex flex-col items-center justify-center`}
           >
-            <option value="">Any time</option>
-            <option value="day">Last 24 hours</option>
-            <option value="week">Last week</option>
-            <option value="month">Last month</option>
-            <option value="year">Last year</option>
-          </select>
+            <Sparkles className="h-5 w-5 mb-1" />
+            <span className="text-sm">Trending</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleFilterChange('sortBy', 'topRated')}
+            className={`p-3 rounded-lg ${
+              filters.sortBy === 'topRated'
+                ? 'bg-blue-600'
+                : 'bg-gray-800 hover:bg-gray-700'
+            } flex flex-col items-center justify-center`}
+          >
+            <Trophy className="h-5 w-5 mb-1" />
+            <span className="text-sm">Top Rated</span>
+          </motion.button>
         </div>
+
+        {/* Advanced Filters Toggle */}
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+        >
+          <span className="flex items-center">
+            <Gauge className="h-5 w-5 mr-2" />
+            Advanced Filters
+          </span>
+          <ChevronRight
+            className={`h-5 w-5 transform transition-transform ${
+              showAdvanced ? 'rotate-90' : ''
+            }`}
+          />
+        </button>
+
+        {/* Advanced Filters Content */}
+        <AnimatePresence>
+          {showAdvanced && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="space-y-6"
+            >
+              {/* Rating Filter */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                  <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                  Minimum Rating
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="5"
+                  step="0.5"
+                  value={filters.minRating}
+                  onChange={(e) => handleFilterChange('minRating', parseFloat(e.target.value))}
+                  className="w-full accent-blue-500"
+                />
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>0</span>
+                  <span>{filters.minRating}</span>
+                  <span>5</span>
+                </div>
+              </div>
+
+              {/* Model Types */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                  <Brain className="h-4 w-4 mr-2 text-purple-400" />
+                  Model Types
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                  {uniqueModelTypes.map((type) => (
+                    <motion.label
+                      key={type}
+                      className="flex items-center p-2 hover:bg-gray-700 rounded-lg cursor-pointer"
+                      whileHover={{ x: 4 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters.modelTypes.includes(type)}
+                        onChange={(e) => {
+                          const newTypes = e.target.checked
+                            ? [...filters.modelTypes, type]
+                            : filters.modelTypes.filter(t => t !== type);
+                          handleFilterChange('modelTypes', newTypes);
+                        }}
+                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+                      />
+                      <span className="ml-2 text-sm text-gray-300">{type}</span>
+                    </motion.label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                  <DollarSign className="h-4 w-4 mr-2 text-green-400" />
+                  Price Range
+                </label>
+                <select
+                  value={filters.maxPrice}
+                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm text-white"
+                >
+                  <option value="">Any Price</option>
+                  <option value="free">Free Only</option>
+                  <option value="paid">Paid Only</option>
+                  <option value="freemium">Freemium</option>
+                </select>
+              </div>
+
+              {/* Features */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                  <Zap className="h-4 w-4 mr-2 text-yellow-400" />
+                  Features
+                </label>
+                <div className="space-y-2">
+                  {['hasGithub', 'hasAPI', 'hasDocumentation'].map((feature) => (
+                    <motion.label
+                      key={feature}
+                      className="flex items-center p-2 hover:bg-gray-700 rounded-lg cursor-pointer"
+                      whileHover={{ x: 4 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters[feature]}
+                        onChange={(e) => handleFilterChange(feature, e.target.checked)}
+                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+                      />
+                      <span className="ml-2 text-sm text-gray-300">
+                        {feature === 'hasGithub' ? 'GitHub Repository' :
+                         feature === 'hasAPI' ? 'API Available' :
+                         'Documentation'}
+                      </span>
+                    </motion.label>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Categories */}
         <div>
@@ -296,14 +283,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             Categories
           </label>
           <div className="space-y-2">
-            {categories.map((category) => {
+            {filteredCategories.map((category) => {
               const Icon = category.icon;
               const isSelected = selectedCategory === category.name;
               
               return (
                 <motion.button
                   key={category.name}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onCategoryChange(category.name)}
                   className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${
@@ -327,31 +314,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Reset Filters */}
-        <div className="pt-4 border-t border-gray-700">
-          <button
-            onClick={() => {
-              setFilters({
-                minRating: 0,
-                maxPrice: '',
-                minUsers: '',
-                modelTypes: [],
-                features: [],
-                techStack: [],
-                lastUpdated: '',
-                hasGithub: false,
-                hasAPI: false,
-                hasDocumentation: false,
-                easeOfUse: 0,
-                codeQuality: 0,
-                userExperience: 0,
-              });
-              onFilterChange({});
-            }}
-            className="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium text-white transition-colors"
-          >
-            Reset All Filters
-          </button>
-        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={resetFilters}
+          className="w-full py-3 px-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center justify-center space-x-2"
+        >
+          <Filter className="h-4 w-4" />
+          <span>Reset All Filters</span>
+        </motion.button>
       </div>
     </motion.div>
   );

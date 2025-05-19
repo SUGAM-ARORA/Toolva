@@ -15,7 +15,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
@@ -178,9 +178,11 @@ function App() {
                   >
                     <Menu className="h-6 w-6" />
                   </button>
+                  <Link to="/" className="flex items-center">
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
                     Toolva
                   </h1>
+                  </Link>
                 </div>
 
                 <nav className="hidden md:flex space-x-4">
