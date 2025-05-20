@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Sparkles } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -10,6 +10,10 @@ import UserMenu from './components/UserMenu';
 import ToolFinder from './components/ToolFinder';
 import CompareTools from './components/CompareTools';
 import SubmitTool from './components/SubmitTool';
+import PersonaRecommendations from './components/PersonaRecommendations';
+import SubscriptionManager from './components/SubscriptionManager';
+import PromptExplorer from './components/PromptExplorer';
+import WorkflowBuilder from './components/WorkflowBuilder';
 import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
@@ -30,7 +34,7 @@ function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit'>('grid');
+  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'subscriptions' | 'prompts' | 'workflows'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,6 +143,10 @@ function App() {
     { label: 'Home', icon: BookOpen, view: 'grid' },
     { label: 'AI Finder', icon: Search, view: 'finder' },
     { label: 'Compare', icon: Filter, view: 'compare' },
+    { label: 'Personas', icon: Users, view: 'personas' },
+    { label: 'Prompts', icon: Brain, view: 'prompts' },
+    { label: 'Workflows', icon: Workflow, view: 'workflows' },
+    { label: 'Subscriptions', icon: Sparkles, view: 'subscriptions' },
     { label: 'Submit', icon: Zap, view: 'submit' }
   ];
 
@@ -154,7 +162,7 @@ function App() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-lg"
+              className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg"
             >
               <Sidebar
                 categories={categories}
@@ -179,13 +187,13 @@ function App() {
                     <Menu className="h-6 w-6" />
                   </button>
                   <Link to="/" className="flex items-center">
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
-                    Toolva
-                  </h1>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
+                      Toolva
+                    </h1>
                   </Link>
                 </div>
 
-                <nav className="hidden md:flex space-x-4">
+                <nav className="hidden lg:flex space-x-2">
                   {navItems.map(item => (
                     <button
                       key={item.label}
@@ -224,7 +232,7 @@ function App() {
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/" element={
-              <main className="flex-1 pt-16">
+              <main className="flex-1 pt-16 pb-20">
                 {view === 'grid' && (
                   <div className="bg-gray-900 min-h-[500px] relative">
                     <div className="absolute inset-0 overflow-hidden">
@@ -329,6 +337,10 @@ function App() {
                   )}
                   {view === 'finder' && <ToolFinder tools={aiTools} />}
                   {view === 'compare' && <CompareTools tools={aiTools} />}
+                  {view === 'personas' && <PersonaRecommendations />}
+                  {view === 'subscriptions' && <SubscriptionManager />}
+                  {view === 'prompts' && <PromptExplorer />}
+                  {view === 'workflows' && <WorkflowBuilder />}
                   {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
                 </div>
               </main>
@@ -342,19 +354,37 @@ function App() {
           <AuthModal onClose={() => setShowAuthModal(false)} />
         )}
 
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-          <nav className="flex justify-around p-2">
-            {navItems.map(item => (
+        {/* Mobile Navigation */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
+          <nav className="grid grid-cols-4 gap-1 p-2">
+            {navItems.slice(0, 4).map(item => (
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`p-2 rounded-md ${
+                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
                   view === item.view
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-400 dark:text-gray-500'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
-                <item.icon className="h-6 w-6" />
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs mt-1">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <nav className="grid grid-cols-4 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
+            {navItems.slice(4).map(item => (
+              <button
+                key={item.label}
+                onClick={() => setView(item.view as any)}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
+                  view === item.view
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs mt-1">{item.label}</span>
               </button>
             ))}
           </nav>
