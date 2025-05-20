@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Globe, GraduationCap } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -15,7 +15,7 @@ import PromptExplorer from './components/PromptExplorer';
 import WorkflowBuilder from './components/WorkflowBuilder';
 import AILearningHub from './components/AILearningHub';
 import AITermsDictionary from './components/AITermsDictionary';
-import LanguageSupportIndex from './components/LanguageSupportIndex';
+import WeeklyRecommendations from './components/WeeklyRecommendations';
 import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
@@ -36,7 +36,7 @@ function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'language'>('grid');
+  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -142,7 +142,7 @@ function App() {
     { label: 'Workflows', icon: Workflow, view: 'workflows' },
     { label: 'Learning Hub', icon: GraduationCap, view: 'learning' },
     { label: 'AI Dictionary', icon: Book, view: 'dictionary' },
-    { label: 'Language Support', icon: Globe, view: 'language' },
+    { label: 'Weekly Picks', icon: Trophy, view: 'weekly' },
     { label: 'Submit', icon: Zap, view: 'submit' }
   ];
 
@@ -338,7 +338,7 @@ function App() {
                   {view === 'workflows' && <WorkflowBuilder />}
                   {view === 'learning' && <AILearningHub />}
                   {view === 'dictionary' && <AITermsDictionary />}
-                  {view === 'language' && <LanguageSupportIndex />}
+                  {view === 'weekly' && <WeeklyRecommendations />}
                   {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
                 </div>
               </main>
