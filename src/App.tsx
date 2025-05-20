@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Sparkles } from 'lucide-react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Globe, GraduationCap } from 'lucide-react';
 import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
@@ -11,9 +11,11 @@ import ToolFinder from './components/ToolFinder';
 import CompareTools from './components/CompareTools';
 import SubmitTool from './components/SubmitTool';
 import PersonaRecommendations from './components/PersonaRecommendations';
-import SubscriptionManager from './components/SubscriptionManager';
 import PromptExplorer from './components/PromptExplorer';
 import WorkflowBuilder from './components/WorkflowBuilder';
+import AILearningHub from './components/AILearningHub';
+import AITermsDictionary from './components/AITermsDictionary';
+import LanguageSupportIndex from './components/LanguageSupportIndex';
 import Footer from './components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
@@ -34,12 +36,11 @@ function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'subscriptions' | 'prompts' | 'workflows'>('grid');
+  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'language'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -117,13 +118,6 @@ function App() {
     }
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() && !searchHistory.includes(query.trim())) {
-      setSearchHistory(prev => [query.trim(), ...prev].slice(0, 5));
-    }
-  };
-
   const filteredTools = aiTools.filter(tool => 
     (selectedCategory === 'All' || tool.category === selectedCategory) &&
     (searchQuery === '' || 
@@ -146,7 +140,9 @@ function App() {
     { label: 'Personas', icon: Users, view: 'personas' },
     { label: 'Prompts', icon: Brain, view: 'prompts' },
     { label: 'Workflows', icon: Workflow, view: 'workflows' },
-    { label: 'Subscriptions', icon: Sparkles, view: 'subscriptions' },
+    { label: 'Learning Hub', icon: GraduationCap, view: 'learning' },
+    { label: 'AI Dictionary', icon: Book, view: 'dictionary' },
+    { label: 'Language Support', icon: Globe, view: 'language' },
     { label: 'Submit', icon: Zap, view: 'submit' }
   ];
 
@@ -262,7 +258,7 @@ function App() {
                             <input
                               type="text"
                               value={searchQuery}
-                              onChange={(e) => handleSearch(e.target.value)}
+                              onChange={(e) => setSearchQuery(e.target.value)}
                               placeholder="Search AI tools by name, description, or category..."
                               className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
@@ -338,9 +334,11 @@ function App() {
                   {view === 'finder' && <ToolFinder tools={aiTools} />}
                   {view === 'compare' && <CompareTools tools={aiTools} />}
                   {view === 'personas' && <PersonaRecommendations />}
-                  {view === 'subscriptions' && <SubscriptionManager />}
                   {view === 'prompts' && <PromptExplorer />}
                   {view === 'workflows' && <WorkflowBuilder />}
+                  {view === 'learning' && <AILearningHub />}
+                  {view === 'dictionary' && <AITermsDictionary />}
+                  {view === 'language' && <LanguageSupportIndex />}
                   {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
                 </div>
               </main>
@@ -356,8 +354,8 @@ function App() {
 
         {/* Mobile Navigation */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <nav className="grid grid-cols-4 gap-1 p-2">
-            {navItems.slice(0, 4).map(item => (
+          <nav className="grid grid-cols-5 gap-1 p-2">
+            {navItems.slice(0, 5).map(item => (
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
@@ -372,8 +370,8 @@ function App() {
               </button>
             ))}
           </nav>
-          <nav className="grid grid-cols-4 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
-            {navItems.slice(4).map(item => (
+          <nav className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
+            {navItems.slice(5).map(item => (
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
