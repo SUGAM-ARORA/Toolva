@@ -25,6 +25,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
+import ReactGA from 'react-ga4';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -42,6 +43,22 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 12;
+
+  useEffect(() => {
+  const script1 = document.createElement('script');
+  script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
+  script1.async = true;
+  document.head.appendChild(script1);
+
+  const script2 = document.createElement('script');
+  script2.innerHTML = `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-N87HLGF2NN');
+  `;
+  document.head.appendChild(script2);
+}, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

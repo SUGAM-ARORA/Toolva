@@ -8,114 +8,206 @@ const personas = [
     id: 'developer',
     name: 'Developer',
     icon: Code,
-    categories: ['Code', 'APIs', 'DevOps']
+    categories: ['Code', 'APIs', 'DevOps'],
+    description: 'Tools for coding, development, and deployment'
   },
   {
     id: 'designer',
     name: 'Designer',
     icon: Palette,
-    categories: ['Design', 'Image Generation']
+    categories: ['Design', 'Image Generation'],
+    description: 'Creative and design-focused AI tools'
   },
   {
-    id: 'writer',
+    id: 'content',
     name: 'Content Creator',
     icon: PenTool,
-    categories: ['Writing', 'Content Creation']
+    categories: ['Writing', 'Content Creation'],
+    description: 'Tools for content creation and management'
   },
   {
     id: 'business',
     name: 'Business Owner',
     icon: Briefcase,
-    categories: ['Business', 'Marketing', 'Analytics']
+    categories: ['Business', 'Marketing', 'Analytics'],
+    description: 'Business automation and analytics tools'
+  },
+  {
+    id: 'photographer',
+    name: 'Photographer',
+    icon: Camera,
+    categories: ['Image Generation', 'Design'],
+    description: 'Photography and image editing tools'
+  },
+  {
+    id: 'researcher',
+    name: 'Researcher',
+    icon: Brain,
+    categories: ['Research', 'Analytics'],
+    description: 'Research and data analysis tools'
   }
 ];
 
 const PersonaRecommendations = () => {
   const [selectedPersona, setSelectedPersona] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const getRecommendedTools = () => {
     if (!selectedPersona) return [];
     const persona = personas.find(p => p.id === selectedPersona);
     return aiTools.filter(tool => 
-      persona?.categories.includes(tool.category)
+      persona?.categories.some(category => tool.category === category)
     ).slice(0, 6);
   };
 
+  const handlePersonaSelect = (personaId: string) => {
+    setIsLoading(true);
+    setSelectedPersona(personaId);
+    // Simulate loading for smoother transition
+    setTimeout(() => setIsLoading(false), 500);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+        >
           Find Your Perfect AI Stack
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-lg text-gray-600 dark:text-gray-400"
+        >
           Get personalized tool recommendations based on your role
-        </p>
+        </motion.p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-        {personas.map((persona) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {personas.map((persona, index) => {
           const Icon = persona.icon;
+          const isSelected = selectedPersona === persona.id;
+          
           return (
             <motion.button
               key={persona.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedPersona(persona.id)}
-              className={`p-6 rounded-xl text-center transition-all ${
-                selectedPersona === persona.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handlePersonaSelect(persona.id)}
+              className={`p-6 rounded-xl text-left transition-all ${
+                isSelected
+                  ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg'
+                  : 'bg-white dark:bg-gray-800 hover:shadow-md'
               }`}
             >
-              <Icon className="w-8 h-8 mx-auto mb-3" />
-              <h3 className="font-semibold">{persona.name}</h3>
+              <div className="flex items-center mb-4">
+                <div className={`p-3 rounded-lg ${
+                  isSelected 
+                    ? 'bg-white/20' 
+                    : 'bg-blue-50 dark:bg-gray-700'
+                }`}>
+                  <Icon className={`w-6 h-6 ${
+                    isSelected
+                      ? 'text-white'
+                      : 'text-blue-500 dark:text-blue-400'
+                  }`} />
+                </div>
+                <h3 className={`ml-3 font-semibold ${
+                  isSelected
+                    ? 'text-white'
+                    : 'text-gray-900 dark:text-white'
+                }`}>
+                  {persona.name}
+                </h3>
+              </div>
+              <p className={`text-sm ${
+                isSelected
+                  ? 'text-white/80'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}>
+                {persona.description}
+              </p>
             </motion.button>
           );
         })}
       </div>
 
       {selectedPersona && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {getRecommendedTools().map((tool, index) => (
-            <motion.div
-              key={tool.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {tool.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {tool.category}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
+        >
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Recommended Tools
+          </h3>
+          
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
+                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getRecommendedTools().map((tool, index) => (
+                <motion.div
+                  key={tool.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {tool.name}
+                    </h4>
+                    <span className="px-3 py-1 text-sm font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full">
+                      {tool.category}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                    {tool.description}
                   </p>
-                </div>
-                <div className="flex items-center bg-blue-100 dark:bg-blue-900/20 px-2 py-1 rounded-full">
-                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    {tool.rating}
-                  </span>
-                  <Star className="w-4 h-4 text-blue-600 dark:text-blue-400 ml-1" />
-                </div>
-              </div>
-              
-              <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                {tool.description}
-              </p>
-
-              <a
-                href={tool.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Try Now
-              </a>
-            </motion.div>
-          ))}
-        </div>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {tool.pricing}
+                    </span>
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {tool.rating}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <a
+                    href={tool.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    Try Now
+                  </a>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       )}
     </div>
   );
