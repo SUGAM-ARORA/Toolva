@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Settings, Heart, UserCircle, Bell, Bookmark, Clock, Star, PenTool as Tool, Code, Shield, Zap, Trophy, Target, Gift } from 'lucide-react';
+import { User, Settings, LogOut, Star, Wrench, Shield, Trophy, Target, Gift, Activity, Clock, Heart, Bookmark, Globe, Brain, Book, Lightbulb } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -44,7 +44,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
     contributions: 0,
     reputation: 0,
     achievements: 0,
-    streak: 0
+    streak: 0,
+    languages: 0
   });
   const navigate = useNavigate();
 
@@ -77,7 +78,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
         contributions: contributions?.[0]?.count || 0,
         reputation: calculateReputation(reviews?.[0]?.count || 0, contributions?.[0]?.count || 0),
         achievements: Math.floor(Math.random() * 10),
-        streak: Math.floor(Math.random() * 30)
+        streak: Math.floor(Math.random() * 30),
+        languages: Math.floor(Math.random() * 15)
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -106,8 +108,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await supabase.auth.signOut();
       toast.success('Signed out successfully');
       navigate('/');
     } catch (err) {
@@ -120,17 +121,26 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
     {
       title: 'Profile',
       items: [
-        { label: 'My Profile', icon: UserCircle, href: '/profile', color: 'text-blue-500' },
+        { label: 'My Profile', icon: User, href: '/profile', color: 'text-blue-500' },
         { label: 'Favorites', icon: Heart, href: '/favorites', count: userStats.favorites, color: 'text-red-500' },
         { label: 'Bookmarks', icon: Bookmark, href: '/bookmarks', count: userStats.bookmarks, color: 'text-purple-500' },
         { label: 'Recent Activity', icon: Clock, href: '/activity', color: 'text-green-500' }
       ]
     },
     {
+      title: 'Learning',
+      items: [
+        { label: 'AI Learning Hub', icon: Brain, href: '/learning', badge: 'New!', color: 'text-indigo-500' },
+        { label: 'AI Dictionary', icon: Book, href: '/dictionary', color: 'text-emerald-500' },
+        { label: 'Language Support', icon: Globe, href: '/languages', count: userStats.languages, color: 'text-cyan-500' },
+        { label: 'Prompts Library', icon: Lightbulb, href: '/prompts', badge: 'Beta', color: 'text-amber-500' }
+      ]
+    },
+    {
       title: 'Contributions',
       items: [
         { label: 'My Reviews', icon: Star, href: '/reviews', count: userStats.reviews, color: 'text-yellow-500' },
-        { label: 'Submitted Tools', icon: Tool, href: '/submissions', count: userStats.contributions, color: 'text-indigo-500' },
+        { label: 'Submitted Tools', icon: Wrench, href: '/submissions', count: userStats.contributions, color: 'text-indigo-500' },
         { label: 'Achievements', icon: Trophy, href: '/achievements', count: userStats.achievements, color: 'text-amber-500' },
         { label: 'Goals', icon: Target, href: '/goals', badge: `${userStats.streak} day streak`, color: 'text-cyan-500' }
       ]
@@ -140,8 +150,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       items: [
         { label: 'Reputation', icon: Shield, href: '/reputation', count: userStats.reputation, color: 'text-emerald-500' },
         { label: 'Rewards', icon: Gift, href: '/rewards', badge: 'New!', color: 'text-pink-500' },
-        { label: 'API Usage', icon: Code, href: '/api-usage', color: 'text-violet-500' },
-        { label: 'Power Tools', icon: Zap, href: '/power-tools', badge: 'Pro', color: 'text-orange-500' }
+        { label: 'Activity Stats', icon: Activity, href: '/stats', color: 'text-violet-500' },
+        { label: 'Settings', icon: Settings, href: '/settings', color: 'text-gray-500' }
       ]
     }
   ];
@@ -223,7 +233,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
                 whileHover={{ scale: 1.05 }}
                 className="text-center p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/20 dark:to-emerald-500/20"
               >
-                <Tool className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+                <Wrench className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
                 <div className="font-bold text-gray-900 dark:text-white">{userStats.contributions}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">Tools</div>
               </motion.div>
