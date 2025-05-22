@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Settings, LogOut, Star, Wrench, Shield, Trophy, Target, Gift, Activity, Clock, Heart, Bookmark, Globe, Brain, Book, Lightbulb } from 'lucide-react';
+import { User, Settings, LogOut, Star, Wrench, Shield, Trophy, Target, Gift, Activity, Clock, Heart, Bookmark, Globe, Brain, Book, Lightbulb, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -47,11 +47,17 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
     streak: 0,
     languages: 0
   });
+  const [subscriptionStatus, setSubscriptionStatus] = useState({
+    plan: 'Free',
+    validUntil: new Date().toISOString(),
+    features: ['Basic Access', 'Limited Tools']
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUserStats();
     fetchNotifications();
+    fetchSubscriptionStatus();
   }, [user.id]);
 
   const fetchUserStats = async () => {
@@ -83,6 +89,28 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
+    }
+  };
+
+  const fetchSubscriptionStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setSubscriptionStatus({
+          plan: data.plan,
+          validUntil: data.valid_until,
+          features: data.features
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
     }
   };
 
@@ -152,6 +180,24 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
         { label: 'Rewards', icon: Gift, href: '/rewards', badge: 'New!', color: 'text-pink-500' },
         { label: 'Activity Stats', icon: Activity, href: '/stats', color: 'text-violet-500' },
         { label: 'Settings', icon: Settings, href: '/settings', color: 'text-gray-500' }
+      ]
+    },
+    {
+      title: 'Subscription',
+      items: [
+        {
+          label: `${subscriptionStatus.plan} Plan`,
+          icon: CreditCard,
+          href: '/subscription',
+          badge: new Date(subscriptionStatus.validUntil) > new Date() ? 'Active' : 'Expired',
+          color: 'text-purple-500'
+        },
+        {
+          label: 'Upgrade Plan',
+          icon: Gift,
+          href: '/subscription/upgrade',
+          color: 'text-green-500'
+        }
       ]
     }
   ];
