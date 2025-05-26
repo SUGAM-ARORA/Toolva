@@ -13,7 +13,7 @@
     "@supabase/supabase-js": "^2.39.7",
     "@types/lodash": "^4.17.16",
     "@types/react-router-dom": "^5.3.3",
-    "framer-motion": "^11.0.3",
+    "framer-motion": "^12.14.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
