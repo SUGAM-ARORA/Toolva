@@ -3,6 +3,7 @@ import { X, Mail, Lock, Eye, EyeOff, Github } from 'lucide-react';
 import { supabase, checkSupabaseConnection } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { GitHubSignIn } from './GitHubSignIn';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -79,6 +80,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     } catch (err: any) {
       setError(err.message);
       toast.error('Failed to reset password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'github' | 'google') => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+      
+    } catch (err: any) {
+      console.error('Social login error:', err);
+      setError(err.message);
+      toast.error('Failed to sign in with ' + provider);
     } finally {
       setIsLoading(false);
     }
@@ -296,19 +318,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
 
           <div className="space-y-4 mb-6">
             <button
-              onClick={() => handleSocialLogin('google')}
-              className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-3" />
-              Continue with Google
-            </button>
-
-            <button
               onClick={() => handleSocialLogin('github')}
               className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              disabled={isLoading}
             >
               <Github className="w-5 h-5 mr-3" />
-              Continue with GitHub
+              {isLoading ? 'Signing in...' : 'Continue with GitHub'}
             </button>
           </div>
 
