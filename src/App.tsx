@@ -26,6 +26,8 @@ import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
 import ReactGA from 'react-ga4';
+import { GitHubSignIn } from './components/GitHubSignIn';
+import { AuthCallback } from './pages/AuthCallback';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -244,6 +246,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/" element={
               <main className="flex-1 pt-16 pb-20">
                 {view === 'grid' && (
@@ -366,7 +369,12 @@ function App() {
         </div>
 
         {showAuthModal && (
-          <AuthModal onClose={() => setShowAuthModal(false)} />
+          <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
+            <div className="space-y-4">
+              <GitHubSignIn />
+              {/* Add other sign-in methods here */}
+            </div>
+          </AuthModal>
         )}
 
         {/* Mobile Navigation */}
