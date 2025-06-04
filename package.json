@@ -15,7 +15,7 @@
     "@types/react-router-dom": "^5.3.3",
     "framer-motion": "^11.0.3",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.513.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-ga4": "^2.1.0",
