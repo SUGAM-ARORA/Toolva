@@ -47,20 +47,20 @@ function App() {
   const itemsPerPage = 12;
 
   useEffect(() => {
-  const script1 = document.createElement('script');
-  script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
-  script1.async = true;
-  document.head.appendChild(script1);
+    const script1 = document.createElement('script');
+    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
+    script1.async = true;
+    document.head.appendChild(script1);
 
-  const script2 = document.createElement('script');
-  script2.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-N87HLGF2NN');
-  `;
-  document.head.appendChild(script2);
-}, []);
+    const script2 = document.createElement('script');
+    script2.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-N87HLGF2NN');
+    `;
+    document.head.appendChild(script2);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -326,7 +326,7 @@ function App() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {paginatedTools.map((tool, index) => (
                           <motion.div
-                            key={tool.name}
+                            key={tool.id} // Changed from tool.name to tool.id
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -334,8 +334,8 @@ function App() {
                           >
                             <ToolCard
                               tool={tool}
-                              onFavorite={() => handleFavorite(tool.name)}
-                              isFavorited={favorites.includes(tool.name)}
+                              onFavorite={() => handleFavorite(tool.id)} // Changed from tool.name to tool.id
+                              isFavorited={favorites.includes(tool.id)} // Changed from tool.name to tool.id
                             />
                           </motion.div>
                         ))}

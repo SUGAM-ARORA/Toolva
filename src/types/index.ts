@@ -1,4 +1,5 @@
 export interface AITool {
+  id: string; // Add UUID field
   name: string;
   description: string;
   category: string;
@@ -72,4 +73,4 @@ export interface ToolCategory {
   description: string;
   icon: string;
   count: number;
-} 
+}
