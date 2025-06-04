@@ -2,10 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"toolva/internal/models"
 	"toolva/internal/services"
-
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -56,7 +54,6 @@ func (h *UserHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
@@ -103,13 +100,9 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 func (h *UserHandler) AddFavorite(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	toolID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tool ID"})
-		return
-	}
+	toolID := c.Param("id")
 
-	if err := h.userService.AddFavorite(userID, uint(toolID)); err != nil {
+	if err := h.userService.AddFavorite(userID, toolID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -119,13 +112,9 @@ func (h *UserHandler) AddFavorite(c *gin.Context) {
 
 func (h *UserHandler) RemoveFavorite(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	toolID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tool ID"})
-		return
-	}
+	toolID := c.Param("id")
 
-	if err := h.userService.RemoveFavorite(userID, uint(toolID)); err != nil {
+	if err := h.userService.RemoveFavorite(userID, toolID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -145,11 +134,7 @@ func (h *UserHandler) GetFavorites(c *gin.Context) {
 
 func (h *UserHandler) AddReview(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	toolID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tool ID"})
-		return
-	}
+	toolID := c.Param("id")
 
 	var review models.Review
 	if err := c.ShouldBindJSON(&review); err != nil {
@@ -158,7 +143,7 @@ func (h *UserHandler) AddReview(c *gin.Context) {
 	}
 
 	review.UserID = userID
-	review.ToolID = uint(toolID)
+	review.ToolID = toolID
 
 	if err := h.userService.AddReview(&review); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -169,13 +154,9 @@ func (h *UserHandler) AddReview(c *gin.Context) {
 }
 
 func (h *UserHandler) GetToolReviews(c *gin.Context) {
-	toolID, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tool ID"})
-		return
-	}
+	toolID := c.Param("id")
 
-	reviews, err := h.userService.GetToolReviews(uint(toolID))
+	reviews, err := h.userService.GetToolReviews(toolID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -5,7 +5,7 @@ import (
 )
 
 type Tool struct {
-	ID              uint      `json:"id" gorm:"primaryKey"`
+	ID              string    `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	Name            string    `json:"name" gorm:"not null"`
 	Description     string    `json:"description" gorm:"type:text"`
 	Category        string    `json:"category" gorm:"not null"`
@@ -23,4 +23,4 @@ type Tool struct {
 	LastUpdated     time.Time `json:"lastUpdated" gorm:"autoUpdateTime"`
 	CreatedAt       time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt       time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
-} 
+}
