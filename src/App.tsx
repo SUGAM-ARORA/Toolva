@@ -1,21 +1,12 @@
+import { lazy, Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
-import ToolCard from './components/ToolCard';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
-import ToolFinder from './components/ToolFinder';
-import CompareTools from './components/CompareTools';
-import SubmitTool from './components/SubmitTool';
-import PersonaRecommendations from './components/PersonaRecommendations';
-import PromptExplorer from './components/PromptExplorer';
-import WorkflowBuilder from './components/WorkflowBuilder';
-import AILearningHub from './components/AILearningHub';
-import AITermsDictionary from './components/AITermsDictionary';
-import WeeklyRecommendations from './components/WeeklyRecommendations';
-import Footer from './components/Footer';
+import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
@@ -28,6 +19,19 @@ import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
+
+// Lazy load components
+const ToolCard = lazy(() => import('./components/ToolCard'));
+const ToolFinder = lazy(() => import('./components/ToolFinder'));
+const CompareTools = lazy(() => import('./components/CompareTools'));
+const PersonaRecommendations = lazy(() => import('./components/PersonaRecommendations'));
+const PromptExplorer = lazy(() => import('./components/PromptExplorer'));
+const WorkflowBuilder = lazy(() => import('./components/WorkflowBuilder'));
+const AILearningHub = lazy(() => import('./components/AILearningHub'));
+const AITermsDictionary = lazy(() => import('./components/AITermsDictionary'));
+const WeeklyRecommendations = lazy(() => import('./components/WeeklyRecommendations'));
+const SubmitTool = lazy(() => import('./components/SubmitTool'));
+const Footer = lazy(() => import('./components/Footer'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -367,11 +371,13 @@ function App() {
                               transition={{ delay: index * 0.1, duration: 0.5 }}
                               className="h-full"
                             >
-                              <ToolCard
-                                tool={tool}
-                                onFavorite={() => handleFavorite(tool.id)}
-                                isFavorited={favorites.includes(tool.id)}
-                              />
+                              <Suspense fallback={<LoadingSpinner />}>
+                                <ToolCard
+                                  tool={tool}
+                                  onFavorite={() => handleFavorite(tool.id)}
+                                  isFavorited={favorites.includes(tool.id)}
+                                />
+                              </Suspense>
                             </motion.div>
                           ))}
                         </div>
@@ -387,21 +393,59 @@ function App() {
                       )}
                     </motion.div>
                   )}
-                  {view === 'finder' && <ToolFinder tools={tools} />}
-                  {view === 'compare' && <CompareTools tools={tools} />}
-                  {view === 'personas' && <PersonaRecommendations tools={tools} />}
-                  {view === 'prompts' && <PromptExplorer />}
-                  {view === 'workflows' && <WorkflowBuilder tools={tools} />}
-                  {view === 'learning' && <AILearningHub />}
-                  {view === 'dictionary' && <AITermsDictionary />}
-                  {view === 'weekly' && <WeeklyRecommendations tools={tools} />}
-                  {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
+                  {view === 'finder' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <ToolFinder tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'compare' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <CompareTools tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'personas' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <PersonaRecommendations tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'prompts' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <PromptExplorer />
+                    </Suspense>
+                  )}
+                  {view === 'workflows' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <WorkflowBuilder tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'learning' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AILearningHub />
+                    </Suspense>
+                  )}
+                  {view === 'dictionary' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AITermsDictionary />
+                    </Suspense>
+                  )}
+                  {view === 'weekly' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <WeeklyRecommendations tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'submit' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <SubmitTool onClose={() => setView('grid')} />
+                    </Suspense>
+                  )}
                 </div>
               </main>
             } />
           </Routes>
 
-          <Footer />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Footer />
+          </Suspense>
         </div>
 
         {showAuthModal && (
