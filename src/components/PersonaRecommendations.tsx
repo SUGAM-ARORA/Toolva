@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Code, Briefcase, Palette, PenTool, Camera, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { aiTools } from '../data/aiTools';
+import { supabase } from '../lib/supabase';
+import { AITool } from '../types';
+import LoadingSpinner from './LoadingSpinner';
 
 const personas = [
   {
@@ -51,20 +53,49 @@ const personas = [
 const PersonaRecommendations = () => {
   const [selectedPersona, setSelectedPersona] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [tools, setTools] = useState<AITool[]>([]);
+  const [recommendations, setRecommendations] = useState<AITool[]>([]);
   
-  const getRecommendedTools = () => {
-    if (!selectedPersona) return [];
-    const persona = personas.find(p => p.id === selectedPersona);
-    return aiTools.filter(tool => 
-      persona?.categories.some(category => tool.category === category)
-    ).slice(0, 6);
+  useEffect(() => {
+    fetchTools();
+  }, []);
+
+  const fetchTools = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tools')
+        .select('*')
+        .eq('verified', true);
+
+      if (error) throw error;
+      setTools(data);
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+    }
   };
 
-  const handlePersonaSelect = (personaId: string) => {
+  const handlePersonaSelect = async (personaId: string) => {
     setIsLoading(true);
     setSelectedPersona(personaId);
-    // Simulate loading for smoother transition
-    setTimeout(() => setIsLoading(false), 500);
+
+    try {
+      const persona = personas.find(p => p.id === personaId);
+      if (!persona) return;
+
+      const { data, error } = await supabase
+        .from('tools')
+        .select('*')
+        .in('category', persona.categories)
+        .order('rating', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setRecommendations(data);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -150,19 +181,10 @@ const PersonaRecommendations = () => {
           </h3>
           
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-6 animate-pulse">
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-4"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </div>
-              ))}
-            </div>
+            <LoadingSpinner />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {getRecommendedTools().map((tool, index) => (
+              {recommendations.map((tool, index) => (
                 <motion.div
                   key={tool.name}
                   initial={{ opacity: 0, y: 20 }}
