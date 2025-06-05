@@ -2,9 +2,9 @@ import { AITool } from '../types';
 import { moreAITools } from './moreAITools';
 import { extraAITools } from './extraAITools';
 
-export const aiTools: AITool[] = [
+const baseTools: AITool[] = [
   {
-    id: "550e8400-e29b-41d4-a716-446655440000", // Added UUID
+    id: "550e8400-e29b-41d4-a716-446655440000",
     name: 'Stable Diffusion XL Turbo',
     description: 'Ultra-fast image generation with high quality',
     category: 'Image Generation',
@@ -18,7 +18,7 @@ export const aiTools: AITool[] = [
     userExperience: 4.7
   },
   {
-    id: "550e8400-e29b-41d4-a716-446655440001", // Added UUID
+    id: "550e8400-e29b-41d4-a716-446655440001",
     name: 'Anthropic Claude 3 Haiku',
     description: 'Fast and efficient AI assistant for quick tasks',
     category: 'Chatbots',
@@ -32,7 +32,7 @@ export const aiTools: AITool[] = [
     userExperience: 4.6
   },
   {
-    id: "550e8400-e29b-41d4-a716-446655440002", // Added UUID
+    id: "550e8400-e29b-41d4-a716-446655440002",
     name: 'Google Gemini Pro Vision',
     description: 'Advanced AI model for image and text understanding',
     category: 'Chatbots',
@@ -45,8 +45,7 @@ export const aiTools: AITool[] = [
     easeOfUse: 4.7,
     userExperience: 4.7
   }
-  // ... Rest of the tools array with added UUIDs
 ];
 
-// Note: You'll need to add unique UUIDs for all tools in the array
-// The example shows the pattern for the first few items
+// Combine all tools into one array
+export const aiTools: AITool[] = [...baseTools, ...moreAITools, ...extraAITools];
