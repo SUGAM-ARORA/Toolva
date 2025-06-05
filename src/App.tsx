@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
-import { aiTools } from './data/aiTools';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
 import ToolCard from './components/ToolCard';
@@ -28,6 +27,7 @@ import Settings from './pages/Settings';
 import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
+import { AITool } from './types';
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -44,7 +44,30 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [tools, setTools] = useState<AITool[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 12;
+
+  useEffect(() => {
+    fetchTools();
+  }, []);
+
+  const fetchTools = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tools')
+        .select('*')
+        .eq('verified', true);
+
+      if (error) throw error;
+      setTools(data);
+    } catch (error) {
+      console.error('Error fetching tools:', error);
+      toast.error('Failed to load tools');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -137,7 +160,7 @@ function App() {
     }
   };
 
-  const filteredTools = aiTools.filter(tool => 
+  const filteredTools = tools.filter(tool => 
     (selectedCategory === 'All' || tool.category === selectedCategory) &&
     (searchQuery === '' || 
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,6 +208,7 @@ function App() {
                 onCategoryChange={setSelectedCategory}
                 onClose={() => setShowSidebar(false)}
                 onFilterChange={() => {}}
+                toolsCount={tools.length}
               />
             </motion.div>
           )}
@@ -268,7 +292,7 @@ function App() {
                           Discover the Best AI Tools
                         </h1>
                         <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12">
-                          Browse our directory of {aiTools.length}+ AI tools to find the right solution for your needs
+                          Browse our directory of {tools.length}+ AI tools to find the right solution for your needs
                         </p>
 
                         <div className="relative max-w-2xl mx-auto mb-12">
@@ -323,23 +347,35 @@ function App() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {paginatedTools.map((tool, index) => (
-                          <motion.div
-                            key={tool.id} // Changed from tool.name to tool.id
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1, duration: 0.5 }}
-                            className="h-full"
-                          >
-                            <ToolCard
-                              tool={tool}
-                              onFavorite={() => handleFavorite(tool.id)} // Changed from tool.name to tool.id
-                              isFavorited={favorites.includes(tool.id)} // Changed from tool.name to tool.id
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
+                      {isLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {[...Array(8)].map((_, index) => (
+                            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 animate-pulse">
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {paginatedTools.map((tool, index) => (
+                            <motion.div
+                              key={tool.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1, duration: 0.5 }}
+                              className="h-full"
+                            >
+                              <ToolCard
+                                tool={tool}
+                                onFavorite={() => handleFavorite(tool.id)}
+                                isFavorited={favorites.includes(tool.id)}
+                              />
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
                       {totalPages > 1 && (
                         <div className="mt-8">
                           <Pagination
@@ -351,14 +387,14 @@ function App() {
                       )}
                     </motion.div>
                   )}
-                  {view === 'finder' && <ToolFinder tools={aiTools} />}
-                  {view === 'compare' && <CompareTools tools={aiTools} />}
-                  {view === 'personas' && <PersonaRecommendations />}
+                  {view === 'finder' && <ToolFinder tools={tools} />}
+                  {view === 'compare' && <CompareTools tools={tools} />}
+                  {view === 'personas' && <PersonaRecommendations tools={tools} />}
                   {view === 'prompts' && <PromptExplorer />}
-                  {view === 'workflows' && <WorkflowBuilder />}
+                  {view === 'workflows' && <WorkflowBuilder tools={tools} />}
                   {view === 'learning' && <AILearningHub />}
                   {view === 'dictionary' && <AITermsDictionary />}
-                  {view === 'weekly' && <WeeklyRecommendations />}
+                  {view === 'weekly' && <WeeklyRecommendations tools={tools} />}
                   {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
                 </div>
               </main>
