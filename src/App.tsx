@@ -97,7 +97,6 @@ function App() {
         
         if (error) {
           console.error('Session error:', error);
-          // Clear any stale session data
           await supabase.auth.signOut();
           setUser(null);
           setFavorites([]);
@@ -112,7 +111,6 @@ function App() {
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        // Clear any stale session data on error
         await supabase.auth.signOut();
         setUser(null);
         setFavorites([]);
@@ -245,6 +243,16 @@ function App() {
     }
   };
 
+  // Handle category selection from hero section
+  const handleCategorySelect = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    // Scroll to tools section
+    const toolsSection = document.getElementById('tools-section');
+    if (toolsSection) {
+      toolsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const filteredTools = tools.filter(tool => 
     (selectedCategory === 'All' || tool.category === selectedCategory) &&
     (searchQuery === '' || 
@@ -322,9 +330,9 @@ function App() {
                     <button
                       key={item.label}
                       onClick={() => setView(item.view as any)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
                         view === item.view
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                          ? 'bg-blue-600 text-white shadow-lg'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
@@ -407,7 +415,7 @@ function App() {
                                 key={category.name}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => setSelectedCategory(category.name)}
+                                onClick={() => handleCategorySelect(category.name)}
                                 className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
                                   selectedCategory === category.name
                                     ? 'bg-blue-600/30 border-blue-400'
@@ -425,7 +433,7 @@ function App() {
                   </div>
                 )}
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div id="tools-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                   {view === 'grid' && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -535,7 +543,6 @@ function App() {
           <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
             <div className="space-y-4">
               <GitHubSignIn />
-              {/* Add other sign-in methods here */}
             </div>
           </AuthModal>
         )}
@@ -547,7 +554,7 @@ function App() {
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
                   view === item.view
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -563,7 +570,7 @@ function App() {
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
                   view === item.view
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
