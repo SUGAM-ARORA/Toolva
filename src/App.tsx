@@ -90,19 +90,47 @@ function App() {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchFavorites(session.user.id);
-      }
-    });
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          // Clear any stale session data
+          await supabase.auth.signOut();
+          setUser(null);
+          setFavorites([]);
+          return;
+        }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchFavorites(session.user.id);
-      } else {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        // Clear any stale session data on error
+        await supabase.auth.signOut();
+        setUser(null);
         setFavorites([]);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        } else {
+          setFavorites([]);
+        }
+      } else if (event === 'SIGNED_IN') {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        }
       }
     });
 
