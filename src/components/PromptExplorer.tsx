@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Sparkles, Brain, Lightbulb, Star, Copy, PenTool, Image, Code, BarChart, FileText, Briefcase, Zap, TrendingUp, Clock, Users, Filter, X, BookOpen, Target, Rocket } from 'lucide-react';
+import { Search, Sparkles, Brain, Lightbulb, Star, Copy, PenTool, Image, Code, BarChart, FileText, Briefcase, Zap, TrendingUp, Clock, Users, Filter, X, BookOpen, Target, Rocket, Video, Music, Mic, Camera, Globe, Shield, Database, Cpu, Heart, Award, Trophy, Gift } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -15,6 +15,9 @@ interface Prompt {
   estimatedTime: string;
   author: string;
   featured?: boolean;
+  useCase: string;
+  expectedOutput: string;
+  tips: string[];
 }
 
 const categories = [
@@ -25,7 +28,11 @@ const categories = [
   { id: 'writing', name: 'Writing', icon: FileText, color: 'from-cyan-500 to-blue-600' },
   { id: 'business', name: 'Business', icon: Briefcase, color: 'from-violet-500 to-purple-600' },
   { id: 'marketing', name: 'Marketing', icon: TrendingUp, color: 'from-pink-500 to-rose-600' },
-  { id: 'education', name: 'Education', icon: BookOpen, color: 'from-indigo-500 to-blue-600' }
+  { id: 'education', name: 'Education', icon: BookOpen, color: 'from-indigo-500 to-blue-600' },
+  { id: 'video', name: 'Video Creation', icon: Video, color: 'from-red-500 to-pink-600' },
+  { id: 'audio', name: 'Audio & Music', icon: Music, color: 'from-yellow-500 to-orange-600' },
+  { id: 'research', name: 'Research', icon: Brain, color: 'from-teal-500 to-cyan-600' },
+  { id: 'creative', name: 'Creative Writing', icon: Lightbulb, color: 'from-amber-500 to-yellow-600' }
 ];
 
 const samplePrompts: Prompt[] = [
@@ -40,7 +47,10 @@ const samplePrompts: Prompt[] = [
     difficulty: 'Beginner',
     estimatedTime: '5 min',
     author: 'ContentPro',
-    featured: true
+    featured: true,
+    useCase: 'Creating structured blog posts with SEO optimization',
+    expectedOutput: 'Detailed outline with headings, subpoints, and meta description',
+    tips: ['Be specific about your target audience', 'Include relevant keywords', 'Keep headings engaging']
   },
   {
     id: '2',
@@ -52,7 +62,10 @@ const samplePrompts: Prompt[] = [
     tags: ['programming', 'optimization', 'clean code', 'refactoring'],
     difficulty: 'Advanced',
     estimatedTime: '15 min',
-    author: 'DevMaster'
+    author: 'DevMaster',
+    useCase: 'Improving code quality and performance',
+    expectedOutput: 'Detailed refactoring plan with optimized code',
+    tips: ['Provide context about your codebase', 'Specify performance goals', 'Include test cases']
   },
   {
     id: '3',
@@ -64,7 +77,10 @@ const samplePrompts: Prompt[] = [
     tags: ['image generation', 'creative', 'art', 'design'],
     difficulty: 'Intermediate',
     estimatedTime: '8 min',
-    author: 'ArtisticAI'
+    author: 'ArtisticAI',
+    useCase: 'Creating detailed prompts for AI image generation',
+    expectedOutput: 'Comprehensive image generation prompt with technical details',
+    tips: ['Be specific about style and mood', 'Include negative prompts', 'Specify technical requirements']
   },
   {
     id: '4',
@@ -76,22 +92,13 @@ const samplePrompts: Prompt[] = [
     tags: ['business', 'strategy', 'analysis', 'planning'],
     difficulty: 'Advanced',
     estimatedTime: '20 min',
-    author: 'BizConsultant'
+    author: 'BizConsultant',
+    useCase: 'Comprehensive business planning and analysis',
+    expectedOutput: 'Detailed business analysis with strategic recommendations',
+    tips: ['Provide market context', 'Be realistic about budget', 'Include competitive analysis']
   },
   {
     id: '5',
-    title: 'Data Visualization Storyteller',
-    prompt: 'Transform this dataset into a compelling data story:\n\n📈 Dataset: [DESCRIBE_DATA]\n🎯 Objective: [ANALYSIS_GOAL]\n👥 Audience: [TARGET_AUDIENCE]\n\nProvide:\n1. Key insights and patterns discovered\n2. Recommended visualization types for each insight\n3. Narrative structure for presenting findings\n4. Interactive elements suggestions\n5. Color scheme and design recommendations\n6. Executive summary with actionable recommendations\n\nTools available: [TOOLS] (e.g., Tableau, Power BI, Python)\nComplexity level: [LEVEL]',
-    category: 'analysis',
-    rating: 4.8,
-    usageCount: 4560,
-    tags: ['data analysis', 'visualization', 'storytelling', 'insights'],
-    difficulty: 'Intermediate',
-    estimatedTime: '12 min',
-    author: 'DataViz'
-  },
-  {
-    id: '6',
     title: 'Social Media Campaign Creator',
     prompt: 'Design a comprehensive social media campaign for "[PRODUCT/SERVICE]":\n\n🎯 Campaign Objectives:\n- Primary goal: [GOAL] (awareness, engagement, conversion)\n- Target metrics: [METRICS]\n- Budget: [BUDGET]\n- Duration: [TIMEFRAME]\n\n📱 Platform Strategy:\n- Platform selection and rationale\n- Content calendar (30 days)\n- Posting schedule optimization\n- Hashtag strategy\n\n🎨 Creative Elements:\n- Visual style guide\n- Content themes and pillars\n- Engagement tactics\n- Influencer collaboration ideas\n\n📊 Success Measurement:\n- KPI tracking plan\n- A/B testing strategies\n- ROI calculation methods',
     category: 'marketing',
@@ -100,7 +107,55 @@ const samplePrompts: Prompt[] = [
     tags: ['marketing', 'social media', 'campaign', 'strategy'],
     difficulty: 'Intermediate',
     estimatedTime: '18 min',
-    author: 'SocialGuru'
+    author: 'SocialGuru',
+    useCase: 'Creating comprehensive social media marketing campaigns',
+    expectedOutput: 'Complete campaign strategy with content calendar',
+    tips: ['Define clear objectives', 'Know your audience', 'Plan for measurement']
+  },
+  {
+    id: '6',
+    title: 'Video Script Writer',
+    prompt: 'Create an engaging video script for "[VIDEO_TOPIC]":\n\n🎬 Video Details:\n- Duration: [LENGTH] minutes\n- Platform: [PLATFORM] (YouTube, TikTok, Instagram, etc.)\n- Target audience: [AUDIENCE]\n- Video style: [STYLE] (educational, entertaining, promotional)\n\n📝 Script Structure:\n- Hook (first 5 seconds)\n- Introduction and value proposition\n- Main content with key points\n- Call-to-action\n- Outro\n\n🎭 Production Notes:\n- Visual cues and B-roll suggestions\n- Music and sound effect recommendations\n- Pacing and timing notes\n- Engagement elements (questions, polls)\n\nTone: [TONE]\nBrand voice: [BRAND_VOICE]',
+    category: 'video',
+    rating: 4.8,
+    usageCount: 7650,
+    tags: ['video', 'script', 'content', 'storytelling'],
+    difficulty: 'Intermediate',
+    estimatedTime: '12 min',
+    author: 'VideoCreator',
+    useCase: 'Writing engaging video scripts for various platforms',
+    expectedOutput: 'Complete video script with production notes',
+    tips: ['Start with a strong hook', 'Keep audience engaged', 'Include clear call-to-action']
+  },
+  {
+    id: '7',
+    title: 'Research Paper Assistant',
+    prompt: 'Help me structure and outline a research paper on "[RESEARCH_TOPIC]":\n\n📚 Paper Requirements:\n- Academic level: [LEVEL] (undergraduate, graduate, PhD)\n- Field of study: [FIELD]\n- Paper length: [PAGES] pages\n- Citation style: [STYLE] (APA, MLA, Chicago)\n\n🔍 Research Framework:\n- Research question formulation\n- Literature review structure\n- Methodology recommendations\n- Data analysis approach\n- Expected findings and implications\n\n📖 Paper Structure:\n- Abstract outline\n- Introduction framework\n- Main sections with subsections\n- Conclusion structure\n- Reference requirements\n\nDeadline: [DEADLINE]\nSpecial requirements: [REQUIREMENTS]',
+    category: 'research',
+    rating: 4.9,
+    usageCount: 5430,
+    tags: ['research', 'academic', 'writing', 'analysis'],
+    difficulty: 'Advanced',
+    estimatedTime: '25 min',
+    author: 'AcademicHelper',
+    useCase: 'Structuring academic research papers',
+    expectedOutput: 'Comprehensive research paper outline and framework',
+    tips: ['Define clear research questions', 'Follow academic standards', 'Plan your timeline']
+  },
+  {
+    id: '8',
+    title: 'Creative Story Generator',
+    prompt: 'Create an engaging story based on these elements:\n\n📖 Story Elements:\n- Genre: [GENRE] (fantasy, sci-fi, mystery, romance, etc.)\n- Setting: [SETTING] (time and place)\n- Main character: [CHARACTER] (brief description)\n- Conflict/Challenge: [CONFLICT]\n- Tone: [TONE] (dark, humorous, inspiring, etc.)\n\n✨ Story Structure:\n- Compelling opening scene\n- Character development arc\n- Plot progression with twists\n- Climax and resolution\n- Satisfying conclusion\n\n🎭 Writing Style:\n- Narrative perspective: [PERSPECTIVE] (first person, third person)\n- Target length: [LENGTH] words\n- Target audience: [AUDIENCE]\n\nSpecial elements to include: [ELEMENTS]',
+    category: 'creative',
+    rating: 4.6,
+    usageCount: 11200,
+    tags: ['creative writing', 'storytelling', 'fiction', 'narrative'],
+    difficulty: 'Intermediate',
+    estimatedTime: '15 min',
+    author: 'StoryWeaver',
+    useCase: 'Generating creative stories and narratives',
+    expectedOutput: 'Complete story with well-developed characters and plot',
+    tips: ['Develop compelling characters', 'Create engaging conflicts', 'Show, don\'t tell']
   }
 ];
 
@@ -113,6 +168,18 @@ const PromptExplorer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('popular');
+  const [savedPrompts, setSavedPrompts] = useState<string[]>([]);
+
+  const smartQueries = [
+    "Create engaging social media content",
+    "Write professional emails",
+    "Generate creative story ideas",
+    "Analyze business data",
+    "Design marketing campaigns",
+    "Code review and optimization",
+    "Educational content creation",
+    "Video script writing"
+  ];
 
   const handleSearch = (query: string) => {
     setIsLoading(true);
@@ -122,7 +189,8 @@ const PromptExplorer = () => {
       let filtered = samplePrompts.filter(prompt =>
         prompt.title.toLowerCase().includes(query.toLowerCase()) ||
         prompt.prompt.toLowerCase().includes(query.toLowerCase()) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
+        prompt.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())) ||
+        prompt.useCase.toLowerCase().includes(query.toLowerCase())
       );
 
       if (selectedCategory) {
@@ -162,6 +230,21 @@ const PromptExplorer = () => {
     toast.success('Prompt copied to clipboard!');
   };
 
+  const handleSavePrompt = (promptId: string) => {
+    if (savedPrompts.includes(promptId)) {
+      setSavedPrompts(savedPrompts.filter(id => id !== promptId));
+      toast.success('Prompt removed from saved list');
+    } else {
+      setSavedPrompts([...savedPrompts, promptId]);
+      toast.success('Prompt saved successfully');
+    }
+  };
+
+  const handleSmartQuery = (query: string) => {
+    setSearchQuery(query);
+    handleSearch(query);
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Beginner':
@@ -195,7 +278,7 @@ const PromptExplorer = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
         >
-          What Can I Do With AI Today?
+          Master AI with Expert Prompts
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: -20 }}
@@ -203,144 +286,121 @@ const PromptExplorer = () => {
           transition={{ delay: 0.1 }}
           className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
         >
-          Explore our curated collection of AI prompts and discover endless possibilities for creativity and productivity
+          Discover thousands of proven prompts for every use case. From content creation to code optimization, unlock AI's full potential.
         </motion.p>
       </div>
 
-      {/* Featured Prompts */}
-      {featuredPrompts.length > 0 && (
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
-            <Star className="w-6 h-6 text-yellow-500 mr-2" />
-            Featured Prompts
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredPrompts.map((prompt, index) => (
-              <motion.div
-                key={prompt.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 text-white cursor-pointer hover:shadow-xl transition-all duration-300"
-                onClick={() => setSelectedPrompt(prompt)}
-              >
-                <div className="absolute top-4 right-4">
-                  <Star className="w-5 h-5 text-yellow-300" />
-                </div>
-                <h4 className="text-lg font-semibold mb-2">{prompt.title}</h4>
-                <p className="text-purple-100 text-sm mb-4 line-clamp-2">
-                  {prompt.prompt.substring(0, 100)}...
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                    {prompt.difficulty}
-                  </span>
-                  <div className="flex items-center text-sm">
-                    <Users className="w-4 h-4 mr-1" />
-                    {prompt.usageCount.toLocaleString()}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+      {/* Smart Query Suggestions */}
+      <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex flex-wrap gap-2 justify-center">
+          {smartQueries.map((query, index) => (
+            <motion.button
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleSmartQuery(query)}
+              className="px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all"
+            >
+              <Lightbulb className="w-4 h-4 inline mr-2" />
+              {query}
+            </motion.button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Search and Filters */}
-      <div className="mb-8">
-        <div className="relative max-w-2xl mx-auto mb-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur" />
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="What would you like to create with AI?"
-              className="w-full pl-12 pr-20 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg text-lg"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Filter className="w-5 h-5" />
-            </button>
-          </div>
+      <div className="relative max-w-4xl mx-auto mb-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur" />
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="What would you like to create with AI?"
+            className="w-full pl-12 pr-20 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg text-lg"
+          />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Filter className="w-5 h-5" />
+          </button>
         </div>
-
-        {/* Filters */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Difficulty
-                  </label>
-                  <select
-                    value={selectedDifficulty}
-                    onChange={(e) => setSelectedDifficulty(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">All Levels</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Sort By
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="popular">Most Popular</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="newest">Newest</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* Filters */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 max-w-4xl mx-auto"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Difficulty
+                </label>
+                <select
+                  value={selectedDifficulty}
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">All Levels</option>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Sort By
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="popular">Most Popular</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Category Pills */}
       <div className="flex flex-wrap gap-3 mb-8 justify-center">
@@ -364,6 +424,47 @@ const PromptExplorer = () => {
           );
         })}
       </div>
+
+      {/* Featured Prompts */}
+      {featuredPrompts.length > 0 && (
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+            <Star className="w-6 h-6 text-yellow-500 mr-2" />
+            Featured Prompts
+          </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {featuredPrompts.map((prompt, index) => (
+              <motion.div
+                key={prompt.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="relative bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-xl overflow-hidden cursor-pointer hover:shadow-2xl transition-all duration-300"
+                onClick={() => setSelectedPrompt(prompt)}
+              >
+                <div className="absolute top-4 right-4">
+                  <Star className="w-5 h-5 text-yellow-300" />
+                </div>
+                <div className="p-6 text-white">
+                  <h4 className="text-lg font-semibold mb-2">{prompt.title}</h4>
+                  <p className="text-purple-100 text-sm mb-4 line-clamp-2">
+                    {prompt.useCase}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                      {prompt.difficulty}
+                    </span>
+                    <div className="flex items-center text-sm">
+                      <Users className="w-4 h-4 mr-1" />
+                      {prompt.usageCount.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Prompts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -408,8 +509,8 @@ const PromptExplorer = () => {
                 </div>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                {prompt.prompt.substring(0, 150)}...
+              <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                {prompt.useCase}
               </p>
 
               <div className="flex flex-wrap gap-2 mb-4">
@@ -437,6 +538,17 @@ const PromptExplorer = () => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     by {prompt.author}
                   </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSavePrompt(prompt.id);
+                    }}
+                    className={`p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+                      savedPrompts.includes(prompt.id) ? 'text-yellow-500' : 'text-gray-400'
+                    }`}
+                  >
+                    <Heart className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -514,6 +626,15 @@ const PromptExplorer = () => {
 
                 <div className="space-y-6">
                   <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      Use Case
+                    </h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {selectedPrompt.useCase}
+                    </p>
+                  </div>
+
+                  <div>
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Prompt Template
@@ -532,6 +653,31 @@ const PromptExplorer = () => {
                       </pre>
                     </div>
                   </div>
+
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      Expected Output
+                    </h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {selectedPrompt.expectedOutput}
+                    </p>
+                  </div>
+
+                  {selectedPrompt.tips.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                        Pro Tips
+                      </h4>
+                      <ul className="space-y-2">
+                        {selectedPrompt.tips.map((tip, index) => (
+                          <li key={index} className="flex items-start">
+                            <Lightbulb className="w-4 h-4 text-yellow-500 mr-2 mt-1 flex-shrink-0" />
+                            <span className="text-gray-700 dark:text-gray-300">{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
