@@ -179,6 +179,31 @@ function App() {
     setIsDark(!isDark);
   };
 
+  // Helper function to extract error code from Supabase error
+  const getErrorCode = (error: any): string | null => {
+    // First check if error.code exists directly
+    if (error.code) {
+      return error.code;
+    }
+    
+    // If not, try to parse error.body if it's a JSON string
+    if (error.body && typeof error.body === 'string') {
+      try {
+        const parsedBody = JSON.parse(error.body);
+        return parsedBody.code || null;
+      } catch (parseError) {
+        // If parsing fails, continue to other checks
+      }
+    }
+    
+    // Check if error.body is already an object with code
+    if (error.body && typeof error.body === 'object' && error.body.code) {
+      return error.body.code;
+    }
+    
+    return null;
+  };
+
   const handleFavorite = async (toolId: string) => {
     if (!user) {
       setShowAuthModal(true);
@@ -202,8 +227,9 @@ function App() {
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
         if (error) {
-          // Handle duplicate key constraint violation
-          if (error.code === '23505') {
+          // Enhanced error code detection
+          const errorCode = getErrorCode(error);
+          if (errorCode === '23505') {
             // Item already exists, update local state to reflect this
             if (!favorites.includes(toolId)) {
               setFavorites([...favorites, toolId]);
@@ -250,8 +276,9 @@ function App() {
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
         if (error) {
-          // Handle duplicate key constraint violation
-          if (error.code === '23505') {
+          // Enhanced error code detection
+          const errorCode = getErrorCode(error);
+          if (errorCode === '23505') {
             // Item already exists, update local state to reflect this
             if (!bookmarkedTools.includes(toolId)) {
               setBookmarkedTools([...bookmarkedTools, toolId]);
