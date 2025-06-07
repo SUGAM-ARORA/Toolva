@@ -201,13 +201,29 @@ function App() {
           .from('favorites')
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
-        if (error) throw error;
+        if (error) {
+          // Handle duplicate key constraint violation
+          if (error.code === '23505') {
+            // Item already exists, update local state to reflect this
+            if (!favorites.includes(toolId)) {
+              setFavorites([...favorites, toolId]);
+            }
+            toast.success('Already in favorites');
+            return;
+          }
+          throw error;
+        }
         setFavorites([...favorites, toolId]);
         toast.success('Added to favorites');
       }
+      
+      // Re-fetch to ensure state synchronization
+      await fetchFavorites(user.id);
     } catch (error) {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
+      // Re-fetch to ensure state synchronization even on error
+      await fetchFavorites(user.id);
     }
   };
 
@@ -233,13 +249,29 @@ function App() {
           .from('bookmarks')
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
-        if (error) throw error;
+        if (error) {
+          // Handle duplicate key constraint violation
+          if (error.code === '23505') {
+            // Item already exists, update local state to reflect this
+            if (!bookmarkedTools.includes(toolId)) {
+              setBookmarkedTools([...bookmarkedTools, toolId]);
+            }
+            toast.success('Already bookmarked');
+            return;
+          }
+          throw error;
+        }
         setBookmarkedTools([...bookmarkedTools, toolId]);
         toast.success('Added to bookmarks');
       }
+      
+      // Re-fetch to ensure state synchronization
+      await fetchBookmarkedTools(user.id);
     } catch (error) {
       console.error('Error managing bookmarks:', error);
       toast.error('Failed to update bookmarks');
+      // Re-fetch to ensure state synchronization even on error
+      await fetchBookmarkedTools(user.id);
     }
   };
 
