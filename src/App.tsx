@@ -179,31 +179,6 @@ function App() {
     setIsDark(!isDark);
   };
 
-  // Helper function to extract error code from Supabase error
-  const getErrorCode = (error: any): string | null => {
-    // First check if error.code exists directly
-    if (error.code) {
-      return error.code;
-    }
-    
-    // If not, try to parse error.body if it's a JSON string
-    if (error.body && typeof error.body === 'string') {
-      try {
-        const parsedBody = JSON.parse(error.body);
-        return parsedBody.code || null;
-      } catch (parseError) {
-        // If parsing fails, continue to other checks
-      }
-    }
-    
-    // Check if error.body is already an object with code
-    if (error.body && typeof error.body === 'object' && error.body.code) {
-      return error.body.code;
-    }
-    
-    return null;
-  };
-
   const handleFavorite = async (toolId: string) => {
     if (!user) {
       setShowAuthModal(true);
@@ -212,6 +187,7 @@ function App() {
 
     try {
       if (favorites.includes(toolId)) {
+        // Remove from favorites
         const { error } = await supabase
           .from('favorites')
           .delete()
@@ -222,33 +198,41 @@ function App() {
         setFavorites(favorites.filter(id => id !== toolId));
         toast.success('Removed from favorites');
       } else {
+        // Check if favorite already exists before inserting
+        const { data: existingFavorite, error: checkError } = await supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('tool_id', toolId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          // PGRST116 is "not found" error, which is expected when no record exists
+          throw checkError;
+        }
+
+        if (existingFavorite) {
+          // Already exists, just update local state
+          if (!favorites.includes(toolId)) {
+            setFavorites([...favorites, toolId]);
+          }
+          toast.success('Already in favorites');
+          return;
+        }
+
+        // Insert new favorite
         const { error } = await supabase
           .from('favorites')
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
-        if (error) {
-          // Enhanced error code detection
-          const errorCode = getErrorCode(error);
-          if (errorCode === '23505') {
-            // Item already exists, update local state to reflect this
-            if (!favorites.includes(toolId)) {
-              setFavorites([...favorites, toolId]);
-            }
-            toast.success('Already in favorites');
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
         setFavorites([...favorites, toolId]);
         toast.success('Added to favorites');
       }
-      
-      // Re-fetch to ensure state synchronization
-      await fetchFavorites(user.id);
     } catch (error) {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
-      // Re-fetch to ensure state synchronization even on error
+      // Re-fetch to ensure state synchronization
       await fetchFavorites(user.id);
     }
   };
@@ -261,6 +245,7 @@ function App() {
 
     try {
       if (bookmarkedTools.includes(toolId)) {
+        // Remove from bookmarks
         const { error } = await supabase
           .from('bookmarks')
           .delete()
@@ -271,33 +256,41 @@ function App() {
         setBookmarkedTools(bookmarkedTools.filter(id => id !== toolId));
         toast.success('Removed from bookmarks');
       } else {
+        // Check if bookmark already exists before inserting
+        const { data: existingBookmark, error: checkError } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('tool_id', toolId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          // PGRST116 is "not found" error, which is expected when no record exists
+          throw checkError;
+        }
+
+        if (existingBookmark) {
+          // Already exists, just update local state
+          if (!bookmarkedTools.includes(toolId)) {
+            setBookmarkedTools([...bookmarkedTools, toolId]);
+          }
+          toast.success('Already bookmarked');
+          return;
+        }
+
+        // Insert new bookmark
         const { error } = await supabase
           .from('bookmarks')
           .insert([{ user_id: user.id, tool_id: toolId }]);
 
-        if (error) {
-          // Enhanced error code detection
-          const errorCode = getErrorCode(error);
-          if (errorCode === '23505') {
-            // Item already exists, update local state to reflect this
-            if (!bookmarkedTools.includes(toolId)) {
-              setBookmarkedTools([...bookmarkedTools, toolId]);
-            }
-            toast.success('Already bookmarked');
-            return;
-          }
-          throw error;
-        }
+        if (error) throw error;
         setBookmarkedTools([...bookmarkedTools, toolId]);
         toast.success('Added to bookmarks');
       }
-      
-      // Re-fetch to ensure state synchronization
-      await fetchBookmarkedTools(user.id);
     } catch (error) {
       console.error('Error managing bookmarks:', error);
       toast.error('Failed to update bookmarks');
-      // Re-fetch to ensure state synchronization even on error
+      // Re-fetch to ensure state synchronization
       await fetchBookmarkedTools(user.id);
     }
   };
