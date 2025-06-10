@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Heart, Share2, BookmarkPlus, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
+import { Star, Heart, Share2, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
 import { AITool } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -8,17 +8,13 @@ import toast from 'react-hot-toast';
 interface ToolCardProps {
   tool: AITool;
   onFavorite?: () => void;
-  onBookmark?: () => void;
   isFavorited?: boolean;
-  isBookmarked?: boolean;
 }
 
 const ToolCard: React.FC<ToolCardProps> = ({ 
   tool, 
-  onFavorite, 
-  onBookmark,
-  isFavorited = false,
-  isBookmarked = false 
+  onFavorite,
+  isFavorited = false
 }) => {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -32,41 +28,6 @@ const ToolCard: React.FC<ToolCardProps> = ({
     } catch {
       navigator.clipboard.writeText(tool.url);
       toast.success('Link copied to clipboard!');
-    }
-  };
-
-  const handleBookmark = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please sign in to bookmark tools');
-        return;
-      }
-
-      if (isBookmarked) {
-        const { error } = await supabase
-          .from('bookmarks')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('tool_id', tool.id);
-
-        if (error) throw error;
-        toast.success('Removed from bookmarks');
-      } else {
-        const { error } = await supabase
-          .from('bookmarks')
-          .insert([{ user_id: user.id, tool_id: tool.id }]);
-
-        if (error) throw error;
-        toast.success('Added to bookmarks');
-      }
-
-      if (onBookmark) {
-        onBookmark();
-      }
-    } catch (error) {
-      console.error('Error managing bookmarks:', error);
-      toast.error('Failed to update bookmarks');
     }
   };
 
@@ -99,22 +60,6 @@ const ToolCard: React.FC<ToolCardProps> = ({
         
         {/* Action Buttons */}
         <div className="absolute top-4 right-4 flex space-x-2">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleBookmark();
-            }}
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
-          >
-            <BookmarkPlus
-              className={`h-5 w-5 ${
-                isBookmarked ? 'text-yellow-500 fill-current' : 'text-white'
-              }`}
-            />
-          </motion.button>
           {onFavorite && (
             <motion.button
               whileHover={{ scale: 1.1 }}

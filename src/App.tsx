@@ -45,7 +45,6 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [bookmarkedTools, setBookmarkedTools] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,21 +99,18 @@ function App() {
           await supabase.auth.signOut();
           setUser(null);
           setFavorites([]);
-          setBookmarkedTools([]);
           return;
         }
 
         setUser(session?.user ?? null);
         if (session?.user) {
           fetchFavorites(session.user.id);
-          fetchBookmarkedTools(session.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         await supabase.auth.signOut();
         setUser(null);
         setFavorites([]);
-        setBookmarkedTools([]);
       }
     };
 
@@ -125,16 +121,13 @@ function App() {
         setUser(session?.user ?? null);
         if (session?.user) {
           fetchFavorites(session.user.id);
-          fetchBookmarkedTools(session.user.id);
         } else {
           setFavorites([]);
-          setBookmarkedTools([]);
         }
       } else if (event === 'SIGNED_IN') {
         setUser(session?.user ?? null);
         if (session?.user) {
           fetchFavorites(session.user.id);
-          fetchBookmarkedTools(session.user.id);
         }
       }
     });
@@ -153,20 +146,6 @@ function App() {
       setFavorites(data.map(f => f.tool_id));
     } catch (error) {
       console.error('Error fetching favorites:', error);
-    }
-  };
-
-  const fetchBookmarkedTools = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('bookmarks')
-        .select('tool_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      setBookmarkedTools(data.map(b => b.tool_id));
-    } catch (error) {
-      console.error('Error fetching bookmarks:', error);
     }
   };
 
@@ -250,55 +229,6 @@ function App() {
       toast.error('Failed to update favorites');
       // Re-fetch to ensure state synchronization even on error
       await fetchFavorites(user.id);
-    }
-  };
-
-  const handleBookmark = async (toolId: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    try {
-      if (bookmarkedTools.includes(toolId)) {
-        const { error } = await supabase
-          .from('bookmarks')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId);
-
-        if (error) throw error;
-        setBookmarkedTools(bookmarkedTools.filter(id => id !== toolId));
-        toast.success('Removed from bookmarks');
-      } else {
-        const { error } = await supabase
-          .from('bookmarks')
-          .insert([{ user_id: user.id, tool_id: toolId }]);
-
-        if (error) {
-          // Enhanced error code detection
-          const errorCode = getErrorCode(error);
-          if (errorCode === '23505') {
-            // Item already exists, update local state to reflect this
-            if (!bookmarkedTools.includes(toolId)) {
-              setBookmarkedTools([...bookmarkedTools, toolId]);
-            }
-            toast.success('Already bookmarked');
-            return;
-          }
-          throw error;
-        }
-        setBookmarkedTools([...bookmarkedTools, toolId]);
-        toast.success('Added to bookmarks');
-      }
-      
-      // Re-fetch to ensure state synchronization
-      await fetchBookmarkedTools(user.id);
-    } catch (error) {
-      console.error('Error managing bookmarks:', error);
-      toast.error('Failed to update bookmarks');
-      // Re-fetch to ensure state synchronization even on error
-      await fetchBookmarkedTools(user.id);
     }
   };
 
@@ -524,8 +454,6 @@ function App() {
                                   tool={tool}
                                   onFavorite={() => handleFavorite(tool.id)}
                                   isFavorited={favorites.includes(tool.id)}
-                                  onBookmark={() => handleBookmark(tool.id)}
-                                  isBookmarked={bookmarkedTools.includes(tool.id)}
                                 />
                               </Suspense>
                             </motion.div>
