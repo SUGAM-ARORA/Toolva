@@ -20,6 +20,7 @@ import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
 
+
 // Lazy load components
 const ToolCard = lazy(() => import('./components/ToolCard'));
 const ToolFinder = lazy(() => import('./components/ToolFinder'));
@@ -32,6 +33,7 @@ const AITermsDictionary = lazy(() => import('./components/AITermsDictionary'));
 const WeeklyRecommendations = lazy(() => import('./components/WeeklyRecommendations'));
 const SubmitTool = lazy(() => import('./components/SubmitTool'));
 const Footer = lazy(() => import('./components/Footer'));
+
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -49,29 +51,38 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [tools, setTools] = useState<AITool[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 12;
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTools();
   }, []);
 
   const fetchTools = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tools')
-        .select('*')
-        .eq('verified', true);
+  try {
+    setLoading(true);
+    setError(null);
 
-      if (error) throw error;
-      setTools(data);
-    } catch (error) {
-      console.error('Error fetching tools:', error);
-      toast.error('Failed to load tools');
-    } finally {
-      setIsLoading(false);
+    const { data, error } = await supabase
+      .from("tools")
+      .select("*");
+
+    if (error) {
+      throw error;
     }
-  };
+
+    setTools(data ?? []);
+  } catch (err) {
+    console.error("Error fetching tools:", err);
+    setError("Unable to load tools at the moment. Please try again later.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -287,10 +298,13 @@ function App() {
                 <div className="flex items-center">
                   <button
                     onClick={() => setShowSidebar(!showSidebar)}
-                    className="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                    aria-label="Toggle sidebar menu"
+                    className="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     <Menu className="h-6 w-6" />
                   </button>
+
                   <Link to="/" className="flex items-center">
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
                       Toolva
@@ -298,7 +312,12 @@ function App() {
                   </Link>
                 </div>
 
-                <nav className="hidden lg:flex space-x-2">
+                <nav
+                  role="navigation"
+                  aria-label="Main navigation"
+                  className="hidden lg:flex space-x-2"
+                >
+
                   {navItems.map(item => (
                     <button
                       key={item.label}
@@ -358,7 +377,7 @@ function App() {
                           Discover the Best AI Tools
                         </h1>
                         <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12">
-                          Browse our directory of {tools.length}+ AI tools to find the right solution for your needs
+                          Browse our directory of {loading ? '...' : tools.length}+ AI tools to find the right solution for your needs
                         </p>
 
                         <div className="relative max-w-2xl mx-auto mb-12">
@@ -413,7 +432,26 @@ function App() {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      {isLoading ? (
+                    {loading && (
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className="text-center text-gray-400 py-8"
+                      >
+                        Loading tools…
+                      </div>
+                    )}
+
+                    {error && (
+                      <div
+                        role="alert"
+                        className="text-center text-red-400 py-8"
+                      >
+                        {error}
+                      </div>
+                    )}
+
+                      {!loading && !error ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                           {[...Array(8)].map((_, index) => (
                             <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 animate-pulse">
@@ -520,32 +558,46 @@ function App() {
 
         {/* Mobile Navigation */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <nav className="grid grid-cols-5 gap-1 p-2">
+          <nav
+            role="navigation"
+            aria-label="Primary mobile navigation"
+            className="grid grid-cols-5 gap-1 p-2"
+          >
+
             {navItems.slice(0, 5).map(item => (
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    view === item.view
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                      : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+
               >
                 <item.icon className="h-5 w-5" />
                 <span className="text-xs mt-1">{item.label}</span>
               </button>
             ))}
           </nav>
-          <nav className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
+          <nav
+            role="navigation"
+            aria-label="Secondary mobile navigation"
+            className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700"
+          >
+
             {navItems.slice(5).map(item => (
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    view === item.view
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                      : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+
               >
                 <item.icon className="h-5 w-5" />
                 <span className="text-xs mt-1">{item.label}</span>
