@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Review struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
+	ID        string    `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID    string    `json:"userId" gorm:"not null"`
 	ToolID    string    `json:"toolId" gorm:"type:uuid;not null"`
 	Rating    float64   `json:"rating" gorm:"not null"`

@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-
+// AuthMiddleware validates Supabase JWT and injects user context
 // jwtSecret MUST be loaded once at app startup and passed here
 func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -32,9 +32,8 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// 3. Parse & validate JWT
+		// 3. Parse & validate JWT (Supabase uses HS256)
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Supabase uses HS256
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrTokenSignatureInvalid
 			}
@@ -57,19 +56,28 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
-		// Supabase standard claims
-		userID, _ := claims["sub"].(string)
-		email, _ := claims["email"].(string)
-		role, _ := claims["role"].(string)
-
-		if userID == "" {
+		// 5. Validate required Supabase claim: sub (user id)
+		sub, ok := claims["sub"]
+		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "User ID missing in token",
+				"error": "sub claim missing in token",
 			})
 			return
 		}
 
-		// 5. Inject into contexes
+		userID, ok := sub.(string)
+		if !ok || userID == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid sub claim in token",
+			})
+			return
+		}
+
+		// Optional claims
+		email, _ := claims["email"].(string)
+		role, _ := claims["role"].(string)
+
+		// 6. Inject into context (handlers/services वापरतील)
 		c.Set("user_id", userID)
 		c.Set("email", email)
 		c.Set("role", role)
