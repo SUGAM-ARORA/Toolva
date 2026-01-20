@@ -2,9 +2,9 @@ package services
 
 import (
 	"errors"
+
 	"toolva/internal/models"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -16,76 +16,136 @@ func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{db: db}
 }
 
-func (s *UserService) Register(user *models.User) error {
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
+//
+// =========================
+// USER
+// =========================
+//
+
+// Get user if exists, else create (Supabase-managed user)
+func (s *UserService) GetOrCreateUser(userID string, email string) (*models.User, error) {
+	// Input validation
+	if userID == "" || email == "" {
+		return nil, errors.New("userID and email are required")
 	}
-	user.Password = string(hashedPassword)
 
-	// Create user
-	return s.db.Create(user).Error
-}
-
-func (s *UserService) Login(email, password string) (*models.User, error) {
 	var user models.User
-	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
-		return nil, errors.New("invalid credentials")
+
+	// Try to fetch existing user
+	err := s.db.First(&user, "id = ?", userID).Error
+	if err == nil {
+		return &user, nil
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, errors.New("invalid credentials")
+	// If error is not "record not found", return it
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// Create new user record (Supabase auth.users already exists)
+	user = models.User{
+		ID:    userID, // UUID from Supabase
+		Email: email,
+		Role:  "user",
+	}
+
+	if err := s.db.Create(&user).Error; err != nil {
+		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (s *UserService) GetUserByID(id uint) (*models.User, error) {
-	var user models.User
-	err := s.db.First(&user, id).Error
-	return &user, err
+func (s *UserService) UpdateUserName(userID string, name string) error {
+	if userID == "" || name == "" {
+		return errors.New("userID and name are required")
+	}
+
+	return s.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("name", name).Error
 }
 
-func (s *UserService) UpdateUser(user *models.User) error {
-	return s.db.Save(user).Error
-}
+//
+// =========================
+// FAVORITES
+// =========================
+//
 
-func (s *UserService) DeleteUser(id uint) error {
-	return s.db.Delete(&models.User{}, id).Error
-}
+func (s *UserService) AddFavorite(userID string, toolID string) error {
+	if userID == "" || toolID == "" {
+		return errors.New("userID and toolID are required")
+	}
 
-func (s *UserService) AddFavorite(userID, toolID uint) error {
 	favorite := models.Favorite{
 		UserID: userID,
 		ToolID: toolID,
 	}
+
 	return s.db.Create(&favorite).Error
 }
 
-func (s *UserService) RemoveFavorite(userID, toolID uint) error {
-	return s.db.Where("user_id = ? AND tool_id = ?", userID, toolID).Delete(&models.Favorite{}).Error
+func (s *UserService) RemoveFavorite(userID string, toolID string) error {
+	if userID == "" || toolID == "" {
+		return errors.New("userID and toolID are required")
+	}
+
+	return s.db.
+		Where("user_id = ? AND tool_id = ?", userID, toolID).
+		Delete(&models.Favorite{}).
+		Error
 }
 
-func (s *UserService) GetFavorites(userID uint) ([]models.Tool, error) {
+func (s *UserService) GetFavorites(userID string) ([]models.Tool, error) {
+	if userID == "" {
+		return nil, errors.New("userID is required")
+	}
+
 	var favorites []models.Favorite
-	if err := s.db.Preload("Tool").Where("user_id = ?", userID).Find(&favorites).Error; err != nil {
+
+	if err := s.db.
+		Preload("Tool").
+		Where("user_id = ?", userID).
+		Find(&favorites).Error; err != nil {
 		return nil, err
 	}
 
-	tools := make([]models.Tool, len(favorites))
-	for i, fav := range favorites {
-		tools[i] = fav.Tool
+	tools := make([]models.Tool, 0, len(favorites))
+	for _, fav := range favorites {
+		tools = append(tools, fav.Tool)
 	}
+
 	return tools, nil
 }
 
+//
+// =========================
+// REVIEWS
+// =========================
+//
+
 func (s *UserService) AddReview(review *models.Review) error {
+	if review == nil {
+		return errors.New("review is required")
+	}
+	if review.UserID == "" || review.ToolID == "" {
+		return errors.New("userID and toolID are required")
+	}
+
 	return s.db.Create(review).Error
 }
 
-func (s *UserService) GetToolReviews(toolID uint) ([]models.Review, error) {
+func (s *UserService) GetToolReviews(toolID string) ([]models.Review, error) {
+	if toolID == "" {
+		return nil, errors.New("toolID is required")
+	}
+
 	var reviews []models.Review
-	err := s.db.Preload("User").Where("tool_id = ?", toolID).Find(&reviews).Error
+
+	err := s.db.
+		Preload("User").
+		Where("tool_id = ?", toolID).
+		Find(&reviews).Error
+
 	return reviews, err
 }

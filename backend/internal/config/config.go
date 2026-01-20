@@ -1,3 +1,6 @@
+
+
+
 package config
 
 import (
@@ -13,13 +16,11 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	Port       string
+	SkipDB     bool
 }
 
 func LoadConfig() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
+	_ = godotenv.Load() // .env optional (error ignore)
 
 	return &Config{
 		DBHost:     os.Getenv("DB_HOST"),
@@ -28,5 +29,6 @@ func LoadConfig() (*Config, error) {
 		DBPassword: os.Getenv("DB_PASSWORD"),
 		DBName:     os.Getenv("DB_NAME"),
 		Port:       os.Getenv("PORT"),
+		SkipDB:     os.Getenv("SKIP_DB") == "true",
 	}, nil
 }
