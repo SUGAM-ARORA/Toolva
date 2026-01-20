@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Favorite struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	UserID    string    `json:"userId" gorm:"not null"`
+	ID        string    `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID    string    `json:"userId" gorm:"type:uuid;not null"`
 	ToolID    string    `json:"toolId" gorm:"type:uuid;not null"`
 	CreatedAt time.Time `json:"createdAt" gorm:"autoCreateTime"`
 

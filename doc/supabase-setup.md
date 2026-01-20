@@ -4,49 +4,35 @@ This project uses **Supabase Auth** for user authentication.
 Some authentication-related settings are **managed directly in the Supabase Dashboard**
 and therefore **do not appear in the codebase**.
 
-This document explains **what is manual**, **what is automatic**, and **what the project owner needs to configure**.
+This document explains what is automatic, what is manual, and what the project owner must configure.
 
 ---
 
-## 🔐 Authentication Flow (How it works)
-
-1. User registers using email + password from the frontend.
-2. Supabase automatically creates the user.
-3. Supabase sends a **confirmation email** to the user.
-4. User must confirm their email before logging in.
-5. After confirmation, login works normally.
-
-⚠️ This behavior is intentional and follows Supabase’s default, production-safe flow.
+When a user registers using email and password from the frontend, Supabase automatically creates the user and sends a **confirmation email**.  
+The user must confirm their email before logging in. This is Supabase’s default and recommended production flow.
 
 ---
 
-## ✉️ Greeting / Confirmation Email (Manual Configuration)
+## Greeting / Confirmation Email Setup
 
-The **greeting / welcome email** sent after registration is handled **entirely by Supabase**.
+The greeting / welcome email sent after signup is **not handled in backend or frontend code**.
+It is configured manually inside the **Supabase Dashboard** and cannot be committed to Git.
 
-Because this email is a **platform-level setting**, it:
-- ❌ cannot be committed to Git
-- ❌ is not part of the frontend or backend code
-- ✅ must be configured manually in the Supabase Dashboard
+**Location in Supabase Dashboard:**
 
----
-
-## 📍 Where to Configure the Email
-
-Supabase Dashboard
-→ Authentication
-→ Email Templates
-→ Confirm signup
-
+Authentication → Email Templates → Confirm signup
 
 ---
 
-## 📧 Email Template (Copy & Paste)
+Below is the **exact email content** to paste in Supabase.
 
 ### Subject
 ```txt
 Welcome to Toolva 🎉
+```
 
+### Body (HTML)
+```html
 <h2>Welcome to Toolva 👋</h2>
 
 <p>Hi {{ .Email }},</p>

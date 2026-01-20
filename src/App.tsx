@@ -52,10 +52,13 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 12;
 
+  if (import.meta.env.DEV) {
   console.log('SUPABASE ENV CHECK', {
-  url: import.meta.env.VITE_SUPABASE_URL,
-  key: import.meta.env.VITE_SUPABASE_ANON_KEY,
-});
+    url: import.meta.env.VITE_SUPABASE_URL,
+    key: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  });
+}
+
 
   useEffect(() => {
     fetchTools();
