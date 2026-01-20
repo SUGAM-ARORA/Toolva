@@ -1,88 +1,19 @@
-// package middleware
-
-// import (
-// 	"net/http"
-// 	"strings"
-// 	"toolva/internal/models"
-// 	"toolva/internal/services"
-
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/golang-jwt/jwt"
-// 	"gorm.io/gorm"
-// )
-
-// func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		authHeader := c.GetHeader("Authorization")
-// 		if authHeader == "" {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		parts := strings.Split(authHeader, " ")
-// 		if len(parts) != 2 || parts[0] != "Bearer" {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		tokenString := parts[1]
-// 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-// 			return []byte(jwtSecret), nil
-// 		})
-
-// 		if err != nil || !token.Valid {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		claims, ok := token.Claims.(jwt.MapClaims)
-// 		if !ok {
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-// 			c.Abort()
-// 			return
-// 		}
-
-// 		userID := uint(claims["user_id"].(float64))
-// 		c.Set("user_id", userID)
-// 		c.Next()
-// 	}
-// }
-
-// func AdminMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		userID := c.GetUint("user_id")
-// 		userService := services.NewUserService(c.MustGet("db").(*gorm.DB))
-// 		user, err := userService.GetUserByID(userID)
-// 		if err != nil || user.Role != "admin" {
-// 			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
-// 			c.Abort()
-// 			return
-// 		}
-// 		c.Next()
-// 	}
-// } 
-
-
-
-
-
 package middleware
 
 import (
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+
+// jwtSecret MUST be loaded once at app startup and passed here
+func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
+		// 1. Read Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -91,6 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// 2. Validate Bearer format
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid authorization header format",
@@ -100,8 +32,13 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
+		// 3. Parse & validate JWT
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("SUPABASE_JWT_SECRET")), nil
+			// Supabase uses HS256
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrTokenSignatureInvalid
+			}
+			return []byte(jwtSecret), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -111,6 +48,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// 4. Extract claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -131,7 +69,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Context set (handlers/services वापरतील)
+		// 5. Inject into contexes
 		c.Set("user_id", userID)
 		c.Set("email", email)
 		c.Set("role", role)
