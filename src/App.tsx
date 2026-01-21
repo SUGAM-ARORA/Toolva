@@ -1,22 +1,19 @@
 import { lazy, Suspense } from 'react';
 import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
+import { Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
-import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
-import UserMenu from './components/UserMenu';
+import Navbar from './components/Navbar';
 import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
-import ReactGA from 'react-ga4';
-import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
 
@@ -93,7 +90,7 @@ function App() {
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Session error:', error);
           await supabase.auth.signOut();
@@ -226,9 +223,9 @@ function App() {
     }
   };
 
-  const filteredTools = tools.filter(tool => 
+  const filteredTools = tools.filter(tool =>
     (selectedCategory === 'All' || tool.category === selectedCategory) &&
-    (searchQuery === '' || 
+    (searchQuery === '' ||
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tool.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -258,7 +255,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
         <Toaster position="top-right" />
-        
+
         <AnimatePresence>
           {showSidebar && (
             <motion.div
@@ -273,7 +270,7 @@ function App() {
                 selectedCategory={selectedCategory}
                 onCategoryChange={setSelectedCategory}
                 onClose={() => setShowSidebar(false)}
-                onFilterChange={() => {}}
+                onFilterChange={() => { }}
                 toolsCount={tools.length}
               />
             </motion.div>
@@ -281,56 +278,19 @@ function App() {
         </AnimatePresence>
 
         <div className="flex-1 flex flex-col">
-          <header className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-800 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-16">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setShowSidebar(!showSidebar)}
-                    className="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <Menu className="h-6 w-6" />
-                  </button>
-                  <Link to="/" className="flex items-center">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
-                      Toolva
-                    </h1>
-                  </Link>
-                </div>
-
-                <nav className="hidden lg:flex space-x-2">
-                  {navItems.map(item => (
-                    <button
-                      key={item.label}
-                      onClick={() => setView(item.view as any)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                        view === item.view
-                          ? 'bg-blue-600 text-white shadow-lg'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5 inline-block mr-1" />
-                      {item.label}
-                    </button>
-                  ))}
-                </nav>
-
-                <div className="flex items-center space-x-4">
-                  <ThemeToggle isDark={isDark} onToggle={handleToggleTheme} />
-                  {user ? (
-                    <UserMenu user={user} />
-                  ) : (
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                    >
-                      Sign In
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
+          <Navbar
+            showSidebar={showSidebar}
+            setShowSidebar={setShowSidebar}
+            isDark={isDark}
+            onToggleTheme={handleToggleTheme}
+            user={user}
+            setShowAuthModal={setShowAuthModal}
+            navItems={navItems}
+            currentView={view}
+            onViewChange={(newView) => setView(newView as any)}
+            onSearch={setSearchQuery}
+            searchQuery={searchQuery}
+          />
 
           <Routes>
             <Route path="/profile" element={<Profile />} />
@@ -348,7 +308,7 @@ function App() {
                     </div>
 
                     <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.8 }}
@@ -389,13 +349,12 @@ function App() {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleCategorySelect(category.name)}
-                                className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
-                                  selectedCategory === category.name
-                                    ? 'bg-blue-600/30 border-blue-400'
-                                    : 'bg-white/5 hover:bg-white/10'
-                                }`}
+                                className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${selectedCategory === category.name
+                                  ? 'bg-blue-600/30 border-blue-400'
+                                  : 'bg-white/5 hover:bg-white/10'
+                                  }`}
                               >
-                                <Icon className="mb-2 text-xl sm:text-2xl text-blue-400" />
+                                <Icon className ="mb-2 text-xl sm:text-2xl text-blue-400" />
                                 <span className="mt-1 text-xs sm:text-sm font-semibold text-white">{category.name}</span>
                               </motion.button>
                             );
@@ -511,48 +470,9 @@ function App() {
         </div>
 
         {showAuthModal && (
-          <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
-            <div className="space-y-4">
-              <GitHubSignIn />
-            </div>
-          </AuthModal>
+          <AuthModal onClose={() => setShowAuthModal(false)} />
         )}
 
-        {/* Mobile Navigation */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <nav className="grid grid-cols-5 gap-1 p-2">
-            {navItems.slice(0, 5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <nav className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
-            {navItems.slice(5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
       </div>
     </Router>
   );
