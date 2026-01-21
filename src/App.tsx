@@ -19,6 +19,7 @@ import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
+import ScrollToTop from "./components/ScrollToTop";
 
 // Lazy load components
 const ToolCard = lazy(() => import('./components/ToolCard'));
@@ -554,6 +555,7 @@ function App() {
           </nav>
         </div>
       </div>
+      <ScrollToTop />
     </Router>
   );
 }
