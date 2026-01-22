@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 
 interface SidebarProps {
   categories: ToolCategory[];
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
+  selectedCategories: string[];
+  onCategoryChange: (categories: string[]) => void;
   onClose: () => void;
   onFilterChange: (filters: any) => void;
   toolsCount: number;
@@ -16,7 +16,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({
   categories,
-  selectedCategory,
+  selectedCategories,
   onCategoryChange,
   onClose,
   onFilterChange,
@@ -99,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, x: -300 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -300 }}
@@ -119,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         <div className="px-4 pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -141,11 +141,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleFilterChange('popularity', 'trending')}
-            className={`p-3 rounded-lg ${
-              filters.popularity === 'trending'
+            className={`p-3 rounded-lg ${filters.popularity === 'trending'
                 ? 'bg-blue-600'
                 : 'bg-gray-800 hover:bg-gray-700'
-            } flex flex-col items-center justify-center`}
+              } flex flex-col items-center justify-center`}
           >
             <Sparkles className="h-5 w-5 mb-1" />
             <span className="text-sm">Trending</span>
@@ -155,11 +154,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleFilterChange('sortBy', 'topRated')}
-            className={`p-3 rounded-lg ${
-              filters.sortBy === 'topRated'
+            className={`p-3 rounded-lg ${filters.sortBy === 'topRated'
                 ? 'bg-blue-600'
                 : 'bg-gray-800 hover:bg-gray-700'
-            } flex flex-col items-center justify-center`}
+              } flex flex-col items-center justify-center`}
           >
             <Trophy className="h-5 w-5 mb-1" />
             <span className="text-sm">Top Rated</span>
@@ -176,9 +174,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             Advanced Filters
           </span>
           <ChevronRight
-            className={`h-5 w-5 transform transition-transform ${
-              showAdvanced ? 'rotate-90' : ''
-            }`}
+            className={`h-5 w-5 transform transition-transform ${showAdvanced ? 'rotate-90' : ''
+              }`}
           />
         </button>
 
@@ -252,8 +249,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                       />
                       <span className="ml-2 text-sm text-gray-300">
                         {feature === 'hasGithub' ? 'GitHub Repository' :
-                         feature === 'hasAPI' ? 'API Available' :
-                         'Documentation'}
+                          feature === 'hasAPI' ? 'API Available' :
+                            'Documentation'}
                       </span>
                     </motion.label>
                   ))}
@@ -272,20 +269,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-2">
             {categories.filter(cat => cat.name.toLowerCase().includes(searchTerm.toLowerCase())).map((category) => {
               const Icon = category.icon;
-              const isSelected = selectedCategory === category.name;
+              const isSelected = selectedCategories.includes(category.name);
               const count = category.name === 'All' ? toolsCount : categoryStats[category.name] || 0;
-              
+
               return (
                 <motion.button
                   key={category.name}
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => onCategoryChange(category.name)}
-                  className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${
-                    isSelected
+                  onClick={() => onCategoryChange(category.name === 'All' ? [] : [category.name])}
+                  className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${isSelected
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
                       : 'hover:bg-gray-700/50 text-gray-300'
-                  }`}
+                    }`}
                 >
                   <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
                   <span className="flex-1 text-left font-medium">{category.name}</span>
