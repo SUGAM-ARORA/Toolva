@@ -11,8 +11,9 @@ type Config struct {
 	DBPort     string
 	DBUser     string
 	DBPassword string
-	DBName     string
-	Port       string
+	DBName         string
+	Port           string
+	AllowedOrigins string
 }
 
 func LoadConfig() (*Config, error) {
@@ -22,11 +23,12 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DBHost:     os.Getenv("DB_HOST"),
-		DBPort:     os.Getenv("DB_PORT"),
-		DBUser:     os.Getenv("DB_USER"),
-		DBPassword: os.Getenv("DB_PASSWORD"),
-		DBName:     os.Getenv("DB_NAME"),
-		Port:       os.Getenv("PORT"),
+		DBHost:         os.Getenv("DB_HOST"),
+		DBPort:         os.Getenv("DB_PORT"),
+		DBUser:         os.Getenv("DB_USER"),
+		DBPassword:     os.Getenv("DB_PASSWORD"),
+		DBName:         os.Getenv("DB_NAME"),
+		Port:           os.Getenv("PORT"),
+		AllowedOrigins: os.Getenv("ALLOWED_ORIGINS"),
 	}, nil
 }

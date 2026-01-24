@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"toolva/internal/config"
 	"toolva/internal/handlers"
 	"toolva/internal/middleware"
@@ -47,8 +48,13 @@ func main() {
 	router := gin.Default()
 
 	// Configure CORS
+	allowedOrigins := []string{"http://localhost:5173"}
+	if cfg.AllowedOrigins != "" {
+		allowedOrigins = strings.Split(cfg.AllowedOrigins, ",")
+	}
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
