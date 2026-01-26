@@ -110,7 +110,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="/CHANGELOG.md" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">
+                <a href="https://github.com/your-org/your-repo/blob/main/CHANGELOG.md" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm">
                   Changelog
                 </a>
               </li>
