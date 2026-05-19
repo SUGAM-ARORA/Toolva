@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440003",
+    name: 'Aurcue',
+    description: 'AI personal style assistant for color analysis, outfits, hairstyles, and glasses',
+    category: 'Design',
+    url: 'https://www.aurcue.com',
+    image: 'https://www.aurcue.com/brand/aurcue-header-logo.png',
+    pricing: 'Free / Paid reports',
+    rating: 4.6,
+    dailyUsers: 'New',
+    modelType: 'Photo style analysis',
+    easeOfUse: 4.8,
+    userExperience: 4.7
   }
 ];
 
