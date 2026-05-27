@@ -28,6 +28,20 @@ export const extraAITools: AITool[] = [
     modelType: 'Custom GPT',
     easeOfUse: 4.8,
     userExperience: 4.7
+  },
+  {
+    id: "83c6f7e4-7312-4fd4-a79a-5a7a5fdf6e0b",
+    name: 'LandscapioAI',
+    description: 'AI landscape design platform for creating outdoor space concepts and visualizations',
+    category: 'Design',
+    url: 'https://www.landscapioai.com/',
+    image: 'https://www.landscapioai.com/favicon.ico',
+    pricing: 'Free / Premium',
+    rating: 4.7,
+    dailyUsers: '10K+',
+    modelType: 'Computer Vision',
+    easeOfUse: 4.8,
+    userExperience: 4.7
   }
   // Note: For brevity, I'm showing just the first two items. 
   // You should add unique UUIDs to ALL items in your actual file
