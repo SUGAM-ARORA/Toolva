@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440100",
+    name: 'SwiftAlerts',
+    description: 'Query trading signals from AI assistants',
+    category: 'Analytics',
+    url: 'https://swiftalerts.trade',
+    image: 'https://images.unsplash.com/photo-1642790106117-e829e14a795f',
+    pricing: 'Private access',
+    rating: 4.6,
+    dailyUsers: 'Private beta',
+    modelType: 'Market Intelligence',
+    easeOfUse: 4.5,
+    userExperience: 4.6
   }
 ];
 
