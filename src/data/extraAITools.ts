@@ -28,7 +28,21 @@ export const extraAITools: AITool[] = [
     modelType: 'Custom GPT',
     easeOfUse: 4.8,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440099",
+    name: 'Roblox GUI Maker',
+    description: 'Free AI planning tool for Roblox Studio ScreenGui layouts, HUDs, menus, and Lua starter code ideas',
+    category: 'Code',
+    url: 'https://robloxguimaker.dev/',
+    image: 'https://res.cloudinary.com/dqp362rzh/image/upload/v1781751810/bihytjivjlx3d4fd50jy.png',
+    pricing: 'Free',
+    rating: 4.7,
+    dailyUsers: 'New',
+    modelType: 'AI UI Planning',
+    easeOfUse: 4.8,
+    codeQuality: 4.6,
+    userExperience: 4.7
   }
-  // Note: For brevity, I'm showing just the first two items. 
-  // You should add unique UUIDs to ALL items in your actual file
+  // Additional community-submitted tools can be appended here with unique UUIDs.
 ];
