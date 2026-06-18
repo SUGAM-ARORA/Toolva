@@ -30,6 +30,21 @@ export const moreAITools: AITool[] = [
     easeOfUse: 4.7,
     codeQuality: 4.9,
     userExperience: 4.8
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440007",
+    name: 'Roblox GUI Maker',
+    description: 'AI prompt-based Roblox Studio GUI generator with Lua starter code export',
+    category: 'Code',
+    url: 'https://robloxguimaker.dev/',
+    image: 'https://robloxguimaker.dev/images/roblox-gui-maker-product.webp',
+    pricing: 'Free',
+    rating: 4.6,
+    dailyUsers: '10K+',
+    modelType: 'AI GUI Generator',
+    easeOfUse: 4.8,
+    codeQuality: 4.5,
+    userExperience: 4.7
   }
   // Note: For brevity, I'm showing just the first two items. 
   // You should add unique UUIDs to ALL items in your actual file
