@@ -32,6 +32,20 @@ const baseTools: AITool[] = [
     userExperience: 4.6
   },
   {
+    id: "550e8400-e29b-41d4-a716-446655440003",
+    name: 'Tudo',
+    description: 'AI task capture and personal planning app for turning quick thoughts into organized next actions',
+    category: 'Productivity',
+    url: 'https://blynkai.app/tudo/',
+    image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b',
+    pricing: 'Freemium',
+    rating: 4.7,
+    dailyUsers: 'New',
+    modelType: 'AI Task Planner',
+    easeOfUse: 4.8,
+    userExperience: 4.7
+  },
+  {
     id: "550e8400-e29b-41d4-a716-446655440002",
     name: 'Google Gemini Pro Vision',
     description: 'Advanced AI model for image and text understanding',
