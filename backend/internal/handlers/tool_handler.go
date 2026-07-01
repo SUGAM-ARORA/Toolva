@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"toolva/internal/models"
 	"toolva/internal/services"
 
@@ -27,13 +26,8 @@ func (h *ToolHandler) GetAllTools(c *gin.Context) {
 }
 
 func (h *ToolHandler) GetToolByID(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-		return
-	}
-
-	tool, err := h.toolService.GetToolByID(uint(id))
+	id := c.Param("id")
+	tool, err := h.toolService.GetToolByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Tool not found"})
 		return
@@ -85,19 +79,14 @@ func (h *ToolHandler) CreateTool(c *gin.Context) {
 }
 
 func (h *ToolHandler) UpdateTool(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-		return
-	}
-
+	id := c.Param("id")
 	var tool models.Tool
 	if err := c.ShouldBindJSON(&tool); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	tool.ID = uint(id)
+	tool.ID = id
 	if err := h.toolService.UpdateTool(&tool); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -106,13 +95,8 @@ func (h *ToolHandler) UpdateTool(c *gin.Context) {
 }
 
 func (h *ToolHandler) DeleteTool(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-		return
-	}
-
-	if err := h.toolService.DeleteTool(uint(id)); err != nil {
+	id := c.Param("id")
+	if err := h.toolService.DeleteTool(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

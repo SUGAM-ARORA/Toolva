@@ -151,7 +151,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
       items: [
         { label: 'My Profile', icon: User, href: '/profile', color: 'text-blue-500' },
         { label: 'Favorites', icon: Heart, href: '/favorites', count: userStats.favorites, color: 'text-red-500' },
-        { label: 'Bookmarks', icon: Bookmark, href: '/bookmarks', count: userStats.bookmarks, color: 'text-purple-500' },
         { label: 'Recent Activity', icon: Clock, href: '/activity', color: 'text-green-500' }
       ]
     },
