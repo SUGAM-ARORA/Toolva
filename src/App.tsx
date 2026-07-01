@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap, RefreshCw } from 'lucide-react';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
 import ThemeToggle from './components/ThemeToggle';
@@ -19,12 +19,14 @@ import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
+import { getAllTools, localAITools } from './data/unifiedTools';
 
 // Lazy load components
 const ToolCard = lazy(() => import('./components/ToolCard'));
 const ToolFinder = lazy(() => import('./components/ToolFinder'));
 const CompareTools = lazy(() => import('./components/CompareTools'));
 const PersonaRecommendations = lazy(() => import('./components/PersonaRecommendations'));
+const SmartRecommender = lazy(() => import('./components/SmartRecommender'));
 const PromptExplorer = lazy(() => import('./components/PromptExplorer'));
 const WorkflowBuilder = lazy(() => import('./components/WorkflowBuilder'));
 const AILearningHub = lazy(() => import('./components/AILearningHub'));
@@ -48,30 +50,39 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tools, setTools] = useState<AITool[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Immediately seed with local tools so Griha is never empty
+  const [tools, setTools] = useState<AITool[]>(localAITools);
+  const [isLoading, setIsLoading] = useState(false); // no full-screen spinner; we already have data
+  const [isSyncing, setIsSyncing] = useState(false);
   const itemsPerPage = 12;
 
   useEffect(() => {
-    fetchTools();
+    syncTools();
   }, []);
 
-  const fetchTools = async () => {
+  // Background sync: fetch Supabase + GitHub and merge into displayed tools
+  const syncTools = useCallback(async () => {
+    setIsSyncing(true);
     try {
-      const { data, error } = await supabase
-        .from('tools')
-        .select('*')
-        .eq('verified', true);
+      let supabaseTools: AITool[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('tools')
+          .select('*')
+          .eq('verified', true);
+        if (!error && data && data.length > 0) supabaseTools = data;
+      } catch (e) {
+        // Supabase unavailable — that's fine, we have local data
+      }
 
-      if (error) throw error;
-      setTools(data);
-    } catch (error) {
-      console.error('Error fetching tools:', error);
-      toast.error('Failed to load tools');
+      const merged = await getAllTools(supabaseTools);
+      if (merged.length > 0) setTools(merged);
+    } catch (err) {
+      // Stay with local tools silently
     } finally {
-      setIsLoading(false);
+      setIsSyncing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -275,6 +286,7 @@ function App() {
                 onClose={() => setShowSidebar(false)}
                 onFilterChange={() => {}}
                 toolsCount={tools.length}
+                tools={tools}
               />
             </motion.div>
           )}
@@ -457,7 +469,7 @@ function App() {
                   )}
                   {view === 'finder' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <ToolFinder tools={tools} />
+                      <SmartRecommender />
                     </Suspense>
                   )}
                   {view === 'compare' && (
