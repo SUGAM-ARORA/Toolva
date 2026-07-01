@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy } from 'lucide-react';
-import { ToolCategory } from '../types';
+import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface SidebarProps {
@@ -12,6 +11,7 @@ interface SidebarProps {
   onClose: () => void;
   onFilterChange: (filters: any) => void;
   toolsCount: number;
+  tools?: AITool[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -20,7 +20,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onCategoryChange,
   onClose,
   onFilterChange,
-  toolsCount
+  toolsCount,
+  tools = []
 }) => {
   const [filters, setFilters] = useState({
     minRating: 0,
@@ -43,30 +44,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    fetchCategoryStats();
-  }, []);
-
-  const fetchCategoryStats = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tools')
-        .select('category');
-
-      if (error) throw error;
-
-      const stats = data.reduce((acc: Record<string, number>, tool) => {
-        acc[tool.category] = (acc[tool.category] || 0) + 1;
-        return acc;
-      }, {});
-
-      setCategoryStats(stats);
-    } catch (error) {
-      console.error('Error fetching category stats:', error);
-    }
-  };
+  // Calculate category counts from the tools prop (works without Supabase)
+  const categoryStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    tools.forEach(tool => {
+      if (tool.category) {
+        stats[tool.category] = (stats[tool.category] || 0) + 1;
+      }
+    });
+    return stats;
+  }, [tools]);
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
