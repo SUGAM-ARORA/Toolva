@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { Star, Heart, Share2, BookmarkPlus, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
+import { Star, Heart, Share2, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
 import { AITool } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface ToolCardProps {
   tool: AITool;
-  onFavorite: () => void;
-  isFavorited: boolean;
+  onFavorite?: () => void;
+  isFavorited?: boolean;
 }
 
-const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) => {
+const ToolCard: React.FC<ToolCardProps> = ({ 
+  tool, 
+  onFavorite,
+  isFavorited = false
+}) => {
   const [showDetails, setShowDetails] = useState(false);
 
   const handleShare = async () => {
@@ -55,22 +60,24 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onFavorite, isFavorited }) =>
         
         {/* Action Buttons */}
         <div className="absolute top-4 right-4 flex space-x-2">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onFavorite();
-            }}
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
-          >
-            <Heart
-              className={`h-5 w-5 ${
-                isFavorited ? 'text-red-500 fill-current' : 'text-white'
-              }`}
-            />
-          </motion.button>
+          {onFavorite && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFavorite();
+              }}
+              className="p-2 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-colors"
+            >
+              <Heart
+                className={`h-5 w-5 ${
+                  isFavorited ? 'text-red-500 fill-current' : 'text-white'
+                }`}
+              />
+            </motion.button>
+          )}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}

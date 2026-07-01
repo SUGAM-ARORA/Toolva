@@ -1,22 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
-import { aiTools } from './data/aiTools';
+import { lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap, RefreshCw } from 'lucide-react';
 import { categories } from './data/categories';
 import Sidebar from './components/Sidebar';
-import ToolCard from './components/ToolCard';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
-import ToolFinder from './components/ToolFinder';
-import CompareTools from './components/CompareTools';
-import SubmitTool from './components/SubmitTool';
-import PersonaRecommendations from './components/PersonaRecommendations';
-import PromptExplorer from './components/PromptExplorer';
-import WorkflowBuilder from './components/WorkflowBuilder';
-import AILearningHub from './components/AILearningHub';
-import AITermsDictionary from './components/AITermsDictionary';
-import WeeklyRecommendations from './components/WeeklyRecommendations';
-import Footer from './components/Footer';
+import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { supabase } from './lib/supabase';
@@ -28,6 +18,22 @@ import Settings from './pages/Settings';
 import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
+import { AITool } from './types';
+import { getAllTools, localAITools } from './data/unifiedTools';
+
+// Lazy load components
+const ToolCard = lazy(() => import('./components/ToolCard'));
+const ToolFinder = lazy(() => import('./components/ToolFinder'));
+const CompareTools = lazy(() => import('./components/CompareTools'));
+const PersonaRecommendations = lazy(() => import('./components/PersonaRecommendations'));
+const SmartRecommender = lazy(() => import('./components/SmartRecommender'));
+const PromptExplorer = lazy(() => import('./components/PromptExplorer'));
+const WorkflowBuilder = lazy(() => import('./components/WorkflowBuilder'));
+const AILearningHub = lazy(() => import('./components/AILearningHub'));
+const AITermsDictionary = lazy(() => import('./components/AITermsDictionary'));
+const WeeklyRecommendations = lazy(() => import('./components/WeeklyRecommendations'));
+const SubmitTool = lazy(() => import('./components/SubmitTool'));
+const Footer = lazy(() => import('./components/Footer'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -44,38 +50,96 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  // Immediately seed with local tools so Griha is never empty
+  const [tools, setTools] = useState<AITool[]>(localAITools);
+  const [isLoading, setIsLoading] = useState(false); // no full-screen spinner; we already have data
+  const [isSyncing, setIsSyncing] = useState(false);
   const itemsPerPage = 12;
 
   useEffect(() => {
-  const script1 = document.createElement('script');
-  script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
-  script1.async = true;
-  document.head.appendChild(script1);
+    syncTools();
+  }, []);
 
-  const script2 = document.createElement('script');
-  script2.innerHTML = `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-N87HLGF2NN');
-  `;
-  document.head.appendChild(script2);
-}, []);
+  // Background sync: fetch Supabase + GitHub and merge into displayed tools
+  const syncTools = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      let supabaseTools: AITool[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('tools')
+          .select('*')
+          .eq('verified', true);
+        if (!error && data && data.length > 0) supabaseTools = data;
+      } catch (e) {
+        // Supabase unavailable — that's fine, we have local data
+      }
+
+      const merged = await getAllTools(supabaseTools);
+      if (merged.length > 0) setTools(merged);
+    } catch (err) {
+      // Stay with local tools silently
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchFavorites(session.user.id);
-      }
-    });
+    const script1 = document.createElement('script');
+    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
+    script1.async = true;
+    document.head.appendChild(script1);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchFavorites(session.user.id);
-      } else {
+    const script2 = document.createElement('script');
+    script2.innerHTML = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-N87HLGF2NN');
+    `;
+    document.head.appendChild(script2);
+  }, []);
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          await supabase.auth.signOut();
+          setUser(null);
+          setFavorites([]);
+          return;
+        }
+
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        await supabase.auth.signOut();
+        setUser(null);
         setFavorites([]);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        } else {
+          setFavorites([]);
+        }
+      } else if (event === 'SIGNED_IN') {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchFavorites(session.user.id);
+        }
       }
     });
 
@@ -113,6 +177,7 @@ function App() {
 
     try {
       if (favorites.includes(toolId)) {
+        // Remove from favorites
         const { error } = await supabase
           .from('favorites')
           .delete()
@@ -123,6 +188,29 @@ function App() {
         setFavorites(favorites.filter(id => id !== toolId));
         toast.success('Removed from favorites');
       } else {
+        // Check if favorite already exists before inserting
+        const { data: existingFavorite, error: checkError } = await supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('tool_id', toolId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+          // PGRST116 is "not found" error, which is expected when no record exists
+          throw checkError;
+        }
+
+        if (existingFavorite) {
+          // Already exists, just update local state
+          if (!favorites.includes(toolId)) {
+            setFavorites([...favorites, toolId]);
+          }
+          toast.success('Already in favorites');
+          return;
+        }
+
+        // Insert new favorite
         const { error } = await supabase
           .from('favorites')
           .insert([{ user_id: user.id, tool_id: toolId }]);
@@ -134,10 +222,22 @@ function App() {
     } catch (error) {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
+      // Re-fetch to ensure state synchronization
+      await fetchFavorites(user.id);
     }
   };
 
-  const filteredTools = aiTools.filter(tool => 
+  // Handle category selection from hero section
+  const handleCategorySelect = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    // Scroll to tools section
+    const toolsSection = document.getElementById('tools-section');
+    if (toolsSection) {
+      toolsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const filteredTools = tools.filter(tool => 
     (selectedCategory === 'All' || tool.category === selectedCategory) &&
     (searchQuery === '' || 
       tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,6 +285,8 @@ function App() {
                 onCategoryChange={setSelectedCategory}
                 onClose={() => setShowSidebar(false)}
                 onFilterChange={() => {}}
+                toolsCount={tools.length}
+                tools={tools}
               />
             </motion.div>
           )}
@@ -213,9 +315,9 @@ function App() {
                     <button
                       key={item.label}
                       onClick={() => setView(item.view as any)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
                         view === item.view
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                          ? 'bg-blue-600 text-white shadow-lg'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}
                     >
@@ -268,7 +370,7 @@ function App() {
                           Discover the Best AI Tools
                         </h1>
                         <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12">
-                          Browse our directory of {aiTools.length}+ AI tools to find the right solution for your needs
+                          Browse our directory of {tools.length}+ AI tools to find the right solution for your needs
                         </p>
 
                         <div className="relative max-w-2xl mx-auto mb-12">
@@ -298,7 +400,7 @@ function App() {
                                 key={category.name}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => setSelectedCategory(category.name)}
+                                onClick={() => handleCategorySelect(category.name)}
                                 className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
                                   selectedCategory === category.name
                                     ? 'bg-blue-600/30 border-blue-400'
@@ -316,30 +418,44 @@ function App() {
                   </div>
                 )}
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div id="tools-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                   {view === 'grid' && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {paginatedTools.map((tool, index) => (
-                          <motion.div
-                            key={tool.name}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1, duration: 0.5 }}
-                            className="h-full"
-                          >
-                            <ToolCard
-                              tool={tool}
-                              onFavorite={() => handleFavorite(tool.name)}
-                              isFavorited={favorites.includes(tool.name)}
-                            />
-                          </motion.div>
-                        ))}
-                      </div>
+                      {isLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {[...Array(8)].map((_, index) => (
+                            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 animate-pulse">
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {paginatedTools.map((tool, index) => (
+                            <motion.div
+                              key={tool.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.1, duration: 0.5 }}
+                              className="h-full"
+                            >
+                              <Suspense fallback={<LoadingSpinner />}>
+                                <ToolCard
+                                  tool={tool}
+                                  onFavorite={() => handleFavorite(tool.id)}
+                                  isFavorited={favorites.includes(tool.id)}
+                                />
+                              </Suspense>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
                       {totalPages > 1 && (
                         <div className="mt-8">
                           <Pagination
@@ -351,28 +467,65 @@ function App() {
                       )}
                     </motion.div>
                   )}
-                  {view === 'finder' && <ToolFinder tools={aiTools} />}
-                  {view === 'compare' && <CompareTools tools={aiTools} />}
-                  {view === 'personas' && <PersonaRecommendations />}
-                  {view === 'prompts' && <PromptExplorer />}
-                  {view === 'workflows' && <WorkflowBuilder />}
-                  {view === 'learning' && <AILearningHub />}
-                  {view === 'dictionary' && <AITermsDictionary />}
-                  {view === 'weekly' && <WeeklyRecommendations />}
-                  {view === 'submit' && <SubmitTool onClose={() => setView('grid')} />}
+                  {view === 'finder' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <SmartRecommender />
+                    </Suspense>
+                  )}
+                  {view === 'compare' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <CompareTools tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'personas' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <PersonaRecommendations tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'prompts' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <PromptExplorer />
+                    </Suspense>
+                  )}
+                  {view === 'workflows' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <WorkflowBuilder tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'learning' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AILearningHub />
+                    </Suspense>
+                  )}
+                  {view === 'dictionary' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AITermsDictionary />
+                    </Suspense>
+                  )}
+                  {view === 'weekly' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <WeeklyRecommendations tools={tools} />
+                    </Suspense>
+                  )}
+                  {view === 'submit' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <SubmitTool onClose={() => setView('grid')} />
+                    </Suspense>
+                  )}
                 </div>
               </main>
             } />
           </Routes>
 
-          <Footer />
+          <Suspense fallback={<LoadingSpinner />}>
+            <Footer />
+          </Suspense>
         </div>
 
         {showAuthModal && (
           <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
             <div className="space-y-4">
               <GitHubSignIn />
-              {/* Add other sign-in methods here */}
             </div>
           </AuthModal>
         )}
@@ -384,7 +537,7 @@ function App() {
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
                   view === item.view
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -400,7 +553,7 @@ function App() {
               <button
                 key={item.label}
                 onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg ${
+                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
                   view === item.view
                     ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'

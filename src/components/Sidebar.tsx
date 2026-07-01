@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy } from 'lucide-react';
-import { ToolCategory } from '../types';
+import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { aiTools } from '../data/aiTools';
 import toast from 'react-hot-toast';
 
 interface SidebarProps {
@@ -11,6 +10,8 @@ interface SidebarProps {
   onCategoryChange: (category: string) => void;
   onClose: () => void;
   onFilterChange: (filters: any) => void;
+  toolsCount: number;
+  tools?: AITool[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -18,7 +19,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedCategory,
   onCategoryChange,
   onClose,
-  onFilterChange
+  onFilterChange,
+  toolsCount,
+  tools = []
 }) => {
   const [filters, setFilters] = useState({
     minRating: 0,
@@ -42,9 +45,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Extract unique values from tools
-  const uniqueModelTypes = [...new Set(aiTools.map(tool => tool.modelType))];
-  const uniqueTechStack = [...new Set(aiTools.flatMap(tool => tool.techStack || []))];
+  // Calculate category counts from the tools prop (works without Supabase)
+  const categoryStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    tools.forEach(tool => {
+      if (tool.category) {
+        stats[tool.category] = (stats[tool.category] || 0) + 1;
+      }
+    });
+    return stats;
+  }, [tools]);
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
@@ -75,11 +85,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     onFilterChange(defaultFilters);
     toast.success('Filters reset successfully');
   };
-
-  // Filter categories based on search
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <motion.div 
@@ -196,36 +201,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              {/* Model Types */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-2 flex items-center">
-                  <Brain className="h-4 w-4 mr-2 text-purple-400" />
-                  Model Types
-                </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {uniqueModelTypes.map((type) => (
-                    <motion.label
-                      key={type}
-                      className="flex items-center p-2 hover:bg-gray-700 rounded-lg cursor-pointer"
-                      whileHover={{ x: 4 }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filters.modelTypes.includes(type)}
-                        onChange={(e) => {
-                          const newTypes = e.target.checked
-                            ? [...filters.modelTypes, type]
-                            : filters.modelTypes.filter(t => t !== type);
-                          handleFilterChange('modelTypes', newTypes);
-                        }}
-                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
-                      />
-                      <span className="ml-2 text-sm text-gray-300">{type}</span>
-                    </motion.label>
-                  ))}
-                </div>
-              </div>
-
               {/* Price Range */}
               <div>
                 <label className="block text-sm text-gray-400 mb-2 flex items-center">
@@ -283,9 +258,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             Categories
           </label>
           <div className="space-y-2">
-            {filteredCategories.map((category) => {
+            {categories.filter(cat => cat.name.toLowerCase().includes(searchTerm.toLowerCase())).map((category) => {
               const Icon = category.icon;
               const isSelected = selectedCategory === category.name;
+              const count = category.name === 'All' ? toolsCount : categoryStats[category.name] || 0;
               
               return (
                 <motion.button
@@ -303,7 +279,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <span className="flex-1 text-left font-medium">{category.name}</span>
                   <div className="flex items-center">
                     <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
-                      {category.count}
+                      {count}
                     </span>
                     <ChevronRight className={`h-4 w-4 ml-2 ${isSelected ? 'text-white' : 'text-gray-500'}`} />
                   </div>
