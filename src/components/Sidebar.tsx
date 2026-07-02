@@ -18,6 +18,15 @@ interface SidebarProps {
   onFilterChange: (filters: any) => void;
   toolsCount: number;
   tools?: AITool[];
+  currentView?: string;
+  onViewChange?: (view: any) => void;
+  navItems?: NavItem[];
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
+  user?: any;
+  onSignIn?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -27,7 +36,16 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onFilterChange,
   toolsCount,
-  tools = []
+  tools = [],
+  currentView,
+  onViewChange,
+  navItems,
+  isDark,
+  onToggleTheme,
+  onSync,
+  isSyncing,
+  user,
+  onSignIn
 }) => {
   const [filters, setFilters] = useState({
     minRating: 0,
@@ -190,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         : 'bg-[#1c202f] hover:bg-gray-800/80 border border-gray-800 text-gray-300 hover:text-white'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-orange-400' : 'text-gray-400'}`} />
+                    {Icon && <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-orange-400' : 'text-gray-400'}`} />}
                     <span className="text-xs truncate">{item.label}</span>
                   </button>
                 );
@@ -368,7 +386,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       : 'hover:bg-gray-700/50 text-gray-300'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                  {Icon && <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />}
                   <span className="flex-1 text-left font-medium">{category.name}</span>
                   <div className="flex items-center">
                     <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>

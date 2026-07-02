@@ -289,6 +289,15 @@ function App() {
                 onFilterChange={() => {}}
                 toolsCount={tools.length}
                 tools={tools}
+                currentView={view}
+                onViewChange={(v: any) => setView(v)}
+                navItems={navItems}
+                isDark={isDark}
+                onToggleTheme={() => setIsDark(!isDark)}
+                onSync={syncTools}
+                isSyncing={isSyncing}
+                user={user}
+                onSignIn={() => setShowAuthModal(true)}
               />
             </motion.div>
           )}
