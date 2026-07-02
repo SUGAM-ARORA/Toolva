@@ -1,18 +1,15 @@
 /**
  * Toolva — Unified Tools Service
  *
- * Merges data from four sources:
- * 1. Local static aiTools (from aiTools.ts)
- * 2. Local static recommendedTools (from recommendationData.ts)
- * 3. Bundled GitHub awesomeToolsData (435+ tools from awesome-ai-tools repo)
- * 4. Supabase live tools & runtime GitHub fetcher
+ * Merges data from three sources:
+ * 1. Local static recommendedTools (from recommendationData.ts)
+ * 2. Supabase live tools (passed in from App.tsx)
+ * 3. GitHub awesome-ai-tools repo (auto-fetched & cached in localStorage)
  *
  * All sources are converted to the common AITool interface.
  */
 
 import { AITool } from '../types';
-import { aiTools } from './aiTools';
-import { awesomeToolsData } from './awesomeToolsData';
 import { recommendedTools, RecommendedTool } from './recommendationData';
 
 const GITHUB_CACHE_KEY = 'toolva_github_tools_cache';
@@ -45,16 +42,13 @@ export const localAITools: AITool[] = recommendedTools.map(recommendedToAITool);
 
 // ─── Merge utility ───────────────────────────────────────────
 /**
- * Merges Supabase tools with local static tools, recommended tools, and bundled awesome tools.
+ * Merges Supabase tools with local tools.
+ * Local tools that have the same name (case-insensitive) as a Supabase tool are skipped.
  */
 export function mergeTools(supabaseTools: AITool[]): AITool[] {
   const supabaseNames = new Set(supabaseTools.map(t => t.name.toLowerCase().trim()));
-  const uniqueLocal = aiTools.filter(t => !supabaseNames.has(t.name.toLowerCase().trim()));
-  const combinedLocalNames = new Set([...supabaseNames, ...uniqueLocal.map(t => t.name.toLowerCase().trim())]);
-  const uniqueRecommended = localAITools.filter(t => !combinedLocalNames.has(t.name.toLowerCase().trim()));
-  const combinedNames2 = new Set([...combinedLocalNames, ...uniqueRecommended.map(t => t.name.toLowerCase().trim())]);
-  const uniqueAwesome = awesomeToolsData.filter(t => !combinedNames2.has(t.name.toLowerCase().trim()));
-  return [...supabaseTools, ...uniqueLocal, ...uniqueRecommended, ...uniqueAwesome];
+  const uniqueLocal = localAITools.filter(t => !supabaseNames.has(t.name.toLowerCase().trim()));
+  return [...supabaseTools, ...uniqueLocal];
 }
 
 // ─── GitHub awesome-ai-tools fetcher ─────────────────────────
@@ -63,6 +57,8 @@ const RAW_README_URL =
 
 /**
  * Parse the awesome-ai-tools README.md markdown and extract tool entries.
+ * Each list item looks like:
+ *   - [Tool Name](url) - Description
  */
 function parseMarkdownTools(markdown: string): AITool[] {
   const tools: AITool[] = [];
@@ -73,6 +69,8 @@ function parseMarkdownTools(markdown: string): AITool[] {
 
   // Category headers: ## Category Name or ### Category Name
   const categoryRegex = /^#{2,3}\s+(.+)/;
+  // Tool entries: - [Name](url) - Description  OR  * [Name](url) - Description
+  const toolRegex = /^[-*]\s+\[([^\]]+)\]\(([^)]+)\)\s*[-–—]?\s*(.*)/;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -83,39 +81,19 @@ function parseMarkdownTools(markdown: string): AITool[] {
       continue;
     }
 
-    if (!line.startsWith('-') && !line.startsWith('*')) continue;
-
-    const linkMatch = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
-    if (linkMatch) {
-      let name = linkMatch[1].replace(/\*\*/g, '').trim();
-      let url = linkMatch[2].trim();
-
-      // Handle nested broken URL format: [Amazon Q Developer]([https://...](https://...))
-      if (url.startsWith('[http')) {
-        const nestedMatch = url.match(/\]\((http[^)]+)\)/);
-        if (nestedMatch) url = nestedMatch[1];
-      }
+    const toolMatch = line.match(toolRegex);
+    if (toolMatch) {
+      const name = toolMatch[1].trim();
+      const url = toolMatch[2].trim();
+      const description = toolMatch[3].trim() || `${name} — AI tool`;
 
       if (!name || !url.startsWith('http')) continue;
-
-      let description = line.substring(linkMatch.index! + linkMatch[0].length)
-        .replace(/^[\s*–—-]+/, '')
-        .trim();
-      
-      // Remove review links and tags
-      description = description.replace(/\*\[reviews?\]\([^)]+\)\*/gi, '').trim();
-      description = description.replace(/#opensource/gi, '').trim();
-      description = description.replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
-      // Also cleanup dashes left behind
-      description = description.replace(/^[-–—]\s*/, '').trim();
-
-      if (!description) description = `${name} — AI tool`;
 
       // Map category string to our known categories
       const cat = mapCategory(currentCategory);
 
       tools.push({
-        id: `github-awesome-live-${++idCounter}`,
+        id: `github-awesome-${++idCounter}`,
         name,
         description,
         category: cat,
@@ -158,21 +136,19 @@ function mapCategory(raw: string): string {
 }
 
 // ─── Public API ───────────────────────────────────────────────
-export async function fetchGithubTools(forceRefresh = false): Promise<AITool[]> {
-  // Check cache unless forced
-  if (!forceRefresh) {
-    try {
-      const expiry = localStorage.getItem(GITHUB_CACHE_EXPIRY_KEY);
-      if (expiry && Date.now() < parseInt(expiry)) {
-        const cached = localStorage.getItem(GITHUB_CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached) as AITool[];
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
+export async function fetchGithubTools(): Promise<AITool[]> {
+  // Check cache
+  try {
+    const expiry = localStorage.getItem(GITHUB_CACHE_EXPIRY_KEY);
+    if (expiry && Date.now() < parseInt(expiry)) {
+      const cached = localStorage.getItem(GITHUB_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached) as AITool[];
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {
-      // ignore parse errors
     }
+  } catch {
+    // ignore parse errors
   }
 
   try {
@@ -182,21 +158,16 @@ export async function fetchGithubTools(forceRefresh = false): Promise<AITool[]> 
     const tools = parseMarkdownTools(markdown);
 
     // Persist to cache
-    try {
-      localStorage.setItem(GITHUB_CACHE_KEY, JSON.stringify(tools));
-      localStorage.setItem(
-        GITHUB_CACHE_EXPIRY_KEY,
-        String(Date.now() + CACHE_TTL_MS)
-      );
-    } catch {
-      // localStorage quota might be exceeded, ignore
-    }
-
-    console.log(`[Toolva] Fetched ${tools.length} live tools from GitHub awesome-ai-tools`);
+    localStorage.setItem(GITHUB_CACHE_KEY, JSON.stringify(tools));
+    localStorage.setItem(
+      GITHUB_CACHE_EXPIRY_KEY,
+      String(Date.now() + CACHE_TTL_MS)
+    );
 
     return tools;
   } catch (err) {
-    console.warn('[Toolva] GitHub runtime fetch failed, using fallback/cache:', err);
+    console.warn('[Toolva] GitHub fetch failed, using cache or empty:', err);
+    // Try stale cache on error
     try {
       const stale = localStorage.getItem(GITHUB_CACHE_KEY);
       if (stale) return JSON.parse(stale) as AITool[];
@@ -207,15 +178,15 @@ export async function fetchGithubTools(forceRefresh = false): Promise<AITool[]> 
 
 /**
  * Get the full merged tool list:
- * supabaseTools + local aiTools + recommendedTools + bundled awesomeTools + live GitHub awesome tools
+ * supabaseTools + local recommendedTools + GitHub awesome tools
  */
-export async function getAllTools(supabaseTools: AITool[], forceRefresh = false): Promise<AITool[]> {
-  const baseMerged = mergeTools(supabaseTools);
-  const githubTools = await fetchGithubTools(forceRefresh);
+export async function getAllTools(supabaseTools: AITool[]): Promise<AITool[]> {
+  const githubTools = await fetchGithubTools();
 
-  // If live fetch returned items, merge any unique ones on top of baseMerged
-  const baseNames = new Set(baseMerged.map(t => t.name.toLowerCase().trim()));
-  const uniqueLiveGithub = githubTools.filter(t => !baseNames.has(t.name.toLowerCase().trim()));
+  // Merge all, deduplicating by name
+  const merged = mergeTools(supabaseTools);
+  const mergedNames = new Set(merged.map(t => t.name.toLowerCase().trim()));
+  const uniqueGithub = githubTools.filter(t => !mergedNames.has(t.name.toLowerCase().trim()));
 
-  return [...baseMerged, ...uniqueLiveGithub];
+  return [...merged, ...uniqueGithub];
 }

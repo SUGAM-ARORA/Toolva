@@ -22,6 +22,7 @@ import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
+import { getAllTools, localAITools } from './data/unifiedTools';
 
 // Lazy load components
 const ToolCard = lazy(() => import('./components/ToolCard'));
@@ -52,8 +53,9 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tools, setTools] = useState<AITool[]>(() => mergeTools([]));
-  const [isLoading, setIsLoading] = useState(false);
+  // Immediately seed with local tools so Griha is never empty
+  const [tools, setTools] = useState<AITool[]>(localAITools);
+  const [isLoading, setIsLoading] = useState(false); // no full-screen spinner; we already have data
   const [isSyncing, setIsSyncing] = useState(false);
   const itemsPerPage = 12;
 
@@ -61,9 +63,9 @@ function App() {
     syncTools();
   }, []);
 
-  const syncTools = useCallback(async (forceRefresh = false) => {
-    if (forceRefresh) setIsSyncing(true);
-    else setIsLoading(true);
+  // Background sync: fetch Supabase + GitHub and merge into displayed tools
+  const syncTools = useCallback(async () => {
+    setIsSyncing(true);
     try {
       let supabaseTools: AITool[] = [];
       try {
@@ -71,19 +73,16 @@ function App() {
           .from('tools')
           .select('*')
           .eq('verified', true);
-
         if (!error && data && data.length > 0) supabaseTools = data;
       } catch (e) {
-        console.warn('Supabase fetch failed or unavailable:', e);
+        // Supabase unavailable — that's fine, we have local data
       }
 
-      const merged = await getAllTools(supabaseTools, forceRefresh);
-      if (merged && merged.length > 0) setTools(merged);
-    } catch (error) {
-      console.error('Error fetching tools:', error);
-      if (forceRefresh) toast.error('Failed to sync tools');
+      const merged = await getAllTools(supabaseTools);
+      if (merged.length > 0) setTools(merged);
+    } catch (err) {
+      // Stay with local tools silently
     } finally {
-      setIsLoading(false);
       setIsSyncing(false);
     }
   }, []);
@@ -291,15 +290,6 @@ function App() {
                 onFilterChange={() => {}}
                 toolsCount={tools.length}
                 tools={tools}
-                currentView={view}
-                onViewChange={(newView) => setView(newView as any)}
-                navItems={navItems}
-                isDark={isDark}
-                onToggleTheme={handleToggleTheme}
-                onSync={() => syncTools(true)}
-                isSyncing={isSyncing}
-                user={user}
-                onSignIn={() => { setShowSidebar(false); setShowAuthModal(true); }}
               />
             </motion.div>
           )}
