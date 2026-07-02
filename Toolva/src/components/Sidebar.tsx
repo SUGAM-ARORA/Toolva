@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy, RefreshCw, Sun, Moon, LogIn, Compass, SlidersHorizontal, BookOpen } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy } from 'lucide-react';
 import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -18,15 +18,6 @@ interface SidebarProps {
   onFilterChange: (filters: any) => void;
   toolsCount: number;
   tools?: AITool[];
-  currentView?: string;
-  onViewChange?: (view: string) => void;
-  navItems?: NavItem[];
-  isDark?: boolean;
-  onToggleTheme?: () => void;
-  onSync?: () => void;
-  isSyncing?: boolean;
-  user?: any;
-  onSignIn?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -36,16 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onFilterChange,
   toolsCount,
-  tools = [],
-  currentView,
-  onViewChange,
-  navItems,
-  isDark,
-  onToggleTheme,
-  onSync,
-  isSyncing,
-  user,
-  onSignIn
+  tools = []
 }) => {
   const [filters, setFilters] = useState({
     minRating: 0,
@@ -68,6 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Calculate category counts from the tools prop (works without Supabase)
   const categoryStats = useMemo(() => {
     const stats: Record<string, number> = {};
     if (tools && Array.isArray(tools)) {
