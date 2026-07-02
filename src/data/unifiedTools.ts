@@ -1,11 +1,11 @@
 /**
  * Toolva — Unified Tools Service
  *
- * Merges data from three sources:
+ * Merges data from four sources:
  * 1. Local static aiTools (from aiTools.ts)
- * 2. Bundled GitHub awesomeToolsData (435+ tools from awesome-ai-tools repo)
- * 3. Supabase live tools (passed in from App.tsx)
- * 4. Runtime GitHub fetcher (keeps local cache fresh)
+ * 2. Local static recommendedTools (from recommendationData.ts)
+ * 3. Bundled GitHub awesomeToolsData (435+ tools from awesome-ai-tools repo)
+ * 4. Supabase live tools & runtime GitHub fetcher
  *
  * All sources are converted to the common AITool interface.
  */
@@ -13,21 +13,48 @@
 import { AITool } from '../types';
 import { aiTools } from './aiTools';
 import { awesomeToolsData } from './awesomeToolsData';
+import { recommendedTools, RecommendedTool } from './recommendationData';
 
 const GITHUB_CACHE_KEY = 'toolva_github_tools_cache';
 const GITHUB_CACHE_EXPIRY_KEY = 'toolva_github_tools_expiry';
-const CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 hour
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+// ─── Adapter: RecommendedTool → AITool ──────────────────────
+export function recommendedToAITool(r: RecommendedTool): AITool {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    category: r.category,
+    url: r.url,
+    image: r.logoUrl,
+    pricing: r.pricing,
+    rating: r.rating,
+    dailyUsers: r.usersCount,
+    modelType: r.category,
+    easeOfUse: r.metrics.easeOfUse,
+    codeQuality: r.metrics.outputQuality,
+    userExperience: r.metrics.easeOfUse,
+    featured: r.isChampion ?? false,
+    lastUpdated: new Date().toISOString().split('T')[0],
+  };
+}
+
+// Convert all local recommended tools to AITool format
+export const localAITools: AITool[] = recommendedTools.map(recommendedToAITool);
 
 // ─── Merge utility ───────────────────────────────────────────
 /**
- * Merges Supabase tools with local static tools and bundled awesome tools.
+ * Merges Supabase tools with local static tools, recommended tools, and bundled awesome tools.
  */
 export function mergeTools(supabaseTools: AITool[]): AITool[] {
   const supabaseNames = new Set(supabaseTools.map(t => t.name.toLowerCase().trim()));
   const uniqueLocal = aiTools.filter(t => !supabaseNames.has(t.name.toLowerCase().trim()));
   const combinedLocalNames = new Set([...supabaseNames, ...uniqueLocal.map(t => t.name.toLowerCase().trim())]);
-  const uniqueAwesome = awesomeToolsData.filter(t => !combinedLocalNames.has(t.name.toLowerCase().trim()));
-  return [...supabaseTools, ...uniqueLocal, ...uniqueAwesome];
+  const uniqueRecommended = localAITools.filter(t => !combinedLocalNames.has(t.name.toLowerCase().trim()));
+  const combinedNames2 = new Set([...combinedLocalNames, ...uniqueRecommended.map(t => t.name.toLowerCase().trim())]);
+  const uniqueAwesome = awesomeToolsData.filter(t => !combinedNames2.has(t.name.toLowerCase().trim()));
+  return [...supabaseTools, ...uniqueLocal, ...uniqueRecommended, ...uniqueAwesome];
 }
 
 // ─── GitHub awesome-ai-tools fetcher ─────────────────────────
@@ -169,14 +196,18 @@ export async function fetchGithubTools(forceRefresh = false): Promise<AITool[]> 
 
     return tools;
   } catch (err) {
-    console.warn('[Toolva] GitHub runtime fetch failed, using bundled fallback:', err);
+    console.warn('[Toolva] GitHub runtime fetch failed, using fallback/cache:', err);
+    try {
+      const stale = localStorage.getItem(GITHUB_CACHE_KEY);
+      if (stale) return JSON.parse(stale) as AITool[];
+    } catch { /* empty */ }
     return [];
   }
 }
 
 /**
  * Get the full merged tool list:
- * supabaseTools + local aiTools + bundled awesomeTools + live GitHub awesome tools
+ * supabaseTools + local aiTools + recommendedTools + bundled awesomeTools + live GitHub awesome tools
  */
 export async function getAllTools(supabaseTools: AITool[], forceRefresh = false): Promise<AITool[]> {
   const baseMerged = mergeTools(supabaseTools);
