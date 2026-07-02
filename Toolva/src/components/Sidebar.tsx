@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy, RefreshCw, Sun, Moon, LogIn, Compass, SlidersHorizontal, BookOpen } from 'lucide-react';
-import { ToolCategory } from '../types';
+import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface NavItem {
@@ -18,7 +17,7 @@ interface SidebarProps {
   onClose: () => void;
   onFilterChange: (filters: any) => void;
   toolsCount: number;
-  tools?: any[];
+  tools?: AITool[];
   currentView?: string;
   onViewChange?: (view: string) => void;
   navItems?: NavItem[];
@@ -37,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   onFilterChange,
   toolsCount,
-  tools,
+  tools = [],
   currentView,
   onViewChange,
   navItems,
@@ -69,7 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const categoryStats = React.useMemo(() => {
+  const categoryStats = useMemo(() => {
     const stats: Record<string, number> = {};
     if (tools && Array.isArray(tools)) {
       tools.forEach(tool => {

@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap, RefreshCw } from 'lucide-react';
 import { categories } from './data/categories';
-import { getAllTools, mergeTools } from './data/unifiedTools';
+import { getAllTools, mergeTools, localAITools } from './data/unifiedTools';
 import { aiTools } from './data/aiTools';
 import Sidebar from './components/Sidebar';
 import TAAFTHome from './components/TAAFTHome';
@@ -28,6 +28,7 @@ const ToolCard = lazy(() => import('./components/ToolCard'));
 const ToolFinder = lazy(() => import('./components/ToolFinder'));
 const CompareTools = lazy(() => import('./components/CompareTools'));
 const PersonaRecommendations = lazy(() => import('./components/PersonaRecommendations'));
+const SmartRecommender = lazy(() => import('./components/SmartRecommender'));
 const PromptExplorer = lazy(() => import('./components/PromptExplorer'));
 const WorkflowBuilder = lazy(() => import('./components/WorkflowBuilder'));
 const AILearningHub = lazy(() => import('./components/AILearningHub'));
@@ -57,10 +58,10 @@ function App() {
   const itemsPerPage = 12;
 
   useEffect(() => {
-    fetchTools();
+    syncTools();
   }, []);
 
-  const fetchTools = async (forceRefresh = false) => {
+  const syncTools = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) setIsSyncing(true);
     else setIsLoading(true);
     try {
@@ -77,7 +78,7 @@ function App() {
       }
 
       const merged = await getAllTools(supabaseTools, forceRefresh);
-      if (merged.length > 0) setTools(merged);
+      if (merged && merged.length > 0) setTools(merged);
     } catch (error) {
       console.error('Error fetching tools:', error);
       if (forceRefresh) toast.error('Failed to sync tools');
@@ -85,7 +86,7 @@ function App() {
       setIsLoading(false);
       setIsSyncing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -295,7 +296,7 @@ function App() {
                 navItems={navItems}
                 isDark={isDark}
                 onToggleTheme={handleToggleTheme}
-                onSync={() => fetchTools(true)}
+                onSync={() => syncTools(true)}
                 isSyncing={isSyncing}
                 user={user}
                 onSignIn={() => { setShowSidebar(false); setShowAuthModal(true); }}
@@ -344,7 +345,7 @@ function App() {
                 )}
                   {view === 'finder' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <ToolFinder tools={tools} />
+                      <SmartRecommender />
                     </Suspense>
                   )}
                   {view === 'compare' && (
