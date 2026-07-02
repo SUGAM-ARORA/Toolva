@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, Code, Briefcase, Palette, PenTool, Camera, Brain, Sparkles, Star, ArrowRight, Users, Clock, Zap, Target, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import { AITool } from '../types';
 import LoadingSpinner from './LoadingSpinner';
-import toast from 'react-hot-toast';
+import { localAITools } from '../data/unifiedTools';
 
 const personas = [
   {
     id: 'developer',
     name: 'Developer',
     icon: Code,
-    categories: ['Code', 'APIs', 'DevOps'],
+    categories: ['Code', 'APIs', 'DevOps', 'Machine Learning'],
     description: 'Tools for coding, development, and deployment',
     color: 'from-blue-500 to-indigo-600',
     stats: { users: '2.5M+', tools: '45+', satisfaction: '94%' }
@@ -29,7 +28,7 @@ const personas = [
     id: 'content',
     name: 'Content Creator',
     icon: PenTool,
-    categories: ['Writing', 'Content Creation'],
+    categories: ['Writing', 'Video', 'Audio', 'Music'],
     description: 'Tools for content creation and management',
     color: 'from-green-500 to-emerald-600',
     stats: { users: '3.2M+', tools: '38+', satisfaction: '92%' }
@@ -38,7 +37,7 @@ const personas = [
     id: 'business',
     name: 'Business Owner',
     icon: Briefcase,
-    categories: ['Business', 'Marketing', 'Analytics'],
+    categories: ['Business', 'Analytics', 'Productivity'],
     description: 'Business automation and analytics tools',
     color: 'from-orange-500 to-red-600',
     stats: { users: '1.5M+', tools: '28+', satisfaction: '89%' }
@@ -47,7 +46,7 @@ const personas = [
     id: 'photographer',
     name: 'Photographer',
     icon: Camera,
-    categories: ['Image Generation', 'Design'],
+    categories: ['Image Generation', 'Design', 'Video'],
     description: 'Photography and image editing tools',
     color: 'from-cyan-500 to-blue-600',
     stats: { users: '950K+', tools: '22+', satisfaction: '91%' }
@@ -56,7 +55,7 @@ const personas = [
     id: 'researcher',
     name: 'Researcher',
     icon: Brain,
-    categories: ['Research', 'Analytics'],
+    categories: ['Research', 'Analytics', 'Education', 'Chatbots'],
     description: 'Research and data analysis tools',
     color: 'from-violet-500 to-purple-600',
     stats: { users: '680K+', tools: '19+', satisfaction: '93%' }
@@ -72,7 +71,13 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AITool[]>([]);
   const [showPersonaDetails, setShowPersonaDetails] = useState(false);
-  
+
+  // Use merged tools — fallback to localAITools when prop is empty
+  const allTools = useMemo(
+    () => (tools && tools.length > 0 ? tools : localAITools),
+    [tools]
+  );
+
   const handlePersonaSelect = async (personaId: string) => {
     setIsLoading(true);
     setSelectedPersona(personaId);
@@ -80,19 +85,14 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
 
     try {
       const persona = personas.find(p => p.id === personaId);
-      if (!persona) {
-        setIsLoading(false);
-        return;
-      }
+      if (!persona) { setIsLoading(false); return; }
 
-      // Filter tools based on persona categories
-      const filteredTools = tools.filter(tool => 
-        persona.categories.some(category => 
+      const filteredTools = allTools.filter(tool =>
+        persona.categories.some(category =>
           tool.category.toLowerCase().includes(category.toLowerCase())
         )
       );
 
-      // Sort by rating and take top 6
       const sortedTools = filteredTools
         .sort((a, b) => (b.rating || 0) - (a.rating || 0))
         .slice(0, 6);
@@ -100,7 +100,6 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
       setRecommendations(sortedTools);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
-      toast.error('Failed to load recommendations');
     } finally {
       setIsLoading(false);
     }

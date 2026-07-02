@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, X, Plus, ArrowRight, Star, Users, Zap, Shield, Code, Globe, Clock, TrendingUp, BarChart3, Target, Sparkles, Brain, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AITool } from '../types';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { localAITools } from '../data/unifiedTools';
 
 interface CompareToolsProps {
   tools: AITool[];
@@ -32,6 +32,12 @@ const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
   const [viewMode, setViewMode] = useState<'detailed' | 'summary' | 'visual'>('detailed');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  // Use merged tools — always fall back to localAITools when prop is empty
+  const allTools = useMemo(
+    () => (tools && tools.length > 0 ? tools : localAITools),
+    [tools]
+  );
 
   const comparisonMetrics: ComparisonMetric[] = [
     { key: 'rating', label: 'Overall Rating', icon: Star, type: 'rating', weight: 1.0 },
@@ -158,7 +164,7 @@ const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
     setComparisonScores(comparisonScores.filter(score => score.toolId !== toolId));
   };
 
-  const filteredTools = tools.filter(tool =>
+  const filteredTools = allTools.filter(tool =>
     (tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tool.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
     !selectedTools.find(t => t.id === tool.id)
