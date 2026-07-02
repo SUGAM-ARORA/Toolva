@@ -22,7 +22,6 @@ import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
-import { getAllTools, localAITools } from './data/unifiedTools';
 
 // Lazy load components
 const ToolCard = lazy(() => import('./components/ToolCard'));
