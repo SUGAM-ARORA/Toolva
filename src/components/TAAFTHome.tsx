@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { AITool } from '../types';
 import { 
   Search, 
@@ -93,10 +94,10 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white flex flex-col md:flex-row relative selection:bg-orange-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0f1117] text-gray-900 dark:text-white flex flex-col md:flex-row relative selection:bg-orange-500 selection:text-white font-sans">
       
       {/* ─── Left Vertical Navigation Mini-Bar (Desktop) ─── */}
-      <aside className="hidden md:flex flex-col items-center justify-between w-14 bg-[#141721] border-r border-gray-800/80 py-6 fixed left-0 top-0 bottom-0 z-30 shadow-2xl">
+      <aside className="hidden md:flex flex-col items-center justify-between w-14 bg-white dark:bg-[#141721] border-r border-gray-200 dark:border-gray-800/80 py-6 fixed left-0 top-0 bottom-0 z-30 shadow-2xl">
         <div className="flex flex-col items-center space-y-6">
           <button 
             onClick={() => { setActiveTab('home'); onCategorySelect('All'); }}
@@ -108,7 +109,7 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
           
           <button 
             onClick={onOpenSidebar}
-            className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-all"
+            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all"
             title="Browse Categories & Filters"
           >
             <Compass className="w-5 h-5" />
@@ -116,7 +117,7 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
 
           <button 
             onClick={() => setActiveTab('featured')}
-            className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-all"
+            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all"
             title="Featured Tools"
           >
             <Trophy className="w-5 h-5" />
@@ -124,7 +125,7 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
 
           <button 
             onClick={() => setActiveTab('forYou')}
-            className="p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800/60 transition-all relative"
+            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all relative"
             title="For You"
           >
             <Users className="w-5 h-5" />
@@ -141,15 +142,15 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
         </div>
 
         <div className="flex flex-col items-center space-y-4">
-          <button className="p-2 text-gray-500 hover:text-gray-300 transition-colors" title="Help & FAQ">
+          <Link to="/help" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Help & FAQ">
             <HelpCircle className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-300 transition-colors" title="Contact Us">
+          </Link>
+          <Link to="/contact" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Contact Us">
             <Mail className="w-5 h-5" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-300 transition-colors" title="Settings">
+          </Link>
+          <Link to="/settings" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Settings">
             <Settings className="w-5 h-5" />
-          </button>
+          </Link>
         </div>
       </aside>
 
@@ -166,23 +167,23 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             <span className="text-[10px] sm:text-xs font-semibold tracking-widest text-gray-500 uppercase">
               *The Ultimate AI Directory & Aggregator
             </span>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-wider text-white mt-2 font-mono uppercase drop-shadow-md">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-wider text-gray-900 dark:text-white mt-2 font-mono uppercase drop-shadow-md">
               THERE'S AN AI FOR THAT<span className="text-orange-500 text-2xl sm:text-4xl align-top">®</span>
             </h1>
             
             {/* Stats Ticker */}
-            <p className="text-sm sm:text-base text-gray-400 font-medium mt-3">
-              <span className="text-orange-400 font-bold">{tools.length.toLocaleString()} AIs</span> for{' '}
-              <span className="text-orange-400 font-bold">📞 154 tasks</span> and{' '}
-              <span className="text-orange-400 font-bold">48 categories</span>.
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 font-medium mt-3">
+              <span className="text-orange-500 dark:text-orange-400 font-bold">{tools.length.toLocaleString()} AIs</span> for{' '}
+              <span className="text-orange-500 dark:text-orange-400 font-bold">📞 154 tasks</span> and{' '}
+              <span className="text-orange-500 dark:text-orange-400 font-bold">48 categories</span>.
             </p>
 
             {/* Spotlight Banner */}
             {spotlightTool && (
-              <div className="mt-4 inline-flex items-center space-x-2 bg-[#1c202f] border border-gray-700/80 px-4 py-1.5 rounded-full text-xs sm:text-sm hover:border-orange-500/50 transition-all cursor-pointer shadow-lg"
+              <div className="mt-4 inline-flex items-center space-x-2 bg-gray-100 dark:bg-[#1c202f] border border-gray-300 dark:border-gray-700/80 px-4 py-1.5 rounded-full text-xs sm:text-sm hover:border-orange-500/50 transition-all cursor-pointer shadow-lg"
                    onClick={() => onToolSelect(spotlightTool)}>
-                <span className="text-gray-400">Spotlight:</span>
-                <span className="text-orange-400 font-semibold hover:underline flex items-center">
+                <span className="text-gray-600 dark:text-gray-400">Spotlight:</span>
+                <span className="text-orange-500 dark:text-orange-400 font-semibold hover:underline flex items-center">
                   {spotlightTool.name} <span className="text-gray-500 ml-1">({spotlightTool.category})</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-1 inline" />
                 </span>
@@ -193,8 +194,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             <form onSubmit={handleSearchSubmit} className="mt-6 max-w-2xl mx-auto relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
               
-              <div className="relative flex items-center bg-[#181b28] border border-gray-700/80 rounded-2xl overflow-hidden shadow-2xl">
-                <div className="pl-4 text-gray-400">
+              <div className="relative flex items-center bg-white dark:bg-[#181b28] border border-gray-300 dark:border-gray-700/80 rounded-2xl overflow-hidden shadow-2xl">
+                <div className="pl-4 text-gray-500 dark:text-gray-400">
                   <Search className="w-5 h-5" />
                 </div>
                 <input
@@ -205,10 +206,10 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
                     onSearchChange(e.target.value);
                   }}
                   placeholder="Find AIs using natural language or keywords..."
-                  className="w-full bg-transparent px-4 py-4 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none"
+                  className="w-full bg-transparent px-4 py-4 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
                 />
                 <div className="hidden sm:flex items-center pr-3">
-                  <kbd className="px-2 py-1 text-[11px] font-semibold text-gray-400 bg-gray-800/80 border border-gray-700 rounded-md">
+                  <kbd className="px-2 py-1 text-[11px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-md">
                     /
                   </kbd>
                 </div>
@@ -234,8 +235,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             onClick={() => { setActiveTab('home'); onCategorySelect('All'); }}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               activeTab === 'home' && selectedCategory === 'All'
-                ? 'bg-white text-gray-950 shadow-lg scale-105 font-bold'
-                : 'bg-[#1c202f] text-gray-300 hover:bg-gray-800 border border-gray-700/60'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-lg scale-105 font-bold'
+                : 'bg-gray-100 dark:bg-[#1c202f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-700/60'
             }`}
           >
             <span>Home</span>
@@ -245,8 +246,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             onClick={() => setActiveTab('forYou')}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               activeTab === 'forYou'
-                ? 'bg-white text-gray-950 shadow-lg scale-105 font-bold'
-                : 'bg-[#1c202f] text-gray-300 hover:bg-gray-800 border border-gray-700/60'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-lg scale-105 font-bold'
+                : 'bg-gray-100 dark:bg-[#1c202f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-700/60'
             }`}
           >
             <span>For You</span>
@@ -259,8 +260,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             onClick={() => setActiveTab('justLaunched')}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               activeTab === 'justLaunched'
-                ? 'bg-white text-gray-950 shadow-lg scale-105 font-bold'
-                : 'bg-[#1c202f] text-gray-300 hover:bg-gray-800 border border-gray-700/60'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-lg scale-105 font-bold'
+                : 'bg-gray-100 dark:bg-[#1c202f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-700/60'
             }`}
           >
             <Flame className="w-3.5 h-3.5 text-orange-500" />
@@ -271,11 +272,11 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             onClick={() => setActiveTab('featured')}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               activeTab === 'featured'
-                ? 'bg-white text-gray-950 shadow-lg scale-105 font-bold'
-                : 'bg-[#1c202f] text-gray-300 hover:bg-gray-800 border border-gray-700/60'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-lg scale-105 font-bold'
+                : 'bg-gray-100 dark:bg-[#1c202f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-700/60'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+            <Sparkles className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />
             <span>Featured</span>
           </button>
 
@@ -283,8 +284,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             onClick={() => setActiveTab('free')}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center space-x-1.5 ${
               activeTab === 'free'
-                ? 'bg-white text-gray-950 shadow-lg scale-105 font-bold'
-                : 'bg-[#1c202f] text-gray-300 hover:bg-gray-800 border border-gray-700/60'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 shadow-lg scale-105 font-bold'
+                : 'bg-gray-100 dark:bg-[#1c202f] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-700/60'
             }`}
           >
             <Gift className="w-3.5 h-3.5 text-green-400" />
@@ -303,22 +304,22 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
         {/* Selected Category / Search Banner */}
         {(selectedCategory !== 'All' || localSearch) && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 mb-6 flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-sm text-gray-300">
-              <span className="text-gray-500">Showing results for:</span>
+            <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+              <span className="text-gray-600 dark:text-gray-500">Showing results for:</span>
               {selectedCategory !== 'All' && (
-                <span className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold border border-orange-500/30">
+                <span className="bg-orange-500/20 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full font-bold border border-orange-500/30">
                   {selectedCategory}
                 </span>
               )}
               {localSearch && (
-                <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full font-bold border border-blue-500/30">
+                <span className="bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full font-bold border border-blue-500/30">
                   "{localSearch}"
                 </span>
               )}
             </div>
             <button
               onClick={() => { onCategorySelect('All'); setLocalSearch(''); onSearchChange(''); }}
-              className="text-xs text-gray-400 hover:text-white underline"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline"
             >
               Clear filters ({filteredTools.length} found)
             </button>
@@ -328,9 +329,9 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
         {/* ─── Two-Column Main Grid (Just Launched vs Featured) ─── */}
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
           {filteredTools.length === 0 ? (
-            <div className="text-center py-20 bg-[#141721] rounded-2xl border border-gray-800">
-              <Compass className="w-12 h-12 text-gray-600 mx-auto mb-3 animate-spin" />
-              <h3 className="text-lg font-bold text-gray-300">No AI tools matched your search</h3>
+            <div className="text-center py-20 bg-white dark:bg-[#141721] rounded-2xl border border-gray-200 dark:border-gray-800">
+              <Compass className="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-3 animate-spin" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-300">No AI tools matched your search</h3>
               <p className="text-sm text-gray-500 mt-1">Try searching a different keyword or category.</p>
               <button
                 onClick={() => { onCategorySelect('All'); setLocalSearch(''); onSearchChange(''); }}
@@ -344,8 +345,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
               
               {/* Left Column: Just Launched */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-800/80 pb-3">
-                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800/80 pb-3">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
                     <span className="text-gray-400">✈</span>
                     <span>Just Launched</span>
                   </h2>
@@ -369,8 +370,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
 
               {/* Right Column: Featured */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-800/80 pb-3">
-                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center space-x-2">
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800/80 pb-3">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white flex items-center space-x-2">
                     <span>Featured</span>
                     <span className="text-orange-500 text-sm align-top">®</span>
                   </h2>
@@ -429,22 +430,22 @@ const TAAFTCard: React.FC<TAAFTCardProps> = ({
       whileHover={{ y: -4, borderColor: '#f97316' }}
       transition={{ duration: 0.2 }}
       onClick={onSelect}
-      className="bg-[#181b28] border border-gray-800/90 hover:border-orange-500/60 rounded-2xl p-4 flex flex-col justify-between cursor-pointer group shadow-lg hover:shadow-orange-500/10 transition-all min-h-[145px] relative overflow-hidden"
+      className="bg-white dark:bg-[#181b28] border border-gray-200 dark:border-gray-800/90 hover:border-orange-500/60 rounded-2xl p-4 flex flex-col justify-between cursor-pointer group shadow-lg hover:shadow-orange-500/10 transition-all min-h-[145px] relative overflow-hidden"
     >
       {/* Top Row: Pill Badge + Stats */}
       <div className="flex items-center justify-between mb-2.5">
         <span className={`${badgeColor} text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm`}>
           {badge}
         </span>
-        <div className="flex items-center space-x-2 text-[11px] text-gray-400 font-mono">
-          <span className="flex items-center text-yellow-400 font-bold">
+        <div className="flex items-center space-x-2 text-[11px] text-gray-500 dark:text-gray-400 font-mono">
+          <span className="flex items-center text-yellow-500 dark:text-yellow-400 font-bold">
             ★ {rating.toFixed(1)}
           </span>
-          <span className="text-gray-600">|</span>
+          <span className="text-gray-300 dark:text-gray-600">|</span>
           <button
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(e); }}
-            className={`hover:text-red-400 transition-colors flex items-center space-x-0.5 ${
-              isFavorite ? 'text-red-500 font-bold' : 'text-gray-400'
+            className={`hover:text-red-500 dark:hover:text-red-400 transition-colors flex items-center space-x-0.5 ${
+              isFavorite ? 'text-red-500 font-bold' : 'text-gray-400 dark:text-gray-500'
             }`}
             title={isFavorite ? "Remove from favorites" : "Save to favorites"}
           >
@@ -459,30 +460,30 @@ const TAAFTCard: React.FC<TAAFTCardProps> = ({
         <img
           src={tool.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=272b3f&color=fff&size=80`}
           alt={tool.name}
-          className="w-10 h-10 rounded-xl object-cover border border-gray-700/60 shadow-md shrink-0 bg-gray-800"
+          className="w-10 h-10 rounded-xl object-cover border border-gray-200 dark:border-gray-700/60 shadow-md shrink-0 bg-gray-100 dark:bg-gray-800"
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=272b3f&color=fff&size=80`;
           }}
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center space-x-1.5">
-            <h3 className="text-sm font-bold text-white truncate group-hover:text-orange-400 transition-colors">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
               {tool.name}
             </h3>
             <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 fill-blue-500/20 shrink-0" title="Verified AI Tool" />
           </div>
-          <p className="text-xs text-gray-400 line-clamp-1 mt-0.5 font-normal">
+          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-1 mt-0.5 font-normal">
             {tool.description}
           </p>
         </div>
       </div>
 
       {/* Bottom Row: Pricing & Category */}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-800/60 text-[11px]">
-        <span className="text-gray-400 font-medium truncate max-w-[65%]">
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-200 dark:border-gray-800/60 text-[11px]">
+        <span className="text-gray-600 dark:text-gray-400 font-medium truncate max-w-[65%]">
           {tool.pricing || 'Free + Premium'}
         </span>
-        <span className="text-gray-500 hover:text-gray-300 font-mono truncate max-w-[35%] bg-gray-900/80 px-2 py-0.5 rounded border border-gray-800">
+        <span className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-mono truncate max-w-[35%] bg-gray-100 dark:bg-gray-900/80 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-800">
           {tool.category}
         </span>
       </div>

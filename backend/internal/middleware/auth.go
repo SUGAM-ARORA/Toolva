@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 	"strings"
-	"toolva/internal/models"
 	"toolva/internal/services"
 
 	"github.com/gin-gonic/gin"

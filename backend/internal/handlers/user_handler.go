@@ -23,10 +23,21 @@ func NewUserHandler(userService *services.UserService, jwtSecret string) *UserHa
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		Name     string `json:"name" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	user := models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
 	}
 
 	if err := h.userService.Register(&user); err != nil {
