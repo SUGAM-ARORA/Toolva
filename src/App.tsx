@@ -12,12 +12,15 @@ import UserMenu from './components/UserMenu';
 import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
-import { supabase } from './lib/supabase';
+import { supabase } from './lib/supabase'; // We'll keep this temporarily if tools are still fetching from supabase
+import { api } from './lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Favorites from './pages/Favorites';
 import Settings from './pages/Settings';
+import HelpFAQ from './pages/HelpFAQ';
+import Contact from './pages/Contact';
 import ReactGA from 'react-ga4';
 import { GitHubSignIn } from './components/GitHubSignIn';
 import { AuthCallback } from './pages/AuthCallback';
@@ -105,23 +108,21 @@ function App() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session error:', error);
-          await supabase.auth.signOut();
+        const storedUser = localStorage.getItem('toolva_user');
+        const token = localStorage.getItem('toolva_token');
+
+        if (storedUser && token) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          fetchFavorites();
+        } else {
           setUser(null);
           setFavorites([]);
-          return;
-        }
-
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        await supabase.auth.signOut();
+        localStorage.removeItem('toolva_user');
+        localStorage.removeItem('toolva_token');
         setUser(null);
         setFavorites([]);
       }
@@ -129,36 +130,25 @@ function App() {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
-        } else {
-          setFavorites([]);
-        }
-      } else if (event === 'SIGNED_IN') {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
-        }
-      }
-    });
+    // Listen for custom auth changes (e.g. from login/logout)
+    const handleAuthChange = () => {
+      initializeAuth();
+    };
 
-    return () => subscription.unsubscribe();
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
   }, []);
 
-  const fetchFavorites = async (userId: string) => {
+  const fetchFavorites = async () => {
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('tool_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      setFavorites(data.map(f => f.tool_id));
+      const data = await api.get('/user/favorites');
+      setFavorites(data.map((f: any) => f.tool_id));
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      setFavorites([]);
     }
   };
 
@@ -180,44 +170,12 @@ function App() {
     try {
       if (favorites.includes(toolId)) {
         // Remove from favorites
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId);
-
-        if (error) throw error;
+        await api.delete(`/user/favorites/${toolId}`);
         setFavorites(favorites.filter(id => id !== toolId));
         toast.success('Removed from favorites');
       } else {
-        // Check if favorite already exists before inserting
-        const { data: existingFavorite, error: checkError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId)
-          .single();
-
-        if (checkError && checkError.code !== 'PGRST116') {
-          // PGRST116 is "not found" error, which is expected when no record exists
-          throw checkError;
-        }
-
-        if (existingFavorite) {
-          // Already exists, just update local state
-          if (!favorites.includes(toolId)) {
-            setFavorites([...favorites, toolId]);
-          }
-          toast.success('Already in favorites');
-          return;
-        }
-
         // Insert new favorite
-        const { error } = await supabase
-          .from('favorites')
-          .insert([{ user_id: user.id, tool_id: toolId }]);
-
-        if (error) throw error;
+        await api.post(`/user/favorites/${toolId}`, {});
         setFavorites([...favorites, toolId]);
         toast.success('Added to favorites');
       }
@@ -225,7 +183,7 @@ function App() {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
       // Re-fetch to ensure state synchronization
-      await fetchFavorites(user.id);
+      await fetchFavorites();
     }
   };
 
@@ -322,6 +280,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/help" element={<HelpFAQ />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/" element={
               <main className="flex-1 pt-0 pb-20">
@@ -391,7 +351,7 @@ function App() {
           </Routes>
 
           <Suspense fallback={<LoadingSpinner />}>
-            <Footer />
+            <Footer onViewChange={(v: any) => setView(v)} />
           </Suspense>
         </div>
 
