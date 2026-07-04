@@ -9,6 +9,7 @@ import TAAFTHome from './components/TAAFTHome';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
+import LandingPage from './components/LandingPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
@@ -59,7 +60,19 @@ function App() {
   const [tools, setTools] = useState<AITool[]>(localAITools);
   const [isLoading, setIsLoading] = useState(false); // no full-screen spinner; we already have data
   const [isSyncing, setIsSyncing] = useState(false);
+  const [hasEntered, setHasEntered] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('hasEnteredToolva') === 'true';
+    }
+    return false;
+  });
   const itemsPerPage = 12;
+
+  const handleEnterApp = () => {
+    setHasEntered(true);
+    sessionStorage.setItem('hasEnteredToolva', 'true');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     syncTools();
@@ -227,9 +240,23 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-x-hidden">
         <Toaster position="top-right" />
         
+        <AnimatePresence mode="wait">
+          {!hasEntered && (
+            <motion.div 
+              key="landing"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="fixed inset-0 z-[100] bg-[#0B0F19]"
+            >
+              <LandingPage onEnter={handleEnterApp} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {showSidebar && (
             <motion.div
