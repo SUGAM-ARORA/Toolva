@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"toolva/internal/config"
@@ -12,7 +11,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -23,10 +22,8 @@ func main() {
 		log.Fatal("Error loading config:", err)
 	}
 
-	// Connect to database
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// Connect to SQLite database (creates toolva.db file locally)
+	db, err := gorm.Open(sqlite.Open("toolva.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Error connecting to database:", err)
 	}

@@ -20,9 +20,9 @@ func (s *ToolService) GetAllTools() ([]models.Tool, error) {
 	return tools, err
 }
 
-func (s *ToolService) GetToolByID(id uint) (*models.Tool, error) {
+func (s *ToolService) GetToolByID(id string) (*models.Tool, error) {
 	var tool models.Tool
-	err := s.db.First(&tool, id).Error
+	err := s.db.Where("id = ?", id).First(&tool).Error
 	return &tool, err
 }
 
@@ -52,6 +52,6 @@ func (s *ToolService) UpdateTool(tool *models.Tool) error {
 	return s.db.Save(tool).Error
 }
 
-func (s *ToolService) DeleteTool(id uint) error {
-	return s.db.Delete(&models.Tool{}, id).Error
+func (s *ToolService) DeleteTool(id string) error {
+	return s.db.Delete(&models.Tool{}, "id = ?", id).Error
 }

@@ -113,22 +113,22 @@ function OptionCard<T extends string>({
       className={`relative rounded-2xl p-4 sm:p-5 border text-left transition-all duration-200 group overflow-hidden
         ${selected
           ? 'border-indigo-500/70 bg-indigo-500/10 shadow-lg shadow-indigo-500/10'
-          : 'border-white/8 bg-white/4 hover:border-white/16 hover:bg-white/8'
+          : 'border-gray-200 dark:border-white/8 bg-white dark:bg-white/4 hover:border-gray-300 dark:hover:border-white/16 hover:bg-gray-50 dark:hover:bg-white/8 shadow-sm dark:shadow-none'
         }`}
     >
       <div className={`absolute inset-0 bg-gradient-to-br ${option.color} opacity-0 group-hover:opacity-8 ${selected ? '!opacity-10' : ''} transition-opacity duration-300 rounded-2xl`} />
       <div className="relative flex items-start gap-3">
         <span className="text-2xl flex-shrink-0">{option.emoji}</span>
         <div className="flex-1 min-w-0">
-          <div className={`font-bold text-sm sm:text-base ${selected ? 'text-indigo-300' : 'text-white'}`}>
+          <div className={`font-bold text-sm sm:text-base ${selected ? 'text-indigo-600 dark:text-indigo-300' : 'text-gray-900 dark:text-white'}`}>
             {option.label}
           </div>
-          <div className="text-gray-500 text-xs mt-0.5">{option.description}</div>
+          <div className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{option.description}</div>
         </div>
         <div className="flex-shrink-0 mt-0.5">
           {selected
-            ? <CheckCircle2 className="w-5 h-5 text-indigo-400" />
-            : <Circle className="w-5 h-5 text-gray-700" />
+            ? <CheckCircle2 className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+            : <Circle className="w-5 h-5 text-gray-400 dark:text-gray-700" />
           }
         </div>
       </div>
@@ -213,7 +213,7 @@ const SmartRecommender: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.7 }}
-              className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-6 leading-tight"
+              className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 dark:text-white mb-6 leading-tight"
             >
               Find Your{' '}
               <span className="relative">
@@ -233,11 +233,11 @@ const SmartRecommender: React.FC = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-gray-400 text-lg sm:text-xl max-w-3xl mx-auto mb-10"
+              className="text-gray-600 dark:text-gray-400 text-lg sm:text-xl max-w-3xl mx-auto mb-10"
             >
               Our AI engine analyzes your use case, experience, budget & platform
               to recommend the{' '}
-              <span className="text-white font-semibold">exact tools you need</span>{' '}
+              <span className="text-gray-900 dark:text-white font-semibold">exact tools you need</span>{' '}
               — from 200+ options in the market.
             </motion.p>
 
@@ -255,8 +255,8 @@ const SmartRecommender: React.FC = () => {
                 { value: '14', label: 'Category Champions' },
               ].map(stat => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-2xl sm:text-3xl font-black text-white">{stat.value}</div>
-                  <div className="text-gray-500 text-xs sm:text-sm">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white">{stat.value}</div>
+                  <div className="text-gray-600 dark:text-gray-500 text-xs sm:text-sm">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
@@ -310,7 +310,7 @@ const SmartRecommender: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.35 + index * 0.1 }}
                   whileHover={{ y: -6, scale: 1.02 }}
-                  className={`relative rounded-3xl border border-white/10 bg-gray-900/60 backdrop-blur-md p-6 shadow-xl ${card.glow} hover:shadow-2xl transition-all duration-300 cursor-pointer group`}
+                  className={`relative rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900/60 backdrop-blur-md p-6 shadow-xl ${card.glow} hover:shadow-2xl transition-all duration-300 cursor-pointer group`}
                   onClick={() => setSubView(card.id)}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-300`} />
@@ -321,8 +321,8 @@ const SmartRecommender: React.FC = () => {
                     </span>
 
                     <div className="text-3xl mb-3">{card.emoji}</div>
-                    <h3 className="text-xl font-black text-white mb-2">{card.title}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed mb-5">{card.description}</p>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{card.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-5">{card.description}</p>
 
                     <button
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r ${card.gradient} text-white text-sm font-bold shadow-md group-hover:shadow-lg transition-all duration-200`}
@@ -347,7 +347,7 @@ const SmartRecommender: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 pt-6">
           <button
             onClick={() => setSubView('landing')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Recommender
@@ -365,7 +365,7 @@ const SmartRecommender: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 pt-6">
           <button
             onClick={() => setSubView('landing')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Recommender
@@ -393,7 +393,7 @@ const SmartRecommender: React.FC = () => {
           <motion.h2
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl sm:text-4xl font-black text-white mb-3"
+            className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white mb-3"
           >
             Your Personalized AI Stack
           </motion.h2>
@@ -401,7 +401,7 @@ const SmartRecommender: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-gray-400 text-lg"
+            className="text-gray-600 dark:text-gray-400 text-lg"
           >
             {results.length} tools matched — ranked by how well they fit your needs
           </motion.p>
@@ -420,7 +420,7 @@ const SmartRecommender: React.FC = () => {
               { label: answers.platform, emoji: '🖥️' },
               { label: answers.priority, emoji: '🏆' },
             ].map((chip, i) => (
-              <span key={i} className="px-3 py-1 rounded-full bg-white/8 border border-white/12 text-gray-300 text-sm">
+              <span key={i} className="px-3 py-1 rounded-full bg-gray-100 dark:bg-white/8 border border-gray-200 dark:border-white/12 text-gray-600 dark:text-gray-300 text-sm">
                 {chip.emoji} {chip.label}
               </span>
             ))}
@@ -443,8 +443,8 @@ const SmartRecommender: React.FC = () => {
         {results.length === 0 && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-bold text-white mb-2">No perfect matches found</h3>
-            <p className="text-gray-400 mb-6">Try different budget or platform options</p>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No perfect matches found</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Try different budget or platform options</p>
             <button onClick={resetQuiz} className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-colors">
               Try Again
             </button>
@@ -455,7 +455,7 @@ const SmartRecommender: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={resetQuiz}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:border-white/20 font-semibold transition-all duration-200"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-300 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-transparent hover:border-gray-400 dark:hover:border-white/20 font-semibold transition-all duration-200"
           >
             <RotateCcw className="w-4 h-4" />
             Retake Quiz
@@ -489,14 +489,14 @@ const SmartRecommender: React.FC = () => {
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={handleBack}
-            className="flex items-center gap-1 text-gray-400 hover:text-white text-sm transition-colors"
+            className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             {step === 0 ? 'Back' : 'Previous'}
           </button>
-          <span className="text-gray-500 text-sm">Step {step + 1} of {totalSteps}</span>
+          <span className="text-gray-600 dark:text-gray-500 text-sm">Step {step + 1} of {totalSteps}</span>
         </div>
-        <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-gray-200 dark:bg-white/8 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
             initial={{ width: 0 }}
@@ -516,10 +516,10 @@ const SmartRecommender: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-2">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-2">
               {currentStep.title}
             </h2>
-            <p className="text-gray-400 text-base sm:text-lg">{currentStep.subtitle}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">{currentStep.subtitle}</p>
           </div>
 
           {/* Step 0: Use Case */}

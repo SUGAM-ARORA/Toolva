@@ -2,10 +2,13 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Tool struct {
-	ID              string    `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	ID              string    `json:"id" gorm:"primaryKey"`
 	Name            string    `json:"name" gorm:"not null"`
 	Description     string    `json:"description" gorm:"type:text"`
 	Category        string    `json:"category" gorm:"not null"`
@@ -23,4 +26,11 @@ type Tool struct {
 	LastUpdated     time.Time `json:"lastUpdated" gorm:"autoUpdateTime"`
 	CreatedAt       time.Time `json:"createdAt" gorm:"autoCreateTime"`
 	UpdatedAt       time.Time `json:"updatedAt" gorm:"autoUpdateTime"`
+}
+
+func (t *Tool) BeforeCreate(tx *gorm.DB) (err error) {
+	if t.ID == "" {
+		t.ID = uuid.New().String()
+	}
+	return
 }

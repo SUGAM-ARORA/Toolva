@@ -55,7 +55,7 @@ func (s *UserService) DeleteUser(id uint) error {
 	return s.db.Delete(&models.User{}, id).Error
 }
 
-func (s *UserService) AddFavorite(userID, toolID uint) error {
+func (s *UserService) AddFavorite(userID uint, toolID string) error {
 	favorite := models.Favorite{
 		UserID: userID,
 		ToolID: toolID,
@@ -63,7 +63,7 @@ func (s *UserService) AddFavorite(userID, toolID uint) error {
 	return s.db.Create(&favorite).Error
 }
 
-func (s *UserService) RemoveFavorite(userID, toolID uint) error {
+func (s *UserService) RemoveFavorite(userID uint, toolID string) error {
 	return s.db.Where("user_id = ? AND tool_id = ?", userID, toolID).Delete(&models.Favorite{}).Error
 }
 
@@ -84,7 +84,7 @@ func (s *UserService) AddReview(review *models.Review) error {
 	return s.db.Create(review).Error
 }
 
-func (s *UserService) GetToolReviews(toolID uint) ([]models.Review, error) {
+func (s *UserService) GetToolReviews(toolID string) ([]models.Review, error) {
 	var reviews []models.Review
 	err := s.db.Preload("User").Where("tool_id = ?", toolID).Find(&reviews).Error
 	return reviews, err
