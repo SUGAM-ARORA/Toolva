@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Settings, LogOut, Star, Wrench, Shield, Trophy, Target, Gift, Activity, Clock, Heart, Bookmark, Globe, Brain, Book, Lightbulb, CreditCard } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -62,20 +62,11 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   const fetchUserStats = async () => {
     try {
-      const { data: favorites } = await supabase
-        .from('favorites')
-        .select('count')
-        .eq('user_id', user.id);
+      const favorites = [] as any[];
 
-      const { data: reviews } = await supabase
-        .from('reviews')
-        .select('count')
-        .eq('user_id', user.id);
+      const reviews = [] as any[];
 
-      const { data: contributions } = await supabase
-        .from('tools')
-        .select('count')
-        .eq('submitted_by', user.id);
+      const contributions = [] as any[];
 
       setUserStats({
         favorites: favorites?.[0]?.count || 0,
@@ -94,13 +85,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   const fetchSubscriptionStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
+      const data = null;
 
       if (data) {
         setSubscriptionStatus({
@@ -116,14 +101,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   const fetchNotifications = async () => {
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
+      const data = [] as any[];
       setNotifications(data || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -136,7 +114,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      localStorage.removeItem('token');
+      window.dispatchEvent(new Event('auth-change'));
       toast.success('Signed out successfully');
       navigate('/');
     } catch (err) {
