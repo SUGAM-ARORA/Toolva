@@ -28,6 +28,20 @@ export const extraAITools: AITool[] = [
     modelType: 'Custom GPT',
     easeOfUse: 4.8,
     userExperience: 4.7
+  },
+  {
+    id: "7b3ef3ad-17f5-4089-8b2a-293d57732879",
+    name: 'ImagineClip',
+    description: 'AI video generator for social clips, avatar videos, stylized scenes, and shareable visual effects',
+    category: 'Video',
+    url: 'https://imagineclip.com?ref=toolva',
+    image: 'https://imagineclip.com/og.png',
+    pricing: 'Freemium',
+    rating: 4.7,
+    dailyUsers: 'Growing',
+    modelType: 'AI Video',
+    easeOfUse: 4.8,
+    userExperience: 4.7
   }
   // Note: For brevity, I'm showing just the first two items. 
   // You should add unique UUIDs to ALL items in your actual file
