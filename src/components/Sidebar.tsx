@@ -68,6 +68,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
 
   // Calculate category counts from the tools prop (works without Supabase)
   const categoryStats = useMemo(() => {
