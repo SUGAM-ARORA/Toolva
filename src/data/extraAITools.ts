@@ -28,6 +28,20 @@ export const extraAITools: AITool[] = [
     modelType: 'Custom GPT',
     easeOfUse: 4.8,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440090",
+    name: 'Remio',
+    description: 'Local-first AI memory and knowledge base desktop app for fast personal and agent context retrieval',
+    category: 'Productivity',
+    url: 'https://remio.ai/',
+    image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72',
+    pricing: 'Freemium',
+    rating: 4.7,
+    dailyUsers: '10K+',
+    modelType: 'Knowledge Base',
+    easeOfUse: 4.7,
+    userExperience: 4.8
   }
   // Note: For brevity, I'm showing just the first two items. 
   // You should add unique UUIDs to ALL items in your actual file
