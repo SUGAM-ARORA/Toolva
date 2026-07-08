@@ -44,10 +44,28 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440007",
+    name: 'ImagineClip',
+    description: 'AI video generator for avatar clips, stylized scenes, and social-ready short videos',
+    category: 'Video',
+    url: 'https://imagineclip.com',
+    image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113',
+    pricing: 'Free / Premium',
+    rating: 4.6,
+    dailyUsers: '50K+',
+    modelType: 'AI Video',
+    easeOfUse: 4.7,
+    userExperience: 4.6
   }
 ];
 
 import { awesomeToolsData } from './awesomeToolsData';
 
 // Combine all tools into one array
+<<<<<<< Updated upstream
 export const aiTools: AITool[] = [...baseTools, ...moreAITools, ...extraAITools, ...awesomeToolsData];
+=======
+export const aiTools: AITool[] = [...baseTools, ...moreAITools, ...extraAITools];
+>>>>>>> Stashed changes
