@@ -28,6 +28,20 @@ export const extraAITools: AITool[] = [
     modelType: 'Custom GPT',
     easeOfUse: 4.8,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440007",
+    name: 'Reverse Image Location',
+    description: 'AI photo geolocation tool that estimates where an image was taken and explains visible scene clues for OSINT and GeoGuessr-style practice.',
+    category: 'Research',
+    url: 'https://reverseimagelocation.com/',
+    image: 'https://reverseimagelocation.com/og-image.png',
+    pricing: 'Freemium',
+    rating: 4.6,
+    dailyUsers: 'N/A',
+    modelType: 'Visual geolocation',
+    easeOfUse: 4.6,
+    userExperience: 4.6
   }
   // Note: For brevity, I'm showing just the first two items. 
   // You should add unique UUIDs to ALL items in your actual file
