@@ -1,27 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
 // Enhanced validation and logging
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase configuration:', {
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey,
-    environment: import.meta.env.MODE
-  });
-  throw new Error('Missing Supabase environment variables. Please check your environment configuration.');
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Missing Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY). Operating with local fallback data.');
 }
 
 // Validate URL format and protocol
 try {
   const url = new URL(supabaseUrl);
   if (!url.protocol.startsWith('http')) {
-    throw new Error('Supabase URL must start with http:// or https://');
+    console.warn('Supabase URL must start with http:// or https://');
   }
-} catch (error) {
-  console.error('Supabase URL validation failed:', error);
-  throw new Error(`Invalid Supabase URL format: ${error.message}`);
+} catch (error: any) {
+  console.warn('Supabase URL validation failed:', error?.message || error);
 }
 
 // Create Supabase client with retries and timeout
@@ -46,31 +40,36 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Test the connection and provide detailed error information
-supabase.auth.getSession()
-  .then(response => {
-    console.log('Supabase connection established successfully', {
-      hasSession: !!response.data.session,
-      environment: import.meta.env.MODE
+// Test the connection and provide detailed error information if env vars are present
+if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  supabase.auth.getSession()
+    .then(response => {
+      console.log('Supabase connection established successfully', {
+        hasSession: !!response.data.session,
+        environment: import.meta.env.MODE
+      });
+    })
+    .catch(error => {
+      console.warn('Supabase connection error details:', {
+        message: error.message,
+        status: error?.status,
+        statusText: error?.statusText,
+        url: supabaseUrl,
+        environment: import.meta.env.MODE
+      });
     });
-  })
-  .catch(error => {
-    console.error('Supabase connection error details:', {
-      message: error.message,
-      status: error?.status,
-      statusText: error?.statusText,
-      url: supabaseUrl,
-      environment: import.meta.env.MODE
-    });
-  });
+}
 
 // Add connection health check
 export const checkSupabaseConnection = async () => {
+  if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    return false;
+  }
   try {
     const { error } = await supabase.from('tools').select('count').limit(1);
     return !error;
   } catch (error) {
-    console.error('Supabase health check failed:', error);
+    console.warn('Supabase health check failed:', error);
     return false;
   }
 };
