@@ -18,37 +18,39 @@ export function sanitizeUrl(url: string): string {
   
   const trimmed = url.trim();
   const lower = trimmed.toLowerCase();
-  
-  for (const protocol of DANGEROUS_PROTOCOLS) {
-    if (lower.startsWith(protocol)) {
-      console.warn(`[Security] Blocked dangerous URL protocol: ${protocol}`);
-      return '#';
-    }
+
+  // Block dangerous protocols explicitly
+  if (
+    lower.startsWith('javascript:') ||
+    lower.startsWith('vbscript:') ||
+    lower.startsWith('file:') ||
+    lower.includes('javascript:')
+  ) {
+    console.warn(`[Security] Blocked dangerous URL protocol`);
+    return '#';
   }
-  
+
+  // Allow blob: URLs for local file preview objects
   if (lower.startsWith('blob:')) {
     return trimmed;
   }
 
-  if (trimmed.startsWith('//')) {
-    return `https:${trimmed}`;
-  }
+  // Allow safe relative paths
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('/')) return trimmed;
 
-  if (trimmed.startsWith('/')) {
-    return trimmed;
-  }
-  
   try {
     const parsed = new URL(trimmed);
-    if (!['http:', 'https:', 'blob:'].includes(parsed.protocol.toLowerCase())) {
-      return '#';
+    const protocol = parsed.protocol.toLowerCase();
+    
+    if (protocol === 'http:' || protocol === 'https:') {
+      return parsed.href;
     }
   } catch {
-    // If not a valid URL structure, return fallback
     return '#';
   }
-  
-  return trimmed;
+
+  return '#';
 }
 
 /**
