@@ -76,12 +76,23 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
   };
 
   const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+    const rawFiles = Array.from(e.target.files || []);
+    const files = rawFiles.filter(file => allowedTypes.includes(file.type.toLowerCase()));
+    
+    if (files.length === 0 && rawFiles.length > 0) {
+      toast.error('Please upload a valid image (PNG, JPG, WEBP, or GIF).');
+      return;
+    }
+
     const newScreenshots = [...screenshots, ...files].slice(0, 5);
     setScreenshots(newScreenshots);
 
-    // Create preview URLs
-    const newPreviewUrls = newScreenshots.map(file => URL.createObjectURL(file));
+    // Create preview URLs with explicit sanitization
+    const newPreviewUrls = newScreenshots.map(file => {
+      const blobUrl = URL.createObjectURL(file);
+      return sanitizeUrl(blobUrl);
+    });
     setPreviewUrls(newPreviewUrls);
   };
 
