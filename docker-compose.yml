@@ -1,0 +1,69 @@
+# ─── Toolva Full Stack ──────────────────────────────────────
+# Usage: docker compose up -d
+# ────────────────────────────────────────────────────────────
+version: '3.9'
+
+services:
+  # ─── Frontend (Public) ──────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: toolva-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:8080"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - toolva-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ─── Backend (Private) ──────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: toolva-backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - GIN_MODE=${GIN_MODE:-release}
+    volumes:
+      - toolva-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - toolva-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  toolva-data:
+    driver: local
+
+networks:
+  toolva-network:
+    driver: bridge

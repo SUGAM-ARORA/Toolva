@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 	"toolva/internal/config"
 	"toolva/internal/handlers"
 	"toolva/internal/middleware"
@@ -19,18 +24,17 @@ func main() {
 	// Load configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal("Error loading config:", err)
+		log.Println("[startup] Config warning:", err)
 	}
 
-	// Connect to SQLite database (creates toolva.db file locally)
+	// Connect to SQLite database
 	db, err := gorm.Open(sqlite.Open("toolva.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Error connecting to database:", err)
 	}
 
 	// Auto migrate database
-	err = db.AutoMigrate(&models.Tool{}, &models.User{}, &models.Favorite{}, &models.Review{})
-	if err != nil {
+	if err := db.AutoMigrate(&models.Tool{}, &models.User{}, &models.Favorite{}, &models.Review{}); err != nil {
 		log.Fatal("Error migrating database:", err)
 	}
 
@@ -38,31 +42,45 @@ func main() {
 	toolService := services.NewToolService(db)
 	userService := services.NewUserService(db)
 	toolHandler := handlers.NewToolHandler(toolService)
-	userHandler := handlers.NewUserHandler(userService, os.Getenv("JWT_SECRET"))
+	userHandler := handlers.NewUserHandler(userService, cfg.JWTSecret)
 
 	// Create Gin router
 	router := gin.Default()
 
-	// Configure CORS
+	// Inject database into context for AdminMiddleware
+	router.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
+
+	// Configure CORS with allowed origins from config
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     cfg.AllowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
+
+	// Health check
+	router.GET("/api/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"version": "1.0.0",
+			"service": "toolva-backend",
+		})
+	})
 
 	// Public routes
 	public := router.Group("/api")
 	{
-		// Auth routes
 		auth := public.Group("/auth")
 		{
 			auth.POST("/register", userHandler.Register)
 			auth.POST("/login", userHandler.Login)
 		}
 
-		// Tools routes
 		tools := public.Group("/tools")
 		{
 			tools.GET("", toolHandler.GetAllTools)
@@ -76,9 +94,8 @@ func main() {
 
 	// Protected routes
 	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware(os.Getenv("JWT_SECRET")))
+	protected.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	{
-		// User routes
 		user := protected.Group("/user")
 		{
 			user.GET("/profile", userHandler.GetProfile)
@@ -89,7 +106,6 @@ func main() {
 			user.POST("/tools/:id/reviews", userHandler.AddReview)
 		}
 
-		// Admin routes
 		admin := protected.Group("/admin")
 		admin.Use(middleware.AdminMiddleware())
 		{
@@ -99,13 +115,28 @@ func main() {
 		}
 	}
 
-	// Start server
-	port := cfg.Port
-	if port == "" {
-		port = "8080"
+	// Graceful shutdown
+	srv := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: router,
 	}
-	log.Printf("Server starting on port %s...", port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatal("Error starting server:", err)
+
+	go func() {
+		log.Printf("[server] Toolva backend starting on port %s", cfg.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("[server] Error:", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("[server] Shutting down gracefully...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("[server] Forced shutdown:", err)
 	}
+	log.Println("[server] Server stopped")
 }

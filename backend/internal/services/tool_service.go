@@ -1,6 +1,7 @@
 package services
 
 import (
+	"strings"
 	"toolva/internal/models"
 
 	"gorm.io/gorm"
@@ -40,7 +41,8 @@ func (s *ToolService) GetFeaturedTools() ([]models.Tool, error) {
 
 func (s *ToolService) SearchTools(query string) ([]models.Tool, error) {
 	var tools []models.Tool
-	err := s.db.Where("name ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%").Find(&tools).Error
+	lowerQuery := "%" + strings.ToLower(query) + "%"
+	err := s.db.Where("LOWER(name) LIKE ? OR LOWER(description) LIKE ?", lowerQuery, lowerQuery).Find(&tools).Error
 	return tools, err
 }
 

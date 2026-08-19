@@ -1,54 +1,84 @@
-# Security Policy 🔒
+# Security Policy
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
+| Version | Supported |
+|---------|----------|
+| 1.x.x | ✅ Active support |
+| < 1.0 | ❌ End of life |
 
 ## Reporting a Vulnerability
 
-We take the security of ToolVa seriously. If you discover a security vulnerability, please follow these steps:
+We take security seriously. If you discover a vulnerability:
 
-1. 🚫 **DO NOT** create a public GitHub issue
-2. ✉️ Email us at security@toolva.com
-3. 📝 Include detailed information about the vulnerability
-4. ⏳ Wait for our response (within 48 hours)
+### ⚠️ Do NOT
+- Open a public GitHub issue
+- Discuss in public channels
+- Exploit the vulnerability
 
-## Security Measures
+### ✅ Do
+1. Email **security@toolva.com** with:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact assessment
+   - Suggested fix (if any)
+2. Allow up to **48 hours** for initial response
+3. Work with us on responsible disclosure
 
-- 🔐 All data is encrypted in transit and at rest
-- 👤 User authentication via Supabase with industry-standard practices
-- 🛡️ Regular security audits and dependency updates
-- 🔍 Continuous monitoring for suspicious activities
+## Security Architecture
 
-## Best Practices
+### Frontend (Public Repository)
+- ✅ No secrets or API keys in source code
+- ✅ URL sanitization (`javascript:`, `data:`, `vbscript:` blocked)
+- ✅ XSS prevention (HTML escaping, input validation)
+- ✅ Content Security Policy headers
+- ✅ HTTPS-only in production
+- ✅ Rate limiting on client-side actions
 
-1. **Password Security**
-   - Use strong, unique passwords
-   - Enable two-factor authentication when available
-   - Never share your credentials
+### Backend (Private Repository)
+- ✅ JWT v5 authentication (HMAC-SHA256)
+- ✅ bcrypt password hashing (cost factor 10)
+- ✅ CORS with explicit origin allowlist
+- ✅ SQL injection prevention (parameterized queries via GORM)
+- ✅ Graceful shutdown with connection draining
+- ✅ Non-root container execution
 
-2. **API Security**
-   - Keep API keys secure
-   - Use environment variables for sensitive data
-   - Rotate keys regularly
+### CI/CD Security
+- ✅ Gitleaks secret scanning on every push/PR
+- ✅ GitHub CodeQL SAST analysis
+- ✅ npm audit on every build
+- ✅ Dependabot alerts enabled
+- ✅ Automated PR validation for tool submissions
 
-3. **Data Protection**
-   - Regular backups
-   - Encryption at rest
-   - Secure data transmission
+### Infrastructure
+- ✅ Docker containers run as non-root (UID 1001)
+- ✅ Kubernetes NetworkPolicies restrict pod communication
+- ✅ TLS via cert-manager + Let's Encrypt
+- ✅ Resource limits prevent DoS
+- ✅ Health checks with automatic restart
 
-## Dependencies
+## Dependency Management
 
-We regularly monitor and update our dependencies to patch security vulnerabilities:
+| Ecosystem | Scanner | Frequency |
+|-----------|---------|----------|
+| npm | `npm audit` + Dependabot | Every PR + daily |
+| Go | Dependabot + govulncheck | Every PR + daily |
+| Docker | Trivy | Weekly |
+| Secrets | Gitleaks | Every push |
 
-- Daily automated security scans
-- Weekly dependency reviews
-- Immediate patches for critical vulnerabilities
+## Security Headers
+
+```
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Content-Security-Policy: default-src 'self'; ...
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+```
 
 ## Contact
 
-For security concerns, contact us:
-- 📧 security@toolva.com
-- 🔐 [Security PGP Key](https://keys.toolva.com/security.pub)
+- 📧 Security issues: security@toolva.com
+- 📧 General: sugam.arora23@gmail.com
