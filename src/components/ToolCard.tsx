@@ -4,6 +4,7 @@ import { AITool } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { sanitizeUrl } from '../lib/security';
 
 interface ToolCardProps {
   tool: AITool;
@@ -201,7 +202,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
             <motion.a
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              href={tool.github}
+              href={sanitizeUrl(tool.github)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center w-full py-2 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
@@ -213,7 +214,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
           <motion.a
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            href={tool.url}
+            href={sanitizeUrl(tool.url)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-300 transform"

@@ -4,6 +4,7 @@ import { categories } from '../data/categories';
 import { ToolSubmission } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sanitizeUrl } from '../lib/security';
 
 interface SubmitToolProps {
   onClose: () => void;
@@ -663,7 +664,7 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
                       {previewUrls.map((url, index) => (
                         <div key={index} className="relative">
                           <img
-                            src={url}
+                            src={sanitizeUrl(url)}
                             alt={`Screenshot ${index + 1}`}
                             className="w-full h-32 object-cover rounded-lg"
                           />

@@ -16,20 +16,39 @@ const DANGEROUS_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'file:'];
 export function sanitizeUrl(url: string): string {
   if (!url || typeof url !== 'string') return '#';
   
-  const trimmed = url.trim().toLowerCase();
+  const trimmed = url.trim();
+  const lower = trimmed.toLowerCase();
   
   for (const protocol of DANGEROUS_PROTOCOLS) {
-    if (trimmed.startsWith(protocol)) {
+    if (lower.startsWith(protocol)) {
       console.warn(`[Security] Blocked dangerous URL protocol: ${protocol}`);
       return '#';
     }
   }
   
+  if (lower.startsWith('blob:')) {
+    return trimmed;
+  }
+
   if (trimmed.startsWith('//')) {
-    return `https:${url.trim()}`;
+    return `https:${trimmed}`;
+  }
+
+  if (trimmed.startsWith('/')) {
+    return trimmed;
   }
   
-  return url.trim();
+  try {
+    const parsed = new URL(trimmed);
+    if (!['http:', 'https:', 'blob:'].includes(parsed.protocol.toLowerCase())) {
+      return '#';
+    }
+  } catch {
+    // If not a valid URL structure, return fallback
+    return '#';
+  }
+  
+  return trimmed;
 }
 
 /**
@@ -77,10 +96,27 @@ export function escapeHtml(text: string): string {
 
 /**
  * Strip all HTML tags from a string.
+ * Uses iterative replacement to prevent incomplete multi-character sanitization bypasses (e.g. <<script>script>).
  */
 export function stripHtml(html: string): string {
   if (!html || typeof html !== 'string') return '';
-  return html.replace(/<[^>]*>/g, '').trim();
+  
+  if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+    try {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      return (doc.body.textContent || '').trim();
+    } catch {
+      // Fallback to iterative replacement if DOMParser fails
+    }
+  }
+
+  let clean = html;
+  let previous = '';
+  while (clean !== previous) {
+    previous = clean;
+    clean = clean.replace(/<[^>]*>/g, '');
+  }
+  return clean.trim();
 }
 
 // ─── Input Validation ────────────────────────────────────────
