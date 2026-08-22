@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Star, Heart, Share2, ExternalLink, Zap, Users, Clock, Code, Shield, Database, GitBranch, Book, Globe } from 'lucide-react';
 import { AITool } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { sanitizeUrl } from '../lib/security';
 

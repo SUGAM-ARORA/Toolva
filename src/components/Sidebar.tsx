@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy, LogIn, LogOut, RefreshCw, Sun, Moon } from 'lucide-react';
 import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCurrentUser, isUserSuperAdmin } from '../lib/auth';
 import toast from 'react-hot-toast';
 
 interface NavItem {
@@ -69,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Calculate category counts from the tools prop (works without Supabase)
+  // Calculate category counts from the tools prop
   const categoryStats = useMemo(() => {
     const stats: Record<string, number> = {};
     if (tools && Array.isArray(tools)) {
@@ -143,11 +144,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           {user ? (
             <div className="flex items-center space-x-2 text-xs text-gray-700 dark:text-gray-300 truncate">
               <img 
-                src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || 'U')}&background=f97316&color=fff`} 
-                alt="User" 
-                className="w-6 h-6 rounded-full border border-orange-500 shrink-0"
+                src={user.avatar_url || user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email || 'U')}&background=f97316&color=fff`} 
+                alt={user.name || 'User'} 
+                className="w-6 h-6 rounded-full border border-orange-500 shrink-0 object-cover"
               />
-              <span className="truncate max-w-[120px] font-medium">{user.email?.split('@')[0]}</span>
+              <span className="truncate max-w-[140px] font-bold text-gray-900 dark:text-white">{user.name || user.email?.split('@')[0]}</span>
             </div>
           ) : (
             <button
@@ -227,6 +228,54 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </button>
                 );
               })}
+
+              {isUserSuperAdmin(user || getCurrentUser()) && (
+                <>
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('users');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-purple-500/10 border border-purple-500/40 text-purple-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Users className="h-4 w-4 shrink-0 text-purple-400" />
+                    <span className="text-xs truncate">User Management</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('activity-logs');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Gauge className="h-4 w-4 shrink-0 text-emerald-400" />
+                    <span className="text-xs truncate">Activity Logs</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('admin');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-amber-500/10 border border-amber-500/40 text-amber-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Shield className="h-4 w-4 shrink-0 text-amber-400" />
+                    <span className="text-xs truncate">Admin Panel</span>
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => {
+                  if (onViewChange) onViewChange('contact');
+                  onClose();
+                }}
+                className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-blue-500/10 border border-blue-500/40 text-blue-400 font-bold transition-all"
+              >
+                <Zap className="h-4 w-4 shrink-0 text-blue-400" />
+                <span className="text-xs truncate">Contact Support</span>
+              </button>
             </div>
           </div>
         )}

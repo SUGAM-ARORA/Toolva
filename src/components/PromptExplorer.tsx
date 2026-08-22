@@ -159,7 +159,11 @@ const samplePrompts: Prompt[] = [
   }
 ];
 
-const PromptExplorer = () => {
+interface PromptExplorerProps {
+  onBackToHome?: () => void;
+}
+
+const PromptExplorer: React.FC<PromptExplorerProps> = ({ onBackToHome }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
@@ -262,23 +266,23 @@ const PromptExplorer = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-6"
+        >
+          ← Back to AI Directory
+        </button>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full mb-6"
-        >
-          <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-          <span className="text-purple-600 dark:text-purple-400 font-medium">AI Prompt Library</span>
-        </motion.div>
-
         <motion.h2
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
-          Master AI with Expert Prompts
+          Prompt Studio
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: -20 }}

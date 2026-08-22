@@ -61,25 +61,25 @@ const Footer: React.FC<FooterProps> = ({ onViewChange }) => {
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'grid')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-orange-500" />
-                  Browse Tools (Griha)
+                  Browse AI Directory
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'finder')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-orange-500" />
-                  AI Finder (Veda)
+                  AI Finder & Search
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'compare')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-orange-500" />
-                  Compare Tools (Tulna)
+                  Compare Tools
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'personas')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-orange-500" />
-                  Personas (Vyakta)
+                  AI Personas & Agents
                 </a>
               </li>
             </ul>
@@ -95,25 +95,31 @@ const Footer: React.FC<FooterProps> = ({ onViewChange }) => {
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'learning')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-500" />
-                  Learning Hub (Vidya)
+                  AI Learning Hub
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'dictionary')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-500" />
-                  AI Dictionary (Medha)
+                  AI Dictionary
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'prompts')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-500" />
-                  Prompt Explorer (Uttara)
+                  Prompt Studio
                 </a>
               </li>
               <li>
                 <a href="#" onClick={(e) => handleNav(e, 'submit')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-500" />
-                  Submit a Tool (Samarp)
+                  Submit Tool
+                </a>
+              </li>
+              <li>
+                <a href="#" onClick={(e) => handleNav(e, 'contact')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center group">
+                  <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-blue-500" />
+                  Contact Support (support.toolva@gmail.com)
                 </a>
               </li>
             </ul>
@@ -141,13 +147,13 @@ const Footer: React.FC<FooterProps> = ({ onViewChange }) => {
               <li>
                 <Link to="/settings" onClick={() => window.scrollTo({ top: 0 })} className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-green-500" />
-                  Settings
+                  Account Settings
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors flex items-center group">
+                <a href="#" onClick={(e) => handleNav(e, 'contact')} className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors flex items-center group">
                   <ArrowRight className="w-3 h-3 mr-2 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-green-500" />
-                  Privacy & Terms
+                  Help & FAQs
                 </a>
               </li>
             </ul>

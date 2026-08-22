@@ -64,9 +64,10 @@ const personas = [
 
 interface PersonaRecommendationsProps {
   tools: AITool[];
+  onBackToHome?: () => void;
 }
 
-const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }) => {
+const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools, onBackToHome }) => {
   const [selectedPersona, setSelectedPersona] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AITool[]>([]);
@@ -88,8 +89,8 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
       if (!persona) { setIsLoading(false); return; }
 
       const filteredTools = allTools.filter(tool =>
-        persona.categories.some(category =>
-          tool.category.toLowerCase().includes(category.toLowerCase())
+        tool && tool.category && persona.categories.some(category =>
+          (tool.category || '').toLowerCase().includes(category.toLowerCase())
         )
       );
 
@@ -108,23 +109,23 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
   const selectedPersonaData = personas.find(p => p.id === selectedPersona);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pt-20">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center space-x-2 px-4 py-2 rounded-2xl bg-white dark:bg-[#141721] border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-700 dark:text-gray-200 shadow-md transition-all hover:scale-105 mb-6 ml-36 sm:ml-40"
+        >
+          <span>← Back to AI Directory</span>
+        </button>
+      )}
+
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full mb-6"
-        >
-          <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-          <span className="text-blue-600 dark:text-blue-400 font-medium">AI-Powered Recommendations</span>
-        </motion.div>
-        
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
-          Find Your Perfect AI Stack
+          AI Personas & Workflows
         </motion.h2>
         <motion.p 
           initial={{ opacity: 0, y: -20 }}

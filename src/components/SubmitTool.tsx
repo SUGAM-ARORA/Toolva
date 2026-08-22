@@ -6,11 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { sanitizeUrl } from '../lib/security';
 
+import { getCurrentUser } from '../lib/auth';
+
 interface SubmitToolProps {
   onClose: () => void;
+  onOpenAuth?: () => void;
 }
 
-const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
+const SubmitTool: React.FC<SubmitToolProps> = ({ onClose, onOpenAuth }) => {
+  const currentUser = getCurrentUser();
   const [formData, setFormData] = useState<ToolSubmission>({
     name: '',
     description: '',
@@ -59,13 +63,23 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // Here you would typically make an API call to submit the tool
-      console.log('Submitting tool:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Tool submitted successfully!');
+      const newPendingTool = {
+        id: `pending-${Date.now()}`,
+        name: formData.name,
+        description: formData.description,
+        category: formData.category || 'Productivity',
+        url: formData.url,
+        pricing: formData.pricing || 'Freemium',
+        submittedBy: formData.submitterEmail || currentUser?.email || 'sugam.arora23@gmail.com',
+        createdAt: new Date().toISOString()
+      };
+
+      const stored = localStorage.getItem('toolva_pending_tools');
+      const list = stored ? JSON.parse(stored) : [];
+      list.unshift(newPendingTool);
+      localStorage.setItem('toolva_pending_tools', JSON.stringify(list));
+
+      toast.success(`Tool "${formData.name}" submitted for SuperAdmin approval!`);
       onClose();
     } catch (err) {
       setError('Failed to submit tool. Please try again.');
@@ -168,6 +182,54 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose }) => {
     { title: 'Features & Pricing', icon: Zap },
     { title: 'Media & Documentation', icon: Book }
   ];
+
+  if (!currentUser) {
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white dark:bg-[#141721] rounded-3xl p-8 max-w-md w-full shadow-2xl text-center space-y-5 border border-gray-200 dark:border-gray-800 relative"
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-orange-500 text-white flex items-center justify-center font-bold text-3xl shadow-lg">
+            🔒
+          </div>
+
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white">
+            Sign In Required
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            To submit an AI tool for verification and admin review, please sign in to your Toolva account.
+          </p>
+
+          <div className="pt-2 flex flex-col gap-3">
+            <button
+              onClick={() => {
+                onClose();
+                if (onOpenAuth) onOpenAuth();
+              }}
+              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm rounded-xl shadow-lg transition-all"
+            >
+              Sign In / Create Account
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-2.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-semibold"
+            >
+              Cancel
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

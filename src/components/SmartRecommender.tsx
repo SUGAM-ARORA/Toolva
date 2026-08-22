@@ -136,8 +136,11 @@ function OptionCard<T extends string>({
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────
-const SmartRecommender: React.FC = () => {
+interface SmartRecommenderProps {
+  onBackToHome?: () => void;
+}
+
+const SmartRecommender: React.FC<SmartRecommenderProps> = ({ onBackToHome }) => {
   const [subView, setSubView] = useState<SubView>('landing');
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<QuizAnswers>>({});
@@ -196,18 +199,18 @@ const SmartRecommender: React.FC = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-indigo-600/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-16">
-          {/* Hero */}
-          <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-sm font-semibold mb-6"
+        <div className="relative max-w-6xl mx-auto px-4 py-8 sm:py-12">
+          {onBackToHome && (
+            <button
+              onClick={onBackToHome}
+              className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-6"
             >
-              <Brain className="w-4 h-4" />
-              AI-Powered Recommendation Engine
-            </motion.div>
+              ← Back to AI Directory
+            </button>
+          )}
+
+          {/* Hero */}
+          <div className="text-center mb-12">
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}

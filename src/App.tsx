@@ -13,21 +13,18 @@ import LandingPage from './components/LandingPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
-import { supabase } from './lib/supabase'; // We'll keep this temporarily if tools are still fetching from supabase
 import { api } from './lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Profile from './pages/Profile';
-import Favorites from './pages/Favorites';
-import Settings from './pages/Settings';
-import HelpFAQ from './pages/HelpFAQ';
-import Contact from './pages/Contact';
 import ReactGA from 'react-ga4';
-import { GitHubSignIn } from './components/GitHubSignIn';
-import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
 
-// Lazy load components
+// Lazy load components & pages
+const Profile = lazy(() => import('./pages/Profile'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const Settings = lazy(() => import('./pages/Settings'));
+const HelpFAQ = lazy(() => import('./pages/HelpFAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
 const ToolCard = lazy(() => import('./components/ToolCard'));
 const ToolFinder = lazy(() => import('./components/ToolFinder'));
 const CompareTools = lazy(() => import('./components/CompareTools'));
@@ -40,6 +37,10 @@ const AITermsDictionary = lazy(() => import('./components/AITermsDictionary'));
 const WeeklyRecommendations = lazy(() => import('./components/WeeklyRecommendations'));
 const SubmitTool = lazy(() => import('./components/SubmitTool'));
 const Footer = lazy(() => import('./components/Footer'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const ActivityLogs = lazy(() => import('./components/ActivityLogs'));
+const UserManagement = lazy(() => import('./components/UserManagement'));
+const ContactHelp = lazy(() => import('./components/ContactHelp'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -54,6 +55,7 @@ function App() {
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+  const isAuthenticated = !!user;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   // Immediately seed with local tools so Griha is never empty
@@ -78,22 +80,20 @@ function App() {
     syncTools();
   }, []);
 
-  // Background sync: fetch Supabase + GitHub and merge into displayed tools
   const syncTools = useCallback(async () => {
     setIsSyncing(true);
     try {
-      let supabaseTools: AITool[] = [];
+      let backendTools: AITool[] = [];
       try {
-        const { data, error } = await supabase
-          .from('tools')
-          .select('*')
-          .eq('verified', true);
-        if (!error && data && data.length > 0) supabaseTools = data;
+        const data = await api.get('/tools');
+        if (Array.isArray(data) && data.length > 0) {
+          backendTools = data;
+        }
       } catch (e) {
-        // Supabase unavailable — that's fine, we have local data
+        // Backend offline or empty — fallback to local catalog
       }
 
-      const merged = await getAllTools(supabaseTools);
+      const merged = await getAllTools(backendTools);
       if (merged.length > 0) setTools(merged);
     } catch (err) {
       // Stay with local tools silently
@@ -226,16 +226,16 @@ function App() {
   }, [selectedCategory, searchQuery]);
 
   const navItems = [
-    { label: 'Griha', icon: BookOpen, view: 'grid' },
-    { label: 'Veda', icon: Search, view: 'finder' },
-    { label: 'Tulna', icon: Filter, view: 'compare' },
-    { label: 'Vyakta', icon: Users, view: 'personas' },
-    { label: 'Uttara', icon: Brain, view: 'prompts' },
-    { label: 'Disha', icon: Workflow, view: 'workflows' },
-    { label: 'Vidya', icon: GraduationCap, view: 'learning' },
-    { label: 'Medha', icon: Book, view: 'dictionary' },
-    { label: 'Saptak', icon: Trophy, view: 'weekly' },
-    { label: 'Samarp', icon: Zap, view: 'submit' }
+    { label: 'AI Directory', icon: BookOpen, view: 'grid' },
+    { label: 'AI Finder', icon: Search, view: 'finder' },
+    { label: 'Tool Compare', icon: Filter, view: 'compare' },
+    { label: 'AI Personas', icon: Users, view: 'personas' },
+    { label: 'Prompt Studio', icon: Brain, view: 'prompts' },
+    { label: 'Workflow Builder', icon: Workflow, view: 'workflows' },
+    { label: 'Learning Hub', icon: GraduationCap, view: 'learning' },
+    { label: 'AI Dictionary', icon: Book, view: 'dictionary' },
+    { label: 'Weekly Leaderboard', icon: Trophy, view: 'weekly' },
+    { label: 'Submit Tool', icon: Zap, view: 'submit' }
   ];
 
   return (
@@ -302,15 +302,32 @@ function App() {
           </button>
         </div>
 
+        {/* Top-Right Floating User Menu & Account Actions */}
+        <div className="fixed top-4 right-4 z-40 flex items-center space-x-3">
+          {user ? (
+            <UserMenu user={user} onViewChange={setView} />
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
+            >
+              Sign In / Join
+            </button>
+          )}
+        </div>
+
         <div className="flex-1 flex flex-col">
-          <Routes>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/help" element={<HelpFAQ />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/help" element={<HelpFAQ />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/users" element={<UserManagement onBackToHome={() => setView('grid')} />} />
+              <Route path="/activity" element={<ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />} />
+              <Route path="/admin" element={<AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />} />
+              <Route path="/" element={
               <main className="flex-1 pt-0 pb-20">
                 {view === 'grid' && (
                   <TAAFTHome
@@ -326,56 +343,80 @@ function App() {
                     favorites={favorites}
                     onOpenSidebar={() => setShowSidebar(true)}
                     onOpenSubmit={() => setView('submit')}
+                    onViewChange={(v: string) => setView(v)}
+                    isAuthenticated={isAuthenticated}
+                    onOpenAuth={() => setShowAuthModal(true)}
                   />
                 )}
                   {view === 'finder' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <SmartRecommender />
+                      <SmartRecommender onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'compare' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <CompareTools tools={tools} />
+                      <CompareTools tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'personas' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PersonaRecommendations tools={tools} />
+                      <PersonaRecommendations tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'prompts' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PromptExplorer />
+                      <PromptExplorer onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'workflows' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WorkflowBuilder tools={tools} />
+                      <WorkflowBuilder tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'learning' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AILearningHub />
+                      <AILearningHub onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'dictionary' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AITermsDictionary />
+                      <AITermsDictionary onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'weekly' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WeeklyRecommendations tools={tools} />
+                      <WeeklyRecommendations tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'submit' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <SubmitTool onClose={() => setView('grid')} />
+                      <SubmitTool onClose={() => setView('grid')} onOpenAuth={() => setShowAuthModal(true)} />
+                    </Suspense>
+                  )}
+                  {view === 'admin' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />
+                    </Suspense>
+                  )}
+                  {view === 'users' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <UserManagement onBackToHome={() => setView('grid')} />
+                    </Suspense>
+                  )}
+                  {(view === 'activity' || view === 'activity-logs') && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />
+                    </Suspense>
+                  )}
+                  {view === 'contact' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <ContactHelp onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
               </main>
             } />
           </Routes>
+        </Suspense>
 
           <Suspense fallback={<LoadingSpinner />}>
             <Footer onViewChange={(v: any) => setView(v)} />
@@ -385,46 +426,9 @@ function App() {
         {showAuthModal && (
           <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
             <div className="space-y-4">
-              <GitHubSignIn />
             </div>
           </AuthModal>
         )}
-
-        {/* Mobile Navigation */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <nav className="grid grid-cols-5 gap-1 p-2">
-            {navItems.slice(0, 5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <nav className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
-            {navItems.slice(5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
       </div>
     </Router>
   );
