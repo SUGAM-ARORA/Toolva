@@ -95,35 +95,18 @@ export function getCurrentUser(): ToolvaUser | null {
 }
 
 /**
- * Get or create a default active profile for the project owner.
+ * Get or create a default active profile for the currently logged in user.
+ * Returns null if no user is signed in.
  */
-export function getOrCreateCurrentUser(): ToolvaUser {
+export function getOrCreateCurrentUser(): ToolvaUser | null {
   const existing = getCurrentUser();
   if (existing) {
     if (existing.email === 'sugam.arora23@gmail.com' || existing.email === 'sugamarora@gmail.com') {
       existing.role = 'SuperAdmin';
-      saveAuth(existing, localStorage.getItem('toolva_token') || 'token_active_owner');
     }
     return existing;
   }
-
-  const defaultUser: ToolvaUser = {
-    id: 'user_owner',
-    userId: 'TLVA-849201',
-    email: 'sugam.arora23@gmail.com',
-    name: 'Sugam Arora',
-    role: 'SuperAdmin',
-    avatar_url: '',
-    phone: '8699122792',
-    location: 'San Francisco, CA',
-    bio: 'AI enthusiast discovering, testing, and mastering next-gen tools on Toolva.',
-    authType: 'Custom JWT / Toolva Auth Token',
-    status: 'Active',
-    lastActive: new Date().toISOString(),
-    toolsOpenedCount: 7
-  };
-  saveAuth(defaultUser, 'token_active_owner');
-  return defaultUser;
+  return null;
 }
 
 /**

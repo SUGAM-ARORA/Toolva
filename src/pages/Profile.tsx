@@ -18,43 +18,47 @@ import {
   Smartphone,
   Crown
 } from 'lucide-react';
-import { getOrCreateCurrentUser, logout, getUserExpertise, ExpertiseProgress, saveAuth, ToolvaUser } from '../lib/auth';
+import { getCurrentUser, logout, getUserExpertise, ExpertiseProgress, saveAuth, ToolvaUser } from '../lib/auth';
 import { localAITools } from '../data/unifiedTools';
 import { AITool } from '../types';
 import toast from 'react-hot-toast';
+import AuthModal from '../components/AuthModal';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<ToolvaUser>(() => getOrCreateCurrentUser());
+  const [currentUser, setCurrentUser] = useState<ToolvaUser | null>(() => getCurrentUser());
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [expertise, setExpertise] = useState<ExpertiseProgress>(() => getUserExpertise());
   const [isEditing, setIsEditing] = useState(false);
 
   // Form State
-  const [name, setName] = useState(user.name || 'Sugam Arora');
-  const [email, setEmail] = useState(user.email || 'sugam.arora23@gmail.com');
-  const [phone, setPhone] = useState(user.phone || '8699122792');
-  const [location, setLocation] = useState(user.location || 'San Francisco, CA');
-  const [bio, setBio] = useState(user.bio || 'AI enthusiast discovering, testing, and mastering next-gen tools on Toolva.');
-  const [avatarUrl, setAvatarUrl] = useState(user.avatar_url || '');
-  const [userId, setUserId] = useState(user.userId || 'TLVA-849201');
-  const [role, setRole] = useState(user.role || 'superadmin');
-  const [authType, setAuthType] = useState(user.authType || 'Custom JWT / Toolva Auth Token');
+  const [name, setName] = useState(currentUser?.name || currentUser?.email?.split('@')[0] || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [location, setLocation] = useState(currentUser?.location || '');
+  const [bio, setBio] = useState(currentUser?.bio || '');
+  const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatar_url || '');
+  const [userId, setUserId] = useState(currentUser?.userId || `TLVA-${Math.floor(100000 + Math.random() * 900000)}`);
+  const [role, setRole] = useState(currentUser?.role || 'Novice');
+  const [authType, setAuthType] = useState(currentUser?.authType || 'Standard Password Auth');
 
   // Favorites state - 100% Dynamic from localStorage
   const [favorites, setFavorites] = useState<AITool[]>([]);
 
   useEffect(() => {
-    const updated = getOrCreateCurrentUser();
-    setUser(updated);
-    setName(updated.name || 'Sugam Arora');
-    setEmail(updated.email || 'sugam.arora23@gmail.com');
-    setPhone(updated.phone || '8699122792');
-    setLocation(updated.location || 'San Francisco, CA');
-    setBio(updated.bio || 'AI enthusiast discovering, testing, and mastering next-gen tools on Toolva.');
-    setAvatarUrl(updated.avatar_url || '');
-    setUserId(updated.userId || 'TLVA-849201');
-    setRole(updated.role || 'superadmin');
-    setAuthType(updated.authType || 'Custom JWT / Toolva Auth Token');
+    const updated = getCurrentUser();
+    setCurrentUser(updated);
+    if (updated) {
+      setName(updated.name || updated.email.split('@')[0]);
+      setEmail(updated.email);
+      setPhone(updated.phone || '');
+      setLocation(updated.location || '');
+      setBio(updated.bio || '');
+      setAvatarUrl(updated.avatar_url || '');
+      setUserId(updated.userId || `TLVA-${Math.floor(100000 + Math.random() * 900000)}`);
+      setRole(updated.role || 'Novice');
+      setAuthType(updated.authType || 'Standard Password Auth');
+    }
     setExpertise(getUserExpertise());
 
     // Load real favorites from localStorage
@@ -86,8 +90,9 @@ const Profile: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) return;
     const updatedUser: ToolvaUser = {
-      ...user,
+      ...currentUser,
       name,
       email,
       phone,
@@ -99,14 +104,15 @@ const Profile: React.FC = () => {
       authType
     };
 
-    saveAuth(updatedUser, localStorage.getItem('toolva_token') || 'token_active_owner');
-    setUser(updatedUser);
+    saveAuth(updatedUser, localStorage.getItem('toolva_token') || 'token_active_user');
+    setCurrentUser(updatedUser);
     setIsEditing(false);
     toast.success('Profile updated successfully!');
   };
 
   const handleSignOut = () => {
     logout();
+    setCurrentUser(null);
     toast.success('Signed out successfully');
     navigate('/');
   };
@@ -120,6 +126,51 @@ const Profile: React.FC = () => {
       default: return 'from-gray-700 to-slate-800 text-white';
     }
   };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0f1117] text-gray-900 dark:text-white pt-24 pb-12 px-4 flex flex-col items-center justify-center font-sans">
+        <div className="max-w-md w-full bg-white dark:bg-[#141721] p-8 rounded-3xl border border-gray-200 dark:border-gray-800 text-center space-y-6 shadow-2xl relative overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto shadow-inner">
+            <User className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white">Sign In Required</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              Sign in or create an account to view your dynamic user profile, track your 10-role expertise level, and manage your saved favorite AI tools.
+            </p>
+          </div>
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer"
+            >
+              Sign In / Create Account
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
+            >
+              Back to AI Directory
+            </button>
+          </div>
+        </div>
+        {showAuthModal && (
+          <AuthModal 
+            onClose={() => { 
+              setShowAuthModal(false); 
+              const loggedIn = getCurrentUser();
+              if (loggedIn) {
+                setCurrentUser(loggedIn);
+                setName(loggedIn.name || loggedIn.email.split('@')[0]);
+                setEmail(loggedIn.email);
+              }
+            }} 
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f1117] text-gray-900 dark:text-white transition-colors duration-200 pt-20 pb-24 font-sans">
@@ -175,7 +226,7 @@ const Profile: React.FC = () => {
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="uppercase font-extrabold">{name?.[0]?.toUpperCase() || 'S'}</span>
+                      <span className="uppercase font-extrabold">{name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'U'}</span>
                     )}
                   </div>
                 </div>

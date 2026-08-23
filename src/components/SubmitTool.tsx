@@ -70,7 +70,7 @@ const SubmitTool: React.FC<SubmitToolProps> = ({ onClose, onOpenAuth }) => {
         category: formData.category || 'Productivity',
         url: formData.url,
         pricing: formData.pricing || 'Freemium',
-        submittedBy: formData.submitterEmail || currentUser?.email || 'sugam.arora23@gmail.com',
+        submittedBy: formData.submitterEmail || currentUser?.email || 'Anonymous Visitor',
         createdAt: new Date().toISOString()
       };
 
