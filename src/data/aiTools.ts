@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440007",
+    name: 'AI Tools Radar',
+    description: 'AI tools directory and daily AI industry news platform',
+    category: 'Research',
+    url: 'https://aitoolsradar.com',
+    image: 'https://images.unsplash.com/photo-1495020689067-958852a7765e',
+    pricing: 'Free',
+    rating: 4.6,
+    dailyUsers: '10K+',
+    modelType: 'AI Directory',
+    easeOfUse: 4.8,
+    userExperience: 4.6
   }
 ];
 
