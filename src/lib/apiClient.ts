@@ -2,7 +2,8 @@
 // Communicates with the private backend API via configurable base URL.
 // No secrets or database logic should exist in this file.
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const rawUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_URL = rawUrl.replace(/\/+$/, '');
 
 const getHeaders = (): Headers => {
   const token = localStorage.getItem('toolva_token');
