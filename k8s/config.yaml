@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: toolva-config
+  namespace: toolva
+data:
+  allowed-origins: "https://toolva.com,https://www.toolva.com"
+  gin-mode: "release"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: toolva-secrets
+  namespace: toolva
+type: Opaque
+stringData:
+  jwt-secret: "CHANGE_ME_TO_A_STRONG_SECRET_MIN_32_CHARS"

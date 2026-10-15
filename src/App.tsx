@@ -1,30 +1,35 @@
 import { lazy, Suspense } from 'react';
-import { useState, useEffect } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap, RefreshCw } from 'lucide-react';
 import { categories } from './data/categories';
+import { getAllTools, mergeTools, localAITools } from './data/unifiedTools';
+import { aiTools } from './data/aiTools';
 import Sidebar from './components/Sidebar';
+import TAAFTHome from './components/TAAFTHome';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
+import LandingPage from './components/LandingPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
-import { supabase } from './lib/supabase';
+import { api } from './lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Profile from './pages/Profile';
-import Favorites from './pages/Favorites';
-import Settings from './pages/Settings';
 import ReactGA from 'react-ga4';
-import { GitHubSignIn } from './components/GitHubSignIn';
-import { AuthCallback } from './pages/AuthCallback';
 import { AITool } from './types';
 
-// Lazy load components
+// Lazy load components & pages
+const Profile = lazy(() => import('./pages/Profile'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const Settings = lazy(() => import('./pages/Settings'));
+const HelpFAQ = lazy(() => import('./pages/HelpFAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
 const ToolCard = lazy(() => import('./components/ToolCard'));
 const ToolFinder = lazy(() => import('./components/ToolFinder'));
 const CompareTools = lazy(() => import('./components/CompareTools'));
 const PersonaRecommendations = lazy(() => import('./components/PersonaRecommendations'));
+const SmartRecommender = lazy(() => import('./components/SmartRecommender'));
 const PromptExplorer = lazy(() => import('./components/PromptExplorer'));
 const WorkflowBuilder = lazy(() => import('./components/WorkflowBuilder'));
 const AILearningHub = lazy(() => import('./components/AILearningHub'));
@@ -32,6 +37,10 @@ const AITermsDictionary = lazy(() => import('./components/AITermsDictionary'));
 const WeeklyRecommendations = lazy(() => import('./components/WeeklyRecommendations'));
 const SubmitTool = lazy(() => import('./components/SubmitTool'));
 const Footer = lazy(() => import('./components/Footer'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const ActivityLogs = lazy(() => import('./components/ActivityLogs'));
+const UserManagement = lazy(() => import('./components/UserManagement'));
+const ContactHelp = lazy(() => import('./components/ContactHelp'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -46,32 +55,52 @@ function App() {
   const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+  const isAuthenticated = !!user;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tools, setTools] = useState<AITool[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Immediately seed with local tools so Griha is never empty
+  const [tools, setTools] = useState<AITool[]>(localAITools);
+  const [isLoading, setIsLoading] = useState(false); // no full-screen spinner; we already have data
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [hasEntered, setHasEntered] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('hasEnteredToolva') === 'true';
+    }
+    return false;
+  });
   const itemsPerPage = 12;
 
+  const handleEnterApp = () => {
+    setHasEntered(true);
+    sessionStorage.setItem('hasEnteredToolva', 'true');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
-    fetchTools();
+    syncTools();
   }, []);
 
-  const fetchTools = async () => {
+  const syncTools = useCallback(async () => {
+    setIsSyncing(true);
     try {
-      const { data, error } = await supabase
-        .from('tools')
-        .select('*')
-        .eq('verified', true);
+      let backendTools: AITool[] = [];
+      try {
+        const data = await api.get('/tools');
+        if (Array.isArray(data) && data.length > 0) {
+          backendTools = data;
+        }
+      } catch (e) {
+        // Backend offline or empty — fallback to local catalog
+      }
 
-      if (error) throw error;
-      setTools(data);
-    } catch (error) {
-      console.error('Error fetching tools:', error);
-      toast.error('Failed to load tools');
+      const merged = await getAllTools(backendTools);
+      if (merged.length > 0) setTools(merged);
+    } catch (err) {
+      // Stay with local tools silently
     } finally {
-      setIsLoading(false);
+      setIsSyncing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const script1 = document.createElement('script');
@@ -92,23 +121,21 @@ function App() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session error:', error);
-          await supabase.auth.signOut();
+        const storedUser = localStorage.getItem('toolva_user');
+        const token = localStorage.getItem('toolva_token');
+
+        if (storedUser && token) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          fetchFavorites();
+        } else {
           setUser(null);
           setFavorites([]);
-          return;
-        }
-
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        await supabase.auth.signOut();
+        localStorage.removeItem('toolva_user');
+        localStorage.removeItem('toolva_token');
         setUser(null);
         setFavorites([]);
       }
@@ -116,36 +143,25 @@ function App() {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
-        } else {
-          setFavorites([]);
-        }
-      } else if (event === 'SIGNED_IN') {
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchFavorites(session.user.id);
-        }
-      }
-    });
+    // Listen for custom auth changes (e.g. from login/logout)
+    const handleAuthChange = () => {
+      initializeAuth();
+    };
 
-    return () => subscription.unsubscribe();
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
   }, []);
 
-  const fetchFavorites = async (userId: string) => {
+  const fetchFavorites = async () => {
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('tool_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      setFavorites(data.map(f => f.tool_id));
+      const data = await api.get('/user/favorites');
+      setFavorites(data.map((f: any) => f.tool_id));
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      setFavorites([]);
     }
   };
 
@@ -167,44 +183,12 @@ function App() {
     try {
       if (favorites.includes(toolId)) {
         // Remove from favorites
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId);
-
-        if (error) throw error;
+        await api.delete(`/user/favorites/${toolId}`);
         setFavorites(favorites.filter(id => id !== toolId));
         toast.success('Removed from favorites');
       } else {
-        // Check if favorite already exists before inserting
-        const { data: existingFavorite, error: checkError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId)
-          .single();
-
-        if (checkError && checkError.code !== 'PGRST116') {
-          // PGRST116 is "not found" error, which is expected when no record exists
-          throw checkError;
-        }
-
-        if (existingFavorite) {
-          // Already exists, just update local state
-          if (!favorites.includes(toolId)) {
-            setFavorites([...favorites, toolId]);
-          }
-          toast.success('Already in favorites');
-          return;
-        }
-
         // Insert new favorite
-        const { error } = await supabase
-          .from('favorites')
-          .insert([{ user_id: user.id, tool_id: toolId }]);
-
-        if (error) throw error;
+        await api.post(`/user/favorites/${toolId}`, {});
         setFavorites([...favorites, toolId]);
         toast.success('Added to favorites');
       }
@@ -212,7 +196,7 @@ function App() {
       console.error('Error managing favorites:', error);
       toast.error('Failed to update favorites');
       // Re-fetch to ensure state synchronization
-      await fetchFavorites(user.id);
+      await fetchFavorites();
     }
   };
 
@@ -242,23 +226,37 @@ function App() {
   }, [selectedCategory, searchQuery]);
 
   const navItems = [
-    { label: 'Griha', icon: BookOpen, view: 'grid' },
-    { label: 'Veda', icon: Search, view: 'finder' },
-    { label: 'Tulna', icon: Filter, view: 'compare' },
-    { label: 'Vyakta', icon: Users, view: 'personas' },
-    { label: 'Uttara', icon: Brain, view: 'prompts' },
-    { label: 'Disha', icon: Workflow, view: 'workflows' },
-    { label: 'Vidya', icon: GraduationCap, view: 'learning' },
-    { label: 'Medha', icon: Book, view: 'dictionary' },
-    { label: 'Saptak', icon: Trophy, view: 'weekly' },
-    { label: 'Samarp', icon: Zap, view: 'submit' }
+    { label: 'AI Directory', icon: BookOpen, view: 'grid' },
+    { label: 'AI Finder', icon: Search, view: 'finder' },
+    { label: 'Tool Compare', icon: Filter, view: 'compare' },
+    { label: 'AI Personas', icon: Users, view: 'personas' },
+    { label: 'Prompt Studio', icon: Brain, view: 'prompts' },
+    { label: 'Workflow Builder', icon: Workflow, view: 'workflows' },
+    { label: 'Learning Hub', icon: GraduationCap, view: 'learning' },
+    { label: 'AI Dictionary', icon: Book, view: 'dictionary' },
+    { label: 'Weekly Leaderboard', icon: Trophy, view: 'weekly' },
+    { label: 'Submit Tool', icon: Zap, view: 'submit' }
   ];
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-x-hidden">
         <Toaster position="top-right" />
         
+        <AnimatePresence mode="wait">
+          {!hasEntered && (
+            <motion.div 
+              key="landing"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="fixed inset-0 z-[100] bg-[#0B0F19]"
+            >
+              <LandingPage onEnter={handleEnterApp} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <AnimatePresence>
           {showSidebar && (
             <motion.div
@@ -266,7 +264,7 @@ function App() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg"
+              className="fixed inset-y-0 left-0 z-50 w-80 bg-[#141721] shadow-2xl"
             >
               <Sidebar
                 categories={categories}
@@ -275,284 +273,162 @@ function App() {
                 onClose={() => setShowSidebar(false)}
                 onFilterChange={() => {}}
                 toolsCount={tools.length}
+                tools={tools}
+                currentView={view}
+                onViewChange={(v: any) => setView(v)}
+                navItems={navItems}
+                isDark={isDark}
+                onToggleTheme={() => setIsDark(!isDark)}
+                onSync={syncTools}
+                isSyncing={isSyncing}
+                user={user}
+                onSignIn={() => setShowAuthModal(true)}
               />
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Floating Top-Left Menu Trigger Button */}
+        <div className={`fixed top-4 z-40 transition-all ${view === 'grid' ? 'left-4 md:left-20' : 'left-4'}`}>
+          <button
+            onClick={() => setShowSidebar(true)}
+            className="flex items-center space-x-2 px-3.5 py-2 bg-[#141721] hover:bg-[#1f2435] text-white rounded-xl shadow-2xl border border-gray-700/80 backdrop-blur-md transition-all hover:scale-105 group"
+            title="Open Toolva Menu & Navigation"
+          >
+            <Menu className="h-5 w-5 text-orange-500 group-hover:rotate-90 transition-transform duration-300" />
+            <span className="text-xs font-black uppercase tracking-wider font-mono text-gray-200 group-hover:text-white">
+              TOOLVA<span className="text-orange-500">.AI</span>
+            </span>
+          </button>
+        </div>
+
+        {/* Top-Right Floating User Menu & Account Actions */}
+        <div className="fixed top-4 right-4 z-40 flex items-center space-x-3">
+          {user ? (
+            <UserMenu user={user} onViewChange={setView} />
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
+            >
+              Sign In / Join
+            </button>
+          )}
+        </div>
+
         <div className="flex-1 flex flex-col">
-          <header className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-800 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-16">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setShowSidebar(!showSidebar)}
-                    className="p-2 rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <Menu className="h-6 w-6" />
-                  </button>
-                  <Link to="/" className="flex items-center">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white ml-2">
-                      Toolva
-                    </h1>
-                  </Link>
-                </div>
-
-                <nav className="hidden lg:flex space-x-2">
-                  {navItems.map(item => (
-                    <button
-                      key={item.label}
-                      onClick={() => setView(item.view as any)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                        view === item.view
-                          ? 'bg-blue-600 text-white shadow-lg'
-                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5 inline-block mr-1" />
-                      {item.label}
-                    </button>
-                  ))}
-                </nav>
-
-                <div className="flex items-center space-x-4">
-                  <ThemeToggle isDark={isDark} onToggle={handleToggleTheme} />
-                  {user ? (
-                    <UserMenu user={user} />
-                  ) : (
-                    <button
-                      onClick={() => setShowAuthModal(true)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                    >
-                      Sign In
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <Routes>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/" element={
-              <main className="flex-1 pt-16 pb-20">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/help" element={<HelpFAQ />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/users" element={<UserManagement onBackToHome={() => setView('grid')} />} />
+              <Route path="/activity" element={<ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />} />
+              <Route path="/admin" element={<AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />} />
+              <Route path="/" element={
+              <main className="flex-1 pt-0 pb-20">
                 {view === 'grid' && (
-                  <div className="bg-gray-900 min-h-[500px] relative">
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#1a237e,_transparent_50%)]" />
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#0d47a1,_transparent_50%)]" />
-                      <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-                    </div>
-
-                    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                      <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="text-center max-w-4xl mx-auto"
-                      >
-                        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-                          Discover the Best AI Tools
-                        </h1>
-                        <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-12">
-                          Browse our directory of {tools.length}+ AI tools to find the right solution for your needs
-                        </p>
-
-                        <div className="relative max-w-2xl mx-auto mb-12">
-                          <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20" />
-                          <div className="relative">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                              type="text"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              placeholder="Search AI tools by name, description, or category..."
-                              className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-                        </div>
-
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.4, duration: 0.8 }}
-                          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-12 px-4"
-                        >
-                          {categories.slice(0, 8).map((category) => {
-                            const Icon = category.icon;
-                            return (
-                              <motion.button
-                                key={category.name}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleCategorySelect(category.name)}
-                                className={`flex flex-col items-center justify-center p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/20 transition-all ${
-                                  selectedCategory === category.name
-                                    ? 'bg-blue-600/30 border-blue-400'
-                                    : 'bg-white/5 hover:bg-white/10'
-                                }`}
-                              >
-                                <Icon className="mb-2 text-xl sm:text-2xl text-blue-400" />
-                                <span className="mt-1 text-xs sm:text-sm font-semibold text-white">{category.name}</span>
-                              </motion.button>
-                            );
-                          })}
-                        </motion.div>
-                      </motion.div>
-                    </div>
-                  </div>
+                  <TAAFTHome
+                    tools={tools}
+                    selectedCategory={selectedCategory}
+                    onCategorySelect={handleCategorySelect}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onToolSelect={(tool) => {
+                      window.open(tool.url || tool.website || '#', '_blank');
+                    }}
+                    onToggleFavorite={handleFavorite}
+                    favorites={favorites}
+                    onOpenSidebar={() => setShowSidebar(true)}
+                    onOpenSubmit={() => setView('submit')}
+                    onViewChange={(v: string) => setView(v)}
+                    isAuthenticated={isAuthenticated}
+                    onOpenAuth={() => setShowAuthModal(true)}
+                  />
                 )}
-
-                <div id="tools-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                  {view === 'grid' && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      {isLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {[...Array(8)].map((_, index) => (
-                            <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-6 animate-pulse">
-                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
-                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-                              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {paginatedTools.map((tool, index) => (
-                            <motion.div
-                              key={tool.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1, duration: 0.5 }}
-                              className="h-full"
-                            >
-                              <Suspense fallback={<LoadingSpinner />}>
-                                <ToolCard
-                                  tool={tool}
-                                  onFavorite={() => handleFavorite(tool.id)}
-                                  isFavorited={favorites.includes(tool.id)}
-                                />
-                              </Suspense>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
-                      {totalPages > 1 && (
-                        <div className="mt-8">
-                          <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                          />
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
                   {view === 'finder' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <ToolFinder tools={tools} />
+                      <SmartRecommender onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'compare' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <CompareTools tools={tools} />
+                      <CompareTools tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'personas' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PersonaRecommendations tools={tools} />
+                      <PersonaRecommendations tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'prompts' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PromptExplorer />
+                      <PromptExplorer onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'workflows' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WorkflowBuilder tools={tools} />
+                      <WorkflowBuilder tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'learning' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AILearningHub />
+                      <AILearningHub onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'dictionary' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AITermsDictionary />
+                      <AITermsDictionary onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'weekly' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WeeklyRecommendations tools={tools} />
+                      <WeeklyRecommendations tools={tools} onBackToHome={() => setView('grid')} />
                     </Suspense>
                   )}
                   {view === 'submit' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <SubmitTool onClose={() => setView('grid')} />
+                      <SubmitTool onClose={() => setView('grid')} onOpenAuth={() => setShowAuthModal(true)} />
                     </Suspense>
                   )}
-                </div>
+                  {view === 'admin' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />
+                    </Suspense>
+                  )}
+                  {view === 'users' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <UserManagement onBackToHome={() => setView('grid')} />
+                    </Suspense>
+                  )}
+                  {(view === 'activity' || view === 'activity-logs') && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />
+                    </Suspense>
+                  )}
+                  {view === 'contact' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <ContactHelp onBackToHome={() => setView('grid')} />
+                    </Suspense>
+                  )}
               </main>
             } />
           </Routes>
+        </Suspense>
 
           <Suspense fallback={<LoadingSpinner />}>
-            <Footer />
+            <Footer onViewChange={(v: any) => setView(v)} />
           </Suspense>
         </div>
 
         {showAuthModal && (
           <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)}>
             <div className="space-y-4">
-              <GitHubSignIn />
             </div>
           </AuthModal>
         )}
-
-        {/* Mobile Navigation */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <nav className="grid grid-cols-5 gap-1 p-2">
-            {navItems.slice(0, 5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-          <nav className="grid grid-cols-5 gap-1 p-2 border-t border-gray-200 dark:border-gray-700">
-            {navItems.slice(5).map(item => (
-              <button
-                key={item.label}
-                onClick={() => setView(item.view as any)}
-                className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all ${
-                  view === item.view
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs mt-1">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
       </div>
     </Router>
   );

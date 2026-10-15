@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: toolva
+  labels:
+    app.kubernetes.io/name: toolva
+    app.kubernetes.io/managed-by: kubectl

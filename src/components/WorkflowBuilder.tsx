@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, ArrowRight, Save, Play, Download, Share2, Code, Settings, Database, Zap, Trash2, Copy, GitBranch, Brain, Target, Workflow, Sparkles, Clock, Users, Star, BarChart3, Eye, Layers, Cpu, Globe, Shield, FileText, Palette, Music, Video, PenTool, Briefcase, X, ChevronDown, ChevronUp, RotateCcw, Pause, Square, AlertCircle, CheckCircle, Timer, Activity, TrendingUp, Award, Lightbulb, Rocket, Filter, Search, Grid, List, Maximize2, Minimize2, RefreshCw, Upload, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { AITool } from '../types';
-import { supabase } from '../lib/supabase';
+import { getCurrentUser } from '../lib/auth';
 import toast from 'react-hot-toast';
 
 interface WorkflowStep {
@@ -61,9 +61,10 @@ interface WorkflowTemplate {
 
 interface WorkflowBuilderProps {
   tools: AITool[];
+  onBackToHome?: () => void;
 }
 
-const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ tools }) => {
+const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ tools, onBackToHome }) => {
   const [workflow, setWorkflow] = useState<WorkflowStep[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [selectedTool, setSelectedTool] = useState('');
@@ -447,7 +448,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ tools }) => {
 
   const saveWorkflow = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) {
         toast.error('Please sign in to save workflows');
         return;
@@ -571,24 +572,24 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ tools }) => {
   });
 
   return (
-    <div className="max-w-full mx-auto p-4 sm:p-6 lg:p-8 h-screen flex flex-col">
+    <div className="max-w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col min-h-screen">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-4"
+        >
+          ← Back to AI Directory
+        </button>
+      )}
+
       {/* Hero Section */}
-      <div className="text-center mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-full mb-6"
-        >
-          <Workflow className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-          <span className="text-indigo-600 dark:text-indigo-400 font-medium">Advanced Workflow Builder</span>
-        </motion.div>
-        
+      <div className="text-center mb-6">
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2"
         >
-          Build Powerful AI Workflows
+          Workflow Builder
         </motion.h2>
         <motion.p 
           initial={{ opacity: 0, y: -20 }}

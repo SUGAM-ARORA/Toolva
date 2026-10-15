@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ArrowRight, Calendar, Bookmark, Share2, TrendingUp, Users, Clock, Zap, Target, Award, Filter, Search, Eye, Heart, Download, ExternalLink } from 'lucide-react';
 import { AITool } from '../types';
-import { supabase } from '../lib/supabase';
+import { getCurrentUser } from '../lib/auth';
 import toast from 'react-hot-toast';
 
 interface WeeklyRecommendationsProps {
@@ -25,7 +25,7 @@ interface TrendingMetric {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) => {
+const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools, onBackToHome }) => {
   const [currentWeek] = useState(new Date());
   const [weeklyPicks, setWeeklyPicks] = useState<WeeklyPick[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -48,6 +48,12 @@ const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) 
     // Simulate AI curation process
     await new Promise(resolve => setTimeout(resolve, 1000));
     
+    const getDeterministicHash = (str: string) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = (hash << 5) - hash + str.charCodeAt(i);
+      return Math.abs(hash);
+    };
+
     const picks: WeeklyPick[] = tools
       .filter(tool => tool.rating >= 4.5)
       .sort((a, b) => (b.rating || 0) - (a.rating || 0))
@@ -56,7 +62,7 @@ const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) 
         tool,
         curatorNote: generateCuratorNote(tool),
         weeklyRank: index + 1,
-        growthRate: Math.floor(Math.random() * 50) + 10,
+        growthRate: (getDeterministicHash(tool.id || tool.name) % 40) + 12,
         specialBadge: getSpecialBadge(tool, index),
         featured: index < 3
       }));
@@ -73,7 +79,10 @@ const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) 
       `Our community loves ${tool.name} for its reliability and powerful ${tool.category.toLowerCase()} features.`,
       `${tool.name} offers the perfect balance of functionality and ease of use in ${tool.category.toLowerCase()}.`
     ];
-    return notes[Math.floor(Math.random() * notes.length)];
+    let hash = 0;
+    const name = tool.name || '';
+    for (let i = 0; i < name.length; i++) hash = (hash << 5) - hash + name.charCodeAt(i);
+    return notes[Math.abs(hash) % notes.length];
   };
 
   const getSpecialBadge = (tool: AITool, index: number): string | undefined => {
@@ -116,7 +125,7 @@ const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) 
 
   const handleInteraction = async (toolId: string, type: 'bookmark' | 'like') => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) {
         toast.error('Please sign in to interact with tools');
         return;
@@ -163,23 +172,23 @@ const WeeklyRecommendations: React.FC<WeeklyRecommendationsProps> = ({ tools }) 
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-6"
+        >
+          ← Back to AI Directory
+        </button>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-full mb-6"
-        >
-          <Award className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
-          <span className="text-yellow-600 dark:text-yellow-400 font-medium">Weekly Curated Selection</span>
-        </motion.div>
-        
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
-          This Week's Top AI Tools
+          Weekly AI Leaderboard
         </motion.h2>
         <motion.p 
           initial={{ opacity: 0, y: -20 }}

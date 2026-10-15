@@ -1,94 +1,130 @@
-# ToolVa - The Ultimate AI Tools Directory 🚀
+<div align="center">
 
-ToolVa is your one-stop destination for discovering, comparing, and learning about AI tools. With over 80 carefully curated tools across multiple categories, ToolVa helps you find the perfect AI solution for your needs.
+# 🚀 Toolva.ai — Next-Gen AI Tools Directory & Workflow Engine
 
-## ✨ Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript)](https://typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev)
+[![TailwindCSS](https://img.shields.io/badge/Styling-Custom%20CSS-38BDF8)](https://tailwindcss.com)
 
-- 🔍 **Smart Tool Finder**: Describe your task, and we'll recommend the best AI tools
-- 🔄 **Tool Comparison**: Compare different AI tools based on features, pricing, and performance
-- 🌙 **Dark/Light Mode**: Beautiful interface that adapts to your preference
-- 👤 **User Accounts**: Save your favorite tools and preferences
-- 📱 **Responsive Design**: Works perfectly on all devices
-- 🔗 **GitHub Integration**: Direct links to tool repositories for learning
-- 💾 **PWA Support**: Install ToolVa on your device
+**Discover, compare, and build workflows with 600+ curated AI tools.**  
+*Fast, community-driven, dark-first UI with live 10-role security management.*
 
-## 🚀 Getting Started
-
-```bash
-# Clone the repository
-git clone https://github.com/SUGAM-ARORA/toolva.git
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-## 🔧 Built With
-
-- React + TypeScript
-- Tailwind CSS
-- Supabase
-- Lucide Icons
-
-## 📦 Installation
-
-ToolVa is available as a Progressive Web App (PWA). When you visit the website, you'll see an "Install" button in your browser to add ToolVa to your device.
-
-## 🌟 Categories
-
-- 🤖 Chatbots
-- 🎨 Image Generation
-- 💻 Code
-- 🎵 Music
-- 🎬 Video
-- ✍️ Writing
-- 📚 Education
-- 💼 Business
-
-## 🤝 Contributing
-
-We love contributions! See our [Contributing Guide](CONTRIBUTING.md) for ways to get started.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- All the amazing AI tool creators
-- Our wonderful community of contributors
-- [Lucide](https://lucide.dev/) for beautiful icons
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Supabase](https://supabase.com/) for backend services
-
-## 🧑‍💼 Maintainers
-
-<div>
-<table>
-<tr>
-<td align="center"><a href="https://github.com/SUGAM-ARORA"><img src="https://github.com/SUGAM-ARORA/UniCollab/assets/96546088/09d60ee5-8215-4327-808f-4edf119370b6" width=150px height=150px /></a></br> <h4 style="color:cyan;">Sugam Arora</h4>
- <a href="https://www.linkedin.com/in/sugamarora23/"><img src="https://img.icons8.com/fluency/2x/linkedin.png" width="32px" height="32px"></img></a>
- <a href="https://github.com/SUGAM-ARORA"><img src="https://img.icons8.com/fluency/2x/github.png" width="32px" height="32px"></img></a>
-
-   </td>
-<td align="center"><a href="https://github.com/Ojas-Arora"><img src="https://media.licdn.com/dms/image/v2/D5603AQF-0oeQKjHUGg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1731090529812?e=1740614400&v=beta&t=urY8EklFDUSFuxKUQtHCq6eK8inuueVUkFH1u9wypQM" width=150px height=150px /></a></br> <h4 style="color:cyan;">Ojas Arora</h4>
- <a href="https://www.linkedin.com/in/ojasarora14/"><img src="https://img.icons8.com/fluency/2x/linkedin.png" width="32px" height="32px"></img></a>
- <a href="https://github.com/Ojas-Arora"><img src="https://img.icons8.com/fluency/2x/github.png" width="32px" height="32px"></img></a>
-   </td>
-</tr>
-
-</table>
+[🌐 Live Directory](http://localhost:4185) · [📬 Official Support](mailto:support.toolva@gmail.com) · [💡 Submit an AI Tool](#-how-to-submit-an-ai-tool)
 
 </div>
 
-## 📬 Contact Details
+---
 
-You can connect with me on various platforms:<br>
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-%230077B5.svg?logo=linkedin&logoColor=white)](https://linkedin.com/in/sugam-arora-117265142) [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/sugam.arora.393?utm_source=qr&igshid=MzNlNGNkZWQ4Mg%3D%3D) [![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white)](https://twitter.com/SugamArora14) [![Facebook](https://img.shields.io/badge/Facebook-%231877F2.svg?logo=Facebook&logoColor=white)](https://facebook.com/sugam.arora.393)[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?logo=YouTube&logoColor=white)](https://youtube.com/@sugamarora5997)
-[![Gmail](https://img.shields.io/badge/Gmail-%23FFFFFF.svg?logo=gmail&logoColor=red)](mailto:sugam.arora23@gmail.com)
+## ✨ Unique Features
 
-## 🌟 Star History
+| Feature | Highlight Description |
+|---|---|
+| 🧠 **600+ Curated AI Tools** | Deep directory covering Code Assistants, Image Gen, LLMs, Audio, Video, & Productivity |
+| 🛡️ **10-Role Security System** | Tiered hierarchy (`Novice` → `Master` → `SuperAdmin`) with profile self-elevation lockout |
+| ⚡ **Claude & Model Breakdowns** | In-depth engineering guides (Why, When, How, Where, Which model to use) |
+| 📊 **Multi-View Layouts** | Seamless Grid View, List View, and Table Comparison View toggling |
+| 🎨 **Workflow Builder Canvas** | Interactive drag-and-drop workflow sequence builder |
+| 👑 **SuperAdmin Control Centre** | Live submission verification queue (`/admin`) and Activity Logs tracker (`/activity`) |
+| 📧 **Unified Support Hub** | Direct assistance at `support.toolva@gmail.com` |
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SUGAM-ARORA/toolva&type=Date)](https://www.star-history.com/#SUGAM-ARORA/toolva&Date)
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js**: v18.0 or higher
+- **npm**: v9.0 or higher
+
+### Installation & Local Run
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/SUGAM-ARORA/Toolva.git
+   cd Toolva
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start local development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Build production bundle**:
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 📤 How to Submit an AI Tool
+
+We welcome new tool submissions from developers and creators! You can submit an AI tool using either of the two techniques below:
+
+### Technique 1: GUI Interactive Submission (Recommended)
+1. Launch Toolva and click the **Submit Tool** (`+`) button in the main navigation bar.
+2. Complete the step-by-step form:
+   - **Tool Name** & **Category** (e.g. Code, Design, Productivity)
+   - **Description** & **Website URL**
+   - **Pricing Model** (Free, Freemium, Paid)
+   - **Tech Stack** & **API details** (optional)
+3. Click **Submit Tool**. Your submission will be routed directly to the **Toolva Control Centre** (`/admin`) where a SuperAdmin reviews and approves it for live indexing.
+
+### Technique 2: Open-Source Git Commit Submission
+Developers can contribute tools directly via code contribution:
+
+1. Fork the repo and open `src/data/unifiedTools.ts`.
+2. Add your tool definition following the schema:
+   ```typescript
+   {
+     id: 'my-ai-tool',
+     name: 'My AI Tool Name',
+     description: 'A brief 1-2 sentence description of what the AI tool does.',
+     category: 'Code',
+     url: 'https://mytool.ai',
+     pricing: 'Freemium',
+     rating: 4.9,
+     featured: true,
+     easeOfUse: 4.8,
+     lastUpdated: new Date().toISOString()
+   }
+   ```
+3. Commit your changes using standard convention:
+   ```bash
+   git commit -m "feat(tools): add My AI Tool to directory"
+   ```
+4. Open a Pull Request for SuperAdmin review.
+
+---
+
+## 🤝 Commit & Contribution Guidelines
+
+To keep the repository clean and maintainable, please follow our structured commit conventions:
+
+- `feat(tools):` Adding or updating AI tool definitions
+- `feat(ui):` Adding new UI components or directory views
+- `fix(auth):` Security fixes or 10-role permission updates
+- `docs:` Documentation and README updates
+
+---
+
+## 📬 Official Support & Contact
+
+If you have questions regarding tool listings, account roles, or partnership inquiries, reach out to our official support team:
+
+- **Support Email**: [support.toolva@gmail.com](mailto:support.toolva@gmail.com)
+- **Unified Support Hub**: Visit `/contact` in the application
+- **Help FAQ & Knowledge Base**: Visit `/help` in the application
+
+---
+
+<div align="center">
+
+Made with ❤️ by **Sugam Arora** & the Toolva Open Source Community.
+
+</div>

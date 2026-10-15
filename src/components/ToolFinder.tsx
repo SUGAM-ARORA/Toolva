@@ -3,7 +3,6 @@ import { Search, Filter, X, Sparkles, Brain, Zap, Target, TrendingUp, Star, User
 import { motion, AnimatePresence } from 'framer-motion';
 import { AITool } from '../types';
 import ToolCard from './ToolCard';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface ToolFinderProps {

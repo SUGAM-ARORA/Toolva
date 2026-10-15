@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, Code, Briefcase, Palette, PenTool, Camera, Brain, Sparkles, Star, ArrowRight, Users, Clock, Zap, Target, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 import { AITool } from '../types';
 import LoadingSpinner from './LoadingSpinner';
-import toast from 'react-hot-toast';
+import { localAITools } from '../data/unifiedTools';
 
 const personas = [
   {
     id: 'developer',
     name: 'Developer',
     icon: Code,
-    categories: ['Code', 'APIs', 'DevOps'],
+    categories: ['Code', 'APIs', 'DevOps', 'Machine Learning'],
     description: 'Tools for coding, development, and deployment',
     color: 'from-blue-500 to-indigo-600',
     stats: { users: '2.5M+', tools: '45+', satisfaction: '94%' }
@@ -29,7 +28,7 @@ const personas = [
     id: 'content',
     name: 'Content Creator',
     icon: PenTool,
-    categories: ['Writing', 'Content Creation'],
+    categories: ['Writing', 'Video', 'Audio', 'Music'],
     description: 'Tools for content creation and management',
     color: 'from-green-500 to-emerald-600',
     stats: { users: '3.2M+', tools: '38+', satisfaction: '92%' }
@@ -38,7 +37,7 @@ const personas = [
     id: 'business',
     name: 'Business Owner',
     icon: Briefcase,
-    categories: ['Business', 'Marketing', 'Analytics'],
+    categories: ['Business', 'Analytics', 'Productivity'],
     description: 'Business automation and analytics tools',
     color: 'from-orange-500 to-red-600',
     stats: { users: '1.5M+', tools: '28+', satisfaction: '89%' }
@@ -47,7 +46,7 @@ const personas = [
     id: 'photographer',
     name: 'Photographer',
     icon: Camera,
-    categories: ['Image Generation', 'Design'],
+    categories: ['Image Generation', 'Design', 'Video'],
     description: 'Photography and image editing tools',
     color: 'from-cyan-500 to-blue-600',
     stats: { users: '950K+', tools: '22+', satisfaction: '91%' }
@@ -56,7 +55,7 @@ const personas = [
     id: 'researcher',
     name: 'Researcher',
     icon: Brain,
-    categories: ['Research', 'Analytics'],
+    categories: ['Research', 'Analytics', 'Education', 'Chatbots'],
     description: 'Research and data analysis tools',
     color: 'from-violet-500 to-purple-600',
     stats: { users: '680K+', tools: '19+', satisfaction: '93%' }
@@ -65,14 +64,21 @@ const personas = [
 
 interface PersonaRecommendationsProps {
   tools: AITool[];
+  onBackToHome?: () => void;
 }
 
-const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }) => {
+const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools, onBackToHome }) => {
   const [selectedPersona, setSelectedPersona] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AITool[]>([]);
   const [showPersonaDetails, setShowPersonaDetails] = useState(false);
-  
+
+  // Use merged tools — fallback to localAITools when prop is empty
+  const allTools = useMemo(
+    () => (tools && tools.length > 0 ? tools : localAITools),
+    [tools]
+  );
+
   const handlePersonaSelect = async (personaId: string) => {
     setIsLoading(true);
     setSelectedPersona(personaId);
@@ -80,19 +86,14 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
 
     try {
       const persona = personas.find(p => p.id === personaId);
-      if (!persona) {
-        setIsLoading(false);
-        return;
-      }
+      if (!persona) { setIsLoading(false); return; }
 
-      // Filter tools based on persona categories
-      const filteredTools = tools.filter(tool => 
-        persona.categories.some(category => 
-          tool.category.toLowerCase().includes(category.toLowerCase())
+      const filteredTools = allTools.filter(tool =>
+        tool && tool.category && persona.categories.some(category =>
+          (tool.category || '').toLowerCase().includes(category.toLowerCase())
         )
       );
 
-      // Sort by rating and take top 6
       const sortedTools = filteredTools
         .sort((a, b) => (b.rating || 0) - (a.rating || 0))
         .slice(0, 6);
@@ -100,7 +101,6 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
       setRecommendations(sortedTools);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
-      toast.error('Failed to load recommendations');
     } finally {
       setIsLoading(false);
     }
@@ -109,23 +109,23 @@ const PersonaRecommendations: React.FC<PersonaRecommendationsProps> = ({ tools }
   const selectedPersonaData = personas.find(p => p.id === selectedPersona);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pt-20">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center space-x-2 px-4 py-2 rounded-2xl bg-white dark:bg-[#141721] border border-gray-200 dark:border-gray-800 text-xs font-bold text-gray-700 dark:text-gray-200 shadow-md transition-all hover:scale-105 mb-6 ml-36 sm:ml-40"
+        >
+          <span>← Back to AI Directory</span>
+        </button>
+      )}
+
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full mb-6"
-        >
-          <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" />
-          <span className="text-blue-600 dark:text-blue-400 font-medium">AI-Powered Recommendations</span>
-        </motion.div>
-        
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
-          Find Your Perfect AI Stack
+          AI Personas & Workflows
         </motion.h2>
         <motion.p 
           initial={{ opacity: 0, y: -20 }}

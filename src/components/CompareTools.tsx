@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, X, Plus, ArrowRight, Star, Users, Zap, Shield, Code, Globe, Clock, TrendingUp, BarChart3, Target, Sparkles, Brain, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AITool } from '../types';
-import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { localAITools } from '../data/unifiedTools';
 
 interface CompareToolsProps {
   tools: AITool[];
@@ -24,7 +24,7 @@ interface ComparisonScore {
   weaknesses: string[];
 }
 
-const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
+const CompareTools: React.FC<CompareToolsProps> = ({ tools, onBackToHome }) => {
   const [selectedTools, setSelectedTools] = useState<AITool[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [comparisonScores, setComparisonScores] = useState<ComparisonScore[]>([]);
@@ -32,6 +32,12 @@ const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
   const [viewMode, setViewMode] = useState<'detailed' | 'summary' | 'visual'>('detailed');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  // Use merged tools — always fall back to localAITools when prop is empty
+  const allTools = useMemo(
+    () => (tools && tools.length > 0 ? tools : localAITools),
+    [tools]
+  );
 
   const comparisonMetrics: ComparisonMetric[] = [
     { key: 'rating', label: 'Overall Rating', icon: Star, type: 'rating', weight: 1.0 },
@@ -158,7 +164,7 @@ const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
     setComparisonScores(comparisonScores.filter(score => score.toolId !== toolId));
   };
 
-  const filteredTools = tools.filter(tool =>
+  const filteredTools = allTools.filter(tool =>
     (tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tool.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
     !selectedTools.find(t => t.id === tool.id)
@@ -183,21 +189,21 @@ const CompareTools: React.FC<CompareToolsProps> = ({ tools }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-6"
+        >
+          ← Back to AI Directory
+        </button>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full mb-6"
-        >
-          <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2" />
-          <span className="text-purple-600 dark:text-purple-400 font-medium">AI-Powered Comparison</span>
-        </motion.div>
-        
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
           Compare AI Tools Side by Side
         </motion.h2>

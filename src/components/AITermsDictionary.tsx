@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Book, ArrowRight, Bookmark, Share2, Filter, Star, TrendingUp, Brain, Lightbulb, Target, Zap, Globe, Code, Database, Shield, Eye, Heart, Download, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { getCurrentUser } from '../lib/auth';
 import toast from 'react-hot-toast';
 
 interface Term {
@@ -39,7 +39,11 @@ interface DictionaryStats {
   lastUpdated: string;
 }
 
-const AITermsDictionary = () => {
+interface AITermsDictionaryProps {
+  onBackToHome?: () => void;
+}
+
+const AITermsDictionary: React.FC<AITermsDictionaryProps> = ({ onBackToHome }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
@@ -270,7 +274,7 @@ const AITermsDictionary = () => {
 
   const toggleSavedTerm = async (termId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) {
         toast.error('Please sign in to save terms');
         return;
@@ -317,21 +321,21 @@ const AITermsDictionary = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      {onBackToHome && (
+        <button
+          onClick={onBackToHome}
+          className="inline-flex items-center text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors mb-6"
+        >
+          ← Back to AI Directory
+        </button>
+      )}
+
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-full mb-6"
-        >
-          <Book className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-          <span className="text-indigo-600 dark:text-indigo-400 font-medium">AI Knowledge Base</span>
-        </motion.div>
-        
         <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+          className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3"
         >
           AI Terms Dictionary
         </motion.h2>

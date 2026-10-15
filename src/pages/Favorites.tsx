@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { getCurrentUser } from '../lib/auth';
+import { api } from '../lib/apiClient';
 import { AITool } from '../types';
 import ToolCard from '../components/ToolCard';
 import { motion } from 'framer-motion';
@@ -15,23 +16,14 @@ const Favorites = () => {
 
   const fetchFavorites = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) {
         setLoading(false);
         return;
       }
 
-      const { data: favoritesData, error } = await supabase
-        .from('favorites')
-        .select(`
-          *,
-          tool:tools(*)
-        `)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setFavorites(favoritesData.map(f => f.tool));
+      const data = await api.get('/user/favorites');
+      setFavorites(data.map((f: any) => f.tool));
     } catch (error) {
       console.error('Error fetching favorites:', error);
       toast.error('Failed to load favorites');
@@ -42,16 +34,10 @@ const Favorites = () => {
 
   const handleRemoveFavorite = async (toolId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = getCurrentUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('tool_id', toolId);
-
-      if (error) throw error;
+      await api.delete(`/user/favorites/${toolId}`);
 
       setFavorites(favorites.filter(f => f.id !== toolId));
       toast.success('Removed from favorites');
@@ -73,7 +59,7 @@ const Favorites = () => {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-7xl mx-auto px-4 py-8"
+      className="max-w-7xl mx-auto px-4 pt-20 pb-8"
     >
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
         Your Favorite Tools

@@ -4,6 +4,20 @@ import { extraAITools } from './extraAITools';
 
 const baseTools: AITool[] = [
   {
+    id: 'ai-tools-radar',
+    name: 'AI Tools Radar',
+    description: 'Multilingual AI tools directory and editorial platform for discovering and comparing AI products, models, agent skills, and prompts.',
+    category: 'Research',
+    url: 'https://aitoolsradar.com/',
+    image: 'https://aitoolsradar.com/brand/ai-tools-radar-logo-clean-192.png',
+    pricing: 'Free',
+    rating: 0, // Unrated; no verified user rating is available.
+    dailyUsers: 'N/A',
+    modelType: 'AI Directory',
+    easeOfUse: 'N/A',
+    userExperience: 'N/A'
+  },
+  {
     id: "550e8400-e29b-41d4-a716-446655440000",
     name: 'Stable Diffusion XL Turbo',
     description: 'Ultra-fast image generation with high quality',
@@ -44,22 +58,10 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440007",
-    name: 'AI Tools Radar',
-    description: 'AI tools directory and daily AI industry news platform',
-    category: 'Research',
-    url: 'https://aitoolsradar.com',
-    image: 'https://images.unsplash.com/photo-1495020689067-958852a7765e',
-    pricing: 'Free',
-    rating: 4.6,
-    dailyUsers: '10K+',
-    modelType: 'AI Directory',
-    easeOfUse: 4.8,
-    userExperience: 4.6
   }
 ];
 
+import { awesomeToolsData } from './awesomeToolsData';
+
 // Combine all tools into one array
-export const aiTools: AITool[] = [...baseTools, ...moreAITools, ...extraAITools];
+export const aiTools: AITool[] = [...baseTools, ...moreAITools, ...extraAITools, ...awesomeToolsData];

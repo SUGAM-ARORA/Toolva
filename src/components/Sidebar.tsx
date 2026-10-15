@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy } from 'lucide-react';
-import { ToolCategory } from '../types';
+import React, { useState, useMemo } from 'react';
+import { X, ChevronRight, Star, Users, DollarSign, Filter, Search, Code, Brain, Clock, Zap, Shield, Database, Sparkles, Gauge, Trophy, LogIn, LogOut, RefreshCw, Sun, Moon } from 'lucide-react';
+import { AITool, ToolCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { getCurrentUser, isUserSuperAdmin } from '../lib/auth';
 import toast from 'react-hot-toast';
+
+interface NavItem {
+  label: string;
+  icon: any;
+  view: string;
+}
 
 interface SidebarProps {
   categories: ToolCategory[];
@@ -12,6 +18,16 @@ interface SidebarProps {
   onClose: () => void;
   onFilterChange: (filters: any) => void;
   toolsCount: number;
+  tools?: AITool[];
+  currentView?: string;
+  onViewChange?: (view: any) => void;
+  navItems?: NavItem[];
+  isDark?: boolean;
+  onToggleTheme?: () => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
+  user?: any;
+  onSignIn?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -20,7 +36,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   onCategoryChange,
   onClose,
   onFilterChange,
-  toolsCount
+  toolsCount,
+  tools = [],
+  currentView,
+  onViewChange,
+  navItems,
+  isDark,
+  onToggleTheme,
+  onSync,
+  isSyncing,
+  user,
+  onSignIn
 }) => {
   const [filters, setFilters] = useState({
     minRating: 0,
@@ -43,30 +69,18 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    fetchCategoryStats();
-  }, []);
-
-  const fetchCategoryStats = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('tools')
-        .select('category');
-
-      if (error) throw error;
-
-      const stats = data.reduce((acc: Record<string, number>, tool) => {
-        acc[tool.category] = (acc[tool.category] || 0) + 1;
-        return acc;
-      }, {});
-
-      setCategoryStats(stats);
-    } catch (error) {
-      console.error('Error fetching category stats:', error);
+  // Calculate category counts from the tools prop
+  const categoryStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    if (tools && Array.isArray(tools)) {
+      tools.forEach(tool => {
+        const cat = (tool.category || 'Productivity').trim().toLowerCase();
+        stats[cat] = (stats[cat] || 0) + 1;
+      });
     }
-  };
+    return stats;
+  }, [tools]);
 
   const handleFilterChange = (key: string, value: any) => {
     const newFilters = { ...filters, [key]: value };
@@ -104,37 +118,185 @@ const Sidebar: React.FC<SidebarProps> = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -300 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="h-full overflow-y-auto bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl"
+      className="h-full overflow-y-auto bg-white dark:bg-[#141721] text-gray-900 dark:text-white shadow-2xl border-r border-gray-200 dark:border-gray-800"
     >
-      {/* Header with Search */}
-      <div className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
-        <div className="p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Discover Tools
-          </h2>
+      {/* ─── Top Brand & Close Header ─── */}
+      <div className="sticky top-0 z-20 bg-white/95 dark:bg-[#141721]/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 p-4">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center space-x-2">
+            <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center font-black text-white shadow-lg shadow-orange-500/20">
+              T
+            </span>
+            <span className="text-lg font-black tracking-wider text-gray-900 dark:text-white font-mono uppercase">
+              TOOLVA<span className="text-orange-500">.AI</span>
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800/80 dark:hover:bg-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all shadow-sm"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search filters..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
-            />
+
+        {/* ─── Quick Actions & User Bar (From old header) ─── */}
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-200 dark:border-gray-800/60">
+          {user ? (
+            <div className="flex items-center space-x-2 text-xs text-gray-700 dark:text-gray-300 truncate">
+              <img 
+                src={user.avatar_url || user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email || 'U')}&background=f97316&color=fff`} 
+                alt={user.name || 'User'} 
+                className="w-6 h-6 rounded-full border border-orange-500 shrink-0 object-cover"
+              />
+              <span className="truncate max-w-[140px] font-bold text-gray-900 dark:text-white">{user.name || user.email?.split('@')[0]}</span>
+            </div>
+          ) : (
+            <button
+              onClick={onSignIn}
+              className="flex-1 py-1.5 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center space-x-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
+          )}
+
+          <div className="flex items-center space-x-1.5 shrink-0">
+            {user && (
+              <button
+                onClick={() => {
+                  localStorage.removeItem('toolva_user');
+                  localStorage.removeItem('toolva_token');
+                  window.dispatchEvent(new Event('auth-change'));
+                  toast.success('Successfully logged out');
+                }}
+                className="p-1.5 rounded-xl bg-gray-100 hover:bg-red-100 dark:bg-[#1c202f] dark:hover:bg-red-900/30 text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 border border-gray-300 dark:border-gray-700/60 transition-all"
+                title="Sign Out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
+            {onSync && (
+              <button
+                onClick={onSync}
+                disabled={isSyncing}
+                className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-[#1c202f] dark:hover:bg-gray-800 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white border border-gray-300 dark:border-gray-700/60 disabled:opacity-50 transition-all"
+                title="Sync with GitHub repo"
+              >
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin text-orange-400' : ''}`} />
+              </button>
+            )}
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-[#1c202f] dark:hover:bg-gray-800 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white border border-gray-300 dark:border-gray-700/60 transition-all"
+                title="Toggle Theme"
+              >
+                {isDark ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4 text-blue-400" />}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
+        {/* ─── App Navigation Section (From old header board) ─── */}
+        {navItems && navItems.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-widest text-gray-500 dark:text-gray-400 uppercase font-mono px-1">
+              <span>EXPLORE & WORKFLOWS</span>
+              <span className="text-orange-500">{navItems.length} VIEWS</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const isActive = currentView === item.view;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      if (onViewChange) onViewChange(item.view);
+                      onClose();
+                    }}
+                    className={`flex items-center space-x-2 p-2.5 rounded-xl text-left transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/20 dark:to-red-500/10 border border-orange-500/40 text-orange-600 dark:text-white font-bold shadow-md'
+                        : 'bg-gray-50 hover:bg-gray-100 dark:bg-[#1c202f] dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-800 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                    }`}
+                  >
+                    {Icon && <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-orange-500 dark:text-orange-400' : 'text-gray-500 dark:text-gray-400'}`} />}
+                    <span className="text-xs truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+
+              {isUserSuperAdmin(user || getCurrentUser()) && (
+                <>
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('users');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-purple-500/10 border border-purple-500/40 text-purple-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Users className="h-4 w-4 shrink-0 text-purple-400" />
+                    <span className="text-xs truncate">User Management</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('activity-logs');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Gauge className="h-4 w-4 shrink-0 text-emerald-400" />
+                    <span className="text-xs truncate">Activity Logs</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onViewChange) onViewChange('admin');
+                      onClose();
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-amber-500/10 border border-amber-500/40 text-amber-400 font-bold transition-all hover:scale-105"
+                  >
+                    <Shield className="h-4 w-4 shrink-0 text-amber-400" />
+                    <span className="text-xs truncate">Admin Panel</span>
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => {
+                  if (onViewChange) onViewChange('contact');
+                  onClose();
+                }}
+                className="flex items-center space-x-2 p-2.5 rounded-xl text-left bg-blue-500/10 border border-blue-500/40 text-blue-400 font-bold transition-all"
+              >
+                <Zap className="h-4 w-4 shrink-0 text-blue-400" />
+                <span className="text-xs truncate">Contact Support</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Search Filters Input ─── */}
+        <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-800/80">
+          <div className="text-[11px] font-bold tracking-widest text-gray-500 dark:text-gray-400 uppercase font-mono px-1">
+            <span>FILTER DIRECTORY</span>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search categories or filters..."
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#1c202f] border border-gray-200 dark:border-gray-700/80 rounded-xl focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
         {/* Quick Filters */}
         <div className="grid grid-cols-2 gap-2">
           <motion.button
@@ -143,8 +305,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => handleFilterChange('popularity', 'trending')}
             className={`p-3 rounded-lg ${
               filters.popularity === 'trending'
-                ? 'bg-blue-600'
-                : 'bg-gray-800 hover:bg-gray-700'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
             } flex flex-col items-center justify-center`}
           >
             <Sparkles className="h-5 w-5 mb-1" />
@@ -157,8 +319,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => handleFilterChange('sortBy', 'topRated')}
             className={`p-3 rounded-lg ${
               filters.sortBy === 'topRated'
-                ? 'bg-blue-600'
-                : 'bg-gray-800 hover:bg-gray-700'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
             } flex flex-col items-center justify-center`}
           >
             <Trophy className="h-5 w-5 mb-1" />
@@ -169,7 +331,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Advanced Filters Toggle */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700"
+          className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 rounded-lg dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
         >
           <span className="flex items-center">
             <Gauge className="h-5 w-5 mr-2" />
@@ -193,7 +355,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               {/* Rating Filter */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center">
                   <Star className="h-4 w-4 mr-2 text-yellow-400" />
                   Minimum Rating
                 </label>
@@ -215,14 +377,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Price Range */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center">
                   <DollarSign className="h-4 w-4 mr-2 text-green-400" />
                   Price Range
                 </label>
                 <select
                   value={filters.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm text-white"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm text-gray-900 dark:text-white"
                 >
                   <option value="">Any Price</option>
                   <option value="free">Free Only</option>
@@ -233,7 +395,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Features */}
               <div>
-                <label className="block text-sm text-gray-400 mb-2 flex items-center">
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center">
                   <Zap className="h-4 w-4 mr-2 text-yellow-400" />
                   Features
                 </label>
@@ -241,16 +403,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {['hasGithub', 'hasAPI', 'hasDocumentation'].map((feature) => (
                     <motion.label
                       key={feature}
-                      className="flex items-center p-2 hover:bg-gray-700 rounded-lg cursor-pointer"
+                      className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
                       whileHover={{ x: 4 }}
                     >
                       <input
                         type="checkbox"
                         checked={filters[feature]}
                         onChange={(e) => handleFilterChange(feature, e.target.checked)}
-                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-600 bg-gray-700"
+                        className="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
                       />
-                      <span className="ml-2 text-sm text-gray-300">
+                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                         {feature === 'hasGithub' ? 'GitHub Repository' :
                          feature === 'hasAPI' ? 'API Available' :
                          'Documentation'}
@@ -265,7 +427,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Categories */}
         <div>
-          <label className="block text-sm text-gray-400 mb-2 flex items-center">
+          <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center">
             <Database className="h-4 w-4 mr-2 text-indigo-400" />
             Categories
           </label>
@@ -273,7 +435,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {categories.filter(cat => cat.name.toLowerCase().includes(searchTerm.toLowerCase())).map((category) => {
               const Icon = category.icon;
               const isSelected = selectedCategory === category.name;
-              const count = category.name === 'All' ? toolsCount : categoryStats[category.name] || 0;
+              const count = category.name === 'All' ? (tools && tools.length > 0 ? tools.length : toolsCount) : (categoryStats[category.name.trim().toLowerCase()] || category.count || 0);
               
               return (
                 <motion.button
@@ -284,10 +446,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                   className={`w-full flex items-center px-4 py-3 rounded-xl transition-all ${
                     isSelected
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'hover:bg-gray-700/50 text-gray-300'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                  {Icon && <Icon className={`h-5 w-5 mr-3 ${isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />}
                   <span className="flex-1 text-left font-medium">{category.name}</span>
                   <div className="flex items-center">
                     <span className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>

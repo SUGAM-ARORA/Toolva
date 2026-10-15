@@ -1,0 +1,88 @@
+name: Validate Tool Submission PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+    paths:
+      - 'src/data/**'
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  validate-submission:
+    name: Validate Tool Data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tool validation
+        id: validate
+        run: node .github/scripts/validate-tool-submission.js
+        continue-on-error: true
+
+      - name: Post validation results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let results = { passed: true, checks: [] };
+            try {
+              results = JSON.parse(fs.readFileSync('.github/scripts/validation-results.json', 'utf8'));
+            } catch (e) {
+              results = { passed: false, checks: [{ name: 'Script Execution', passed: false, message: 'Validation script failed to run' }] };
+            }
+
+            const icon = (passed) => passed ? '✅' : '❌';
+            let body = `## ${icon(results.passed)} Tool Submission Validation\n\n`;
+            body += `| Check | Status | Details |\n|-------|--------|---------|\n`;
+
+            for (const check of results.checks) {
+              body += `| ${check.name} | ${icon(check.passed)} | ${check.message} |\n`;
+            }
+
+            if (!results.passed) {
+              body += `\n> **⚠️ Please fix the issues above before this PR can be merged.**`;
+            } else {
+              body += `\n> **🎉 All checks passed! Your tool submission looks great.**`;
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c => c.body.includes('Tool Submission Validation'));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: toolva-backend
+  namespace: toolva
+  labels:
+    app: toolva-backend
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: toolva-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: toolva-backend
+        tier: backend
+    spec:
+      containers:
+        - name: backend
+          image: toolva/backend:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: GIN_MODE
+              value: release
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: toolva-secrets
+                  key: jwt-secret
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: toolva-config
+                  key: allowed-origins
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: toolva-data-pvc

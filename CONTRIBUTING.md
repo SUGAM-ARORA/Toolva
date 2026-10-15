@@ -1,135 +1,145 @@
-# Contributing to ToolVa 🚀
+# Contributing to Toolva
 
-First off, thank you for considering contributing to ToolVa! It's people like you that make ToolVa such a great tool.
+Thank you for your interest in contributing to Toolva! This guide will help you get started.
 
-## 🌟 Feature Ideas
+## Table of Contents
 
-Here are some features we'd love to see implemented:
+- [Code of Conduct](#code-of-conduct)
+- [How to Contribute](#how-to-contribute)
+- [Adding a New AI Tool](#adding-a-new-ai-tool)
+- [Development Setup](#development-setup)
+- [Coding Standards](#coding-standards)
+- [Pull Request Process](#pull-request-process)
+- [Issue Guidelines](#issue-guidelines)
 
-1. **Tool Integration**
-   - Direct API integration with AI tools
-   - Real-time availability status
-   - Usage metrics and analytics
+## Code of Conduct
 
-2. **Enhanced Search**
-   - Natural language processing for better tool recommendations
-   - Advanced filtering options
-   - Search history and suggestions
+This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold these standards.
 
-3. **Community Features**
-   - User reviews and ratings
-   - Tool usage guides and tutorials
-   - Community discussions
+## How to Contribute
 
-4. **Developer Tools**
-   - API documentation viewer
-   - Code snippet library
-   - Integration examples
+### 🛠️ Adding a New AI Tool (Most Common)
 
-5. **Analytics Dashboard**
-   - Tool usage statistics
-   - Pricing comparisons
-   - Performance metrics
+This is the most common contribution! AI tool companies and community members can add their tools.
 
-6. **Content Enhancement**
-   - Video tutorials
-   - Case studies
-   - Best practices guides
+1. **Fork** the repository
+2. **Edit** `src/data/aiTools.ts` — add your tool object
+3. **Submit** a Pull Request
+4. Our **automated bot** will validate your submission
 
-7. **UI/UX Improvements**
-   - Customizable dashboard
-   - Accessibility enhancements
-   - Localization support
+#### Tool Object Schema
 
-8. **Mobile Experience**
-   - Native app features
-   - Offline support
-   - Push notifications
+```typescript
+{
+  id: 'unique-tool-id',           // lowercase, hyphenated
+  name: 'Tool Name',              // max 100 chars
+  description: 'What it does...',  // max 2000 chars
+  category: 'Chatbots',           // must be a valid category
+  url: 'https://tool-website.com', // HTTPS required
+  image: '/tool-logo.png',        // or external URL
+  pricing: 'Freemium',            // Free, Freemium, Paid, Enterprise
+  rating: 4.5,                    // 0.0 - 5.0
+  dailyUsers: '100K+',
+  modelType: 'GPT-4',             // underlying AI model
+  easeOfUse: 4,                   // 1-5 scale
+  userExperience: 4,              // 1-5 scale
+}
+```
 
-## 🚀 Getting Started
+#### Valid Categories
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+`Chatbots` · `Image Generation` · `Code` · `Music` · `Video` · `Writing` · `Education` · `Business` · `Design` · `Audio` · `APIs` · `Machine Learning` · `Analytics` · `Security` · `Database` · `DevOps` · `Research` · `Productivity` · `Startups` · `General`
 
-## 💻 Development Setup
+### 🐛 Bug Reports
+
+[Open an issue](https://github.com/SUGAM-ARORA/Toolva/issues/new?template=bug.yml) with:
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser/OS information
+- Screenshots if applicable
+
+### 💡 Feature Requests
+
+[Open an issue](https://github.com/SUGAM-ARORA/Toolva/issues/new?template=feature.yml) describing the feature and its use case.
+
+### 📝 Documentation
+
+Documentation improvements are always welcome! Fix typos, add examples, or improve clarity.
+
+## Development Setup
 
 ```bash
+# Fork and clone
+git clone https://github.com/YOUR_USERNAME/Toolva.git
+cd Toolva
+
 # Install dependencies
 npm install
 
-# Start development server
+# Start dev server
 npm run dev
 
-# Run tests
-npm test
+# Run type checking
+npm run type-check
 
-# Build for production
-npm run build
+# Run linter
+npm run lint
 ```
 
-## 📝 Pull Request Process
+## Coding Standards
 
-1. Update the README.md with details of changes if needed
-2. Update the documentation if you're adding new features
-3. Add tests for new functionality
-4. Ensure the test suite passes
-5. Get approval from maintainers
+### TypeScript/React
+- Use TypeScript strict mode
+- Prefer functional components with hooks
+- Use named exports
+- Follow the existing code style (Prettier/ESLint)
+- Add JSDoc comments for public functions
 
-## 🎨 Style Guide
+### File Naming
+- Components: `PascalCase.tsx`
+- Utilities: `camelCase.ts`
+- Data files: `camelCase.ts`
+- Tests: `*.test.ts` or `*.spec.ts`
 
-- Use TypeScript for all new code
-- Follow the existing code style
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Keep functions small and focused
+### Commit Messages
 
-## 📋 Code Review Process
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-1. Maintainers will review your PR
-2. Address any requested changes
-3. Get approval from at least one maintainer
-4. Your PR will be merged
+```
+feat: add new tool submission form
+fix: resolve search bar focus issue
+docs: update API endpoint documentation
+chore: update dependencies
+security: patch XSS vulnerability in URL handler
+```
 
-## 🐛 Bug Reports
+## Pull Request Process
 
-When filing an issue, make sure to answer these questions:
+1. **Branch** from `main`: `git checkout -b feat/your-feature`
+2. **Make changes** and ensure:
+   - `npm run lint` passes
+   - `npm run build` succeeds
+   - No new security vulnerabilities introduced
+3. **Commit** with descriptive messages
+4. **Push** and open a PR
+5. **Wait** for automated checks (tool validation, security scan, build)
+6. **Address** reviewer feedback
 
-1. What version of the project are you using?
-2. What operating system and browser are you using?
-3. What did you do?
-4. What did you expect to see?
-5. What did you see instead?
+### PR Checklist
 
-## 💡 Feature Requests
+- [ ] Code follows project style guidelines
+- [ ] Self-review completed
+- [ ] No new warnings or errors
+- [ ] Documentation updated (if applicable)
+- [ ] Tests added/updated (if applicable)
 
-We love feature requests! Please provide:
+## Issue Guidelines
 
-1. Clear description of the feature
-2. Use cases
-3. Expected behavior
-4. Screenshots or mockups (if applicable)
+- Search existing issues before creating new ones
+- Use the provided issue templates
+- Be specific and include reproduction steps
+- One issue per bug or feature request
 
-## 📜 Code of Conduct
+---
 
-### Our Pledge
-
-We pledge to make participation in our project a harassment-free experience for everyone.
-
-### Our Standards
-
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints
-- Accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
-
-## 📫 Contact
-
-- Join our [Discord](https://discord.gg/toolva)
-- Follow us on [Twitter](https://twitter.com/toolva)
-- Email us at contribute@toolva.com
-
-Thank you for contributing to ToolVa! 🙏
+Thank you for helping make Toolva better! 🚀
