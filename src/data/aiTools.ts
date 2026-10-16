@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-4466554400b0",
+    name: 'PhotoGenerAI',
+    description: 'Free AI photo generator and editor, no sign-up required',
+    category: 'Image Generation',
+    url: 'https://photogenerai.com',
+    image: 'https://photogenerai.com/opengraph-image.jpg',
+    pricing: 'Freemium',
+    rating: 4.5,
+    dailyUsers: '1K+',
+    modelType: 'Image generation & editing',
+    easeOfUse: 4.7,
+    userExperience: 4.6
   }
 ];
 
