@@ -44,6 +44,22 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440007",
+    name: 'RemoveMate',
+    description: 'AI background removal and image cleanup tools for product, portrait and pet photos',
+    category: 'Design',
+    url: 'https://removemate.com',
+    image: 'https://removemate.com/brand/logo-512.png',
+    pricing: 'Freemium',
+    rating: 4.5,
+    dailyUsers: 'N/A',
+    modelType: 'GPT Image 2',
+    easeOfUse: 4.5,
+    userExperience: 4.5,
+    featured: false,
+    lastUpdated: '2026-09-29'
   }
 ];
 
