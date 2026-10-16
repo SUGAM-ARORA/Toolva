@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-446655440003",
+    name: 'AI Room Makeover',
+    description: 'Preview a specific change in a photo of your real room before you buy, paint, move, or remodel',
+    category: 'Image Generation',
+    url: 'https://airoommakeover.com',
+    image: 'https://airoommakeover.com/brand/logo-512.png',
+    pricing: 'Freemium',
+    rating: 4.6,
+    dailyUsers: '10K+',
+    modelType: 'GPT Image 2 / Nano Banana 2',
+    easeOfUse: 4.8,
+    userExperience: 4.7
   }
 ];
 
