@@ -44,6 +44,20 @@ const baseTools: AITool[] = [
     modelType: 'Gemini Pro Vision',
     easeOfUse: 4.7,
     userExperience: 4.7
+  },
+  {
+    id: "550e8400-e29b-41d4-a716-4466554400af",
+    name: 'AI Fruit Video',
+    description: 'AI video generator for funny talking-fruit clips from story ideas',
+    category: 'Video',
+    url: 'https://aifruitvideo.com',
+    image: 'https://aifruitvideo.com/opengraph-image.jpg',
+    pricing: 'Freemium',
+    rating: 4.5,
+    dailyUsers: '1K+',
+    modelType: 'Video generation',
+    easeOfUse: 4.7,
+    userExperience: 4.6
   }
 ];
 
