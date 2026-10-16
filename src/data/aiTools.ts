@@ -4,6 +4,20 @@ import { extraAITools } from './extraAITools';
 
 const baseTools: AITool[] = [
   {
+    id: 'ai-tools-radar',
+    name: 'AI Tools Radar',
+    description: 'Multilingual AI tools directory and editorial platform for discovering and comparing AI products, models, agent skills, and prompts.',
+    category: 'Research',
+    url: 'https://aitoolsradar.com/',
+    image: 'https://aitoolsradar.com/brand/ai-tools-radar-logo-clean-192.png',
+    pricing: 'Free',
+    rating: 0, // Unrated; no verified user rating is available.
+    dailyUsers: 'N/A',
+    modelType: 'AI Directory',
+    easeOfUse: 'N/A',
+    userExperience: 'N/A'
+  },
+  {
     id: "550e8400-e29b-41d4-a716-446655440000",
     name: 'Stable Diffusion XL Turbo',
     description: 'Ultra-fast image generation with high quality',
