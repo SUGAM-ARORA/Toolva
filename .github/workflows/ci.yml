@@ -1,0 +1,65 @@
+name: ToolVa Full CI / Verification Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-ci:
+    name: Frontend Lint, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: ESLint Check
+        run: npm run lint
+
+      - name: TypeScript Type-Check
+        run: npm run type-check
+
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Production Vite Build
+        run: npm run build
+
+  backend-ci:
+    name: Backend Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: backend/go.sum
+
+      - name: Go Vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: Run Go Unit Tests
+        working-directory: backend
+        run: go test -v ./internal/services ./internal/middleware
+
+      - name: Compile Backend Binary
+        working-directory: backend
+        run: go build -v -o /dev/null ./cmd/main.go

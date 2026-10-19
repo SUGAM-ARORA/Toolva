@@ -33,14 +33,15 @@ import {
   LayoutGrid,
   List,
   Table as TableIcon,
-  ExternalLink
+  ExternalLink,
+  Cpu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModelBreakdownModal from './ModelBreakdownModal';
 
 import { getUserExpertise, recordToolOpen, ExpertiseProgress, getCurrentUser, isUserSuperAdmin } from '../lib/auth';
 
-interface TAAFTHomeProps {
+export interface ToolvaHomeProps {
   tools: AITool[];
   selectedCategory: string;
   onCategorySelect: (category: string) => void;
@@ -54,13 +55,17 @@ interface TAAFTHomeProps {
   onViewChange?: (view: string) => void;
   isAuthenticated?: boolean;
   onOpenAuth?: () => void;
+  navItems?: { label: string; icon: any; view: string }[];
+  currentView?: string;
 }
+
+export type TAAFTHomeProps = ToolvaHomeProps;
 
 type TabType = 'home' | 'justLaunched' | 'forYou' | 'topRated' | 'free';
 type SortOption = 'alphabetical' | 'popular' | 'rating' | 'bookmarked' | 'clicks' | 'recent';
 type ViewLayoutMode = 'grid' | 'list' | 'table';
 
-const TAAFTHome: React.FC<TAAFTHomeProps> = ({
+export const ToolvaHome: React.FC<ToolvaHomeProps> = ({
   tools,
   selectedCategory,
   onCategorySelect,
@@ -73,7 +78,9 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
   onOpenSubmit,
   onViewChange,
   isAuthenticated = false,
-  onOpenAuth
+  onOpenAuth,
+  navItems = [],
+  currentView = 'grid'
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [localSearch, setLocalSearch] = useState(searchQuery);
@@ -190,87 +197,101 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f1117] text-gray-900 dark:text-white flex flex-col md:flex-row relative selection:bg-orange-500 selection:text-white font-sans">
       
-      {/* Left Vertical Navigation Mini-Bar (Desktop) */}
-      <aside className="hidden md:flex flex-col items-center justify-between w-14 bg-white dark:bg-[#141721] border-r border-gray-200 dark:border-gray-800/80 py-6 fixed left-0 top-0 bottom-0 z-30 shadow-2xl">
-        <div className="flex flex-col items-center space-y-6">
-          <button 
-            onClick={() => { setActiveTab('home'); onCategorySelect('All'); }}
-            className="p-2.5 rounded-xl bg-white text-gray-950 shadow-md hover:scale-110 transition-all"
-            title="Home"
-          >
-            <HomeIcon className="w-5 h-5" />
-          </button>
-          
-          <button 
-            onClick={onOpenSidebar}
-            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all"
-            title="Browse Categories & Filters"
-          >
-            <Compass className="w-5 h-5" />
-          </button>
+      {/* Left Hover-Expand Navigation Sidebar (Desktop) */}
+      <aside className="group/sidebar hidden md:flex flex-col w-14 hover:w-56 bg-white dark:bg-[#141721] border-r border-gray-200 dark:border-gray-800/80 py-4 fixed left-0 top-0 bottom-0 z-30 shadow-2xl overflow-hidden transition-all duration-300 ease-in-out">
+        {/* Top Brand + Navigation */}
+        <div className="flex flex-col w-full space-y-0.5 px-2 flex-1 overflow-y-auto overflow-x-hidden scrollbar-none">
+          {/* Brand Logo */}
+          <div className="flex items-center h-10 px-1 mb-4 shrink-0">
+            <button
+              onClick={() => { onCategorySelect('All'); }}
+              className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center font-black text-white shadow-lg shadow-orange-500/20 shrink-0 hover:scale-110 transition-transform"
+              title="ToolVa Home"
+            >
+              T
+            </button>
+            <span className="ml-2.5 text-sm font-black tracking-wider text-gray-900 dark:text-white font-mono uppercase opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200 whitespace-nowrap">
+              TOOLVA<span className="text-orange-500">.AI</span>
+            </span>
+          </div>
 
-          <button 
-            onClick={() => setActiveTab('topRated')}
-            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all"
-            title="Top Rated Tools"
-          >
-            <Trophy className="w-5 h-5" />
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('forYou')}
-            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all relative"
-            title="For You"
-          >
-            <Users className="w-5 h-5" />
-          </button>
-
-          <button 
-            onClick={onOpenSubmit}
-            className="p-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/20 hover:scale-110 transition-all"
-            title="Submit an AI Tool"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+          {/* Primary Nav Items from navItems prop */}
+          {(navItems && navItems.length > 0 ? navItems : [
+            { label: 'AI Directory', icon: BookOpen, view: 'home' },
+            { label: 'Top Rated', icon: Trophy, view: 'topRated' },
+            { label: 'For You', icon: Users, view: 'forYou' },
+            { label: 'Submit Tool', icon: Plus, view: 'submit' },
+          ]).map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.view || (item.view === 'home' && activeTab === 'home');
+            return (
+              <button
+                key={item.view}
+                onClick={() => {
+                  if (['home', 'justLaunched', 'forYou', 'topRated', 'free'].includes(item.view)) {
+                    setActiveTab(item.view as TabType);
+                    onCategorySelect('All');
+                  } else if (onViewChange) {
+                    onViewChange(item.view);
+                  }
+                }}
+                title={item.label}
+                className={`flex items-center w-full px-2 py-2.5 rounded-xl transition-all shrink-0 ${
+                  isActive
+                    ? 'bg-orange-500/10 border border-orange-500/30 text-orange-500 dark:text-orange-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60'
+                }`}
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex flex-col items-center space-y-3">
+        {/* Bottom Section: SuperAdmin + Settings */}
+        <div className="flex flex-col space-y-0.5 px-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-800/60 shrink-0">
           {isUserSuperAdmin(getCurrentUser()) && (
             <>
-              <Link 
-                to="/users" 
-                className="p-2 text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-xl border border-purple-500/30 transition-all hover:scale-110 shadow-md" 
+              <Link
+                to="/users"
                 title="User Management (SuperAdmin)"
+                className="flex items-center w-full px-2 py-2.5 rounded-xl text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 transition-all"
               >
-                <Users className="w-5 h-5 text-purple-400" />
+                <Users className="w-5 h-5 shrink-0 text-purple-400" />
+                <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">User Management</span>
               </Link>
-
-              <Link 
-                to="/activity" 
-                className="p-2 text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-xl border border-emerald-500/30 transition-all hover:scale-110 shadow-md" 
-                title="Activity Logs Tracker (SuperAdmin)"
+              <Link
+                to="/activity"
+                title="Activity Logs (SuperAdmin)"
+                className="flex items-center w-full px-2 py-2.5 rounded-xl text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all"
               >
-                <Activity className="w-5 h-5 text-emerald-400" />
+                <Activity className="w-5 h-5 shrink-0 text-emerald-400" />
+                <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">Activity Logs</span>
               </Link>
-
-              <button 
-                onClick={() => onViewChange('admin')} 
-                className="p-2 text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/30 transition-all hover:scale-110 shadow-md" 
-                title="Admin Control Panel (SuperAdmin)"
+              <button
+                onClick={() => onViewChange && onViewChange('admin')}
+                title="Admin Panel (SuperAdmin)"
+                className="flex items-center w-full px-2 py-2.5 rounded-xl text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all"
               >
-                <Crown className="w-5 h-5 text-amber-400" />
+                <Crown className="w-5 h-5 shrink-0 text-amber-400" />
+                <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">Admin Panel</span>
               </button>
             </>
           )}
-
-          <Link to="/help" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Help & FAQ">
-            <HelpCircle className="w-5 h-5" />
+          <Link to="/help" title="Help & FAQ" className="flex items-center w-full px-2 py-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all">
+            <HelpCircle className="w-5 h-5 shrink-0" />
+            <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">Help & FAQ</span>
           </Link>
-          <Link to="/contact" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Contact Us">
-            <Mail className="w-5 h-5" />
+          <Link to="/contact" title="Contact Us" className="flex items-center w-full px-2 py-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all">
+            <Mail className="w-5 h-5 shrink-0" />
+            <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">Contact</span>
           </Link>
-          <Link to="/settings" className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" title="Settings">
-            <Settings className="w-5 h-5" />
+          <Link to="/settings" title="Settings" className="flex items-center w-full px-2 py-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-all">
+            <Settings className="w-5 h-5 shrink-0" />
+            <span className="ml-3 text-xs font-semibold whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-all duration-200">Settings</span>
           </Link>
         </div>
       </aside>
@@ -278,18 +299,62 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
       {/* Main Content Area */}
       <main className="flex-1 md:pl-14 pt-4 pb-24 overflow-x-hidden">
         <div className="space-y-8 pb-16">
-          {/* Hero Section */}
-          <div className="relative pt-6 pb-4 sm:pt-10 sm:pb-8 text-center px-4 overflow-hidden">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-gray-900 dark:text-white max-w-4xl mx-auto leading-tight sm:leading-none">
-              THERE'S AN AI FOR THAT<span className="text-orange-500 font-normal text-2xl sm:text-4xl align-super">®</span>
-            </h1>
+          {/* Hero Section - ToolVa Premium Banner */}
+          <div className="relative pt-8 pb-6 sm:pt-14 sm:pb-10 text-center px-4 overflow-hidden">
+            {/* Animated Background Orbs */}
+            <div className="absolute top-0 left-1/4 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl animate-pulse pointer-events-none" />
+            <div className="absolute top-10 right-1/4 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+            <div className="absolute -bottom-10 left-1/2 w-96 h-40 bg-amber-500/10 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
 
-            <p className="mt-3 text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              <span className="font-bold text-orange-500">{totalToolsCount} AIs</span> across <span className="font-bold text-blue-500">{categoriesCount} categories</span>.
-            </p>
+            {/* Main Heading */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative z-10"
+            >
+              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-500 text-xs font-bold uppercase tracking-widest mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>The IMDb of AI Tools</span>
+              </div>
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none mb-3">
+                <span className="bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 bg-clip-text text-transparent">ToolVa</span>
+                <span className="block text-gray-900 dark:text-white text-3xl sm:text-4xl lg:text-5xl mt-1 font-bold">AI Tools Universe</span>
+              </h1>
+              <p className="mt-3 text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Discover, benchmark & compare{' '}
+                <span className="font-bold text-orange-500">{totalToolsCount} AI tools</span> across{' '}
+                <span className="font-bold text-blue-500">{categoriesCount} categories</span>. Your mission control for the AI revolution.
+              </p>
+            </motion.div>
 
+            {/* Animated Stats Row */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-wrap items-center justify-center gap-3 mt-5 mb-5 relative z-10"
+            >
+              {[
+                { label: `${totalToolsCount} AI Tools`, icon: '🔥', color: 'from-orange-500/10 to-red-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400' },
+                { label: `${topRatedCount} Top Rated`, icon: '⭐', color: 'from-yellow-500/10 to-amber-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' },
+                { label: `${freeToolsCount} Free Tools`, icon: '🆓', color: 'from-green-500/10 to-emerald-500/10 border-green-500/30 text-green-600 dark:text-green-400' },
+                { label: `${categoriesCount} Categories`, icon: '📦', color: 'from-blue-500/10 to-indigo-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400' },
+              ].map((stat) => (
+                <motion.span
+                  key={stat.label}
+                  whileHover={{ scale: 1.05 }}
+                  className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${stat.color} border text-xs font-bold backdrop-blur-sm`}
+                >
+                  <span>{stat.icon}</span>
+                  <span>{stat.label}</span>
+                </motion.span>
+              ))}
+            </motion.div>
+
+            {/* Spotlight Tool Chip */}
             {spotlightTool && (
-              <div className="mt-3 flex items-center justify-center">
+              <div className="mt-1 mb-4 flex items-center justify-center relative z-10">
                 <button
                   onClick={() => handleSelectTool(spotlightTool)}
                   className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white dark:bg-[#141721] border border-gray-200 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-300 hover:border-orange-500/50 shadow-sm transition-all"
@@ -303,7 +368,12 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
             )}
 
             {/* Global Hero Search Bar with Instant Clear Cross Button */}
-            <div className="max-w-2xl mx-auto mt-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="max-w-2xl mx-auto mt-2 relative z-10"
+            >
               <form onSubmit={handleSearchSubmit} className="relative">
                 <div className="relative flex items-center">
                   <Search className="w-5 h-5 absolute left-4 text-gray-400 pointer-events-none" />
@@ -317,8 +387,6 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
                     placeholder="Search AI tools by name, description, capability..."
                     className="w-full pl-12 pr-28 py-3.5 sm:py-4 bg-white dark:bg-[#141721] text-gray-900 dark:text-white rounded-2xl border border-gray-200 dark:border-gray-800 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-sm sm:text-base shadow-xl transition-all"
                   />
-                  
-                  {/* Clear button (X) when search query is present */}
                   {localSearch && (
                     <button
                       type="button"
@@ -332,7 +400,6 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
                       <X className="w-4 h-4" />
                     </button>
                   )}
-
                   <button
                     type="submit"
                     className="absolute right-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all"
@@ -341,26 +408,21 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
                   </button>
                 </div>
               </form>
-            </div>
+            </motion.div>
 
             {/* Anthropic Claude Breakdown Alert Card */}
             {isClaudeSearch && (
-              <div className="max-w-4xl mx-auto px-4 mt-6">
+              <div className="max-w-4xl mx-auto px-4 mt-6 relative z-10">
                 <div className="bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-blue-500/10 p-4 rounded-2xl border border-orange-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold">
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 dark:text-white text-sm">
-                        Anthropic Claude AI Model Suite
-                      </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Compare Why, When, How, Where & Which model is best for your task.
-                      </p>
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm">Anthropic Claude AI Model Suite</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Compare Why, When, How, Where & Which model is best for your task.</p>
                     </div>
                   </div>
-
                   <button
                     onClick={() => setShowClaudeBreakdown(true)}
                     className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0"
@@ -594,7 +656,7 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
                 {viewLayout === 'grid' && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {displayedTools.map((tool, idx) => (
-                      <TAAFTCard
+                      <ToolvaCard
                         key={tool.id || `tool-${idx}`}
                         tool={tool}
                         badge={tool.featured ? "Featured" : "Verified"}
@@ -762,8 +824,8 @@ const TAAFTHome: React.FC<TAAFTHomeProps> = ({
   );
 };
 
-// Sub-Component: Larger, Impressive TAAFT Tool Card
-interface TAAFTCardProps {
+// Sub-Component: Canonical Toolva Directory Card
+export interface ToolvaCardProps {
   tool: AITool;
   badge: string;
   badgeColor: string;
@@ -772,13 +834,13 @@ interface TAAFTCardProps {
   onToggleFavorite: () => void;
 }
 
-const TAAFTCard: React.FC<TAAFTCardProps> = ({
+export type TAAFTCardProps = ToolvaCardProps;
+
+export const ToolvaCard: React.FC<ToolvaCardProps> = ({
   tool,
-  badge,
-  badgeColor,
   isFavorite,
   onSelect,
-  onToggleFavorite
+  onToggleFavorite,
 }) => {
   return (
     <motion.div
@@ -806,11 +868,18 @@ const TAAFTCard: React.FC<TAAFTCardProps> = ({
                 <h3 className="font-black text-gray-900 dark:text-white text-base group-hover:text-orange-500 transition-colors line-clamp-1">
                   {tool.name}
                 </h3>
-                <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               </div>
-              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-mono">
-                {tool.category}
-              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 text-[10px] font-mono">
+                  {tool.category}
+                </span>
+                {tool.license && (
+                  <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 text-[10px] font-semibold border border-purple-500/20">
+                    {tool.license}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -835,14 +904,24 @@ const TAAFTCard: React.FC<TAAFTCardProps> = ({
           {tool.description}
         </p>
 
-        {/* Pricing & Rating Footer */}
+        {/* Hardware & Spec Micro-Tags */}
+        <div className="flex items-center gap-2 pt-1 text-[11px] text-gray-400">
+          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-[#1a1f2e] text-purple-300">
+            <Cpu className="w-3 h-3 text-purple-400 mr-1" />
+            <span>{tool.minVRAM || '8GB VRAM'}</span>
+          </span>
+          <span className="text-gray-500">•</span>
+          <span>{tool.runsOnCPU ? 'Runs on CPU' : 'GPU Recommended'}</span>
+        </div>
+
+        {/* Pricing & Bayesian Rating Footer */}
         <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 dark:border-gray-800/80">
           <span className="px-3 py-1 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono text-xs font-bold border border-orange-500/20">
             {tool.pricing || 'Free'}
           </span>
 
           <div className="flex items-center space-x-3">
-            <span className="flex items-center text-amber-500 font-bold text-xs">
+            <span className="flex items-center text-amber-500 font-bold text-xs" title="Bayesian Weighted Rating">
               <Star className="w-4 h-4 fill-current mr-1" />
               {tool.rating ? tool.rating.toFixed(1) : '4.5'}
             </span>
@@ -857,4 +936,6 @@ const TAAFTCard: React.FC<TAAFTCardProps> = ({
   );
 };
 
-export default TAAFTHome;
+export const TAAFTCard = ToolvaCard;
+export const TAAFTHome = ToolvaHome;
+export default ToolvaHome;

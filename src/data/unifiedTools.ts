@@ -12,6 +12,7 @@
 import { AITool } from '../types';
 import { recommendedTools, RecommendedTool } from './recommendationData';
 import { aiTools } from './aiTools';
+import { enrichAITool } from './localAiEnrichment';
 
 const GITHUB_CACHE_KEY = 'toolva_github_tools_cache_v2';
 const GITHUB_CACHE_EXPIRY_KEY = 'toolva_github_tools_expiry_v2';
@@ -101,7 +102,7 @@ for (const tool of combinedRawTools) {
   const hostKey = getUrlHostKey(tool.url || tool.website || '');
 
   if (nameKey && !localMap.has(nameKey) && (!hostKey || !seenHosts.has(hostKey))) {
-    localMap.set(nameKey, tool);
+    localMap.set(nameKey, enrichAITool(tool));
     if (hostKey) seenHosts.add(hostKey);
   }
 }
@@ -252,7 +253,7 @@ export async function getAllTools(backendTools: AITool[] = []): Promise<AITool[]
     const nameKey = normalizeToolName(tool.name);
     const hostKey = getUrlHostKey(tool.url || tool.website || '');
     if (nameKey && (!hostKey || !hostMap.has(hostKey))) {
-      toolMap.set(nameKey, tool);
+      toolMap.set(nameKey, enrichAITool(tool));
       if (hostKey) hostMap.add(hostKey);
     }
   }
@@ -262,7 +263,7 @@ export async function getAllTools(backendTools: AITool[] = []): Promise<AITool[]
     const nameKey = normalizeToolName(tool.name);
     const hostKey = getUrlHostKey(tool.url || tool.website || '');
     if (nameKey && !toolMap.has(nameKey) && (!hostKey || !hostMap.has(hostKey))) {
-      toolMap.set(nameKey, tool);
+      toolMap.set(nameKey, enrichAITool(tool));
       if (hostKey) hostMap.add(hostKey);
     }
   }

@@ -4,6 +4,7 @@ node_modules/
 # ─── Build Output ────────────────────────────────────────
 dist/
 dist-ssr/
+dist-tests/
 build/
 *.local
 

@@ -1,6 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, Book, Trophy, GraduationCap, RefreshCw } from 'lucide-react';
+import { 
+  Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, 
+  Book, Trophy, GraduationCap, RefreshCw, Cpu, Layers, DollarSign, TrendingUp 
+} from 'lucide-react';
 import { categories } from './data/categories';
 import { getAllTools, mergeTools, localAITools } from './data/unifiedTools';
 import { aiTools } from './data/aiTools';
@@ -15,9 +18,24 @@ import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { api } from './lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import ReactGA from 'react-ga4';
 import { AITool } from './types';
+
+// ── Google Analytics 4 Initialisation ──────────────────────────
+// Measurement ID is also placed in index.html for pre-React loading.
+// react-ga4 gives us programmatic event + page-view tracking in the SPA.
+const GA_MEASUREMENT_ID = 'G-N87HLGF2NN';
+ReactGA.initialize(GA_MEASUREMENT_ID);
+
+/** Fires a GA page_view event on every React Router navigation. */
+function RouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
+  }, [location]);
+  return null;
+}
 
 // Lazy load components & pages
 const Profile = lazy(() => import('./pages/Profile'));
@@ -41,6 +59,11 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const ActivityLogs = lazy(() => import('./components/ActivityLogs'));
 const UserManagement = lazy(() => import('./components/UserManagement'));
 const ContactHelp = lazy(() => import('./components/ContactHelp'));
+const HardwareBenchmarks = lazy(() => import('./components/HardwareBenchmarks'));
+const AIStackPlanner = lazy(() => import('./components/AIStackPlanner'));
+const CostEstimator = lazy(() => import('./components/CostEstimator'));
+const MomentumIndex = lazy(() => import('./components/MomentumIndex'));
+const ToolDetailModal = lazy(() => import('./components/ToolDetailModal'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -52,7 +75,8 @@ function App() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly'>('grid');
+  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly' | 'benchmarks' | 'planner' | 'estimator' | 'momentum' | string>('grid');
+  const [selectedModalTool, setSelectedModalTool] = useState<AITool | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   const isAuthenticated = !!user;
@@ -102,21 +126,7 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    const script1 = document.createElement('script');
-    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-N87HLGF2NN";
-    script1.async = true;
-    document.head.appendChild(script1);
-
-    const script2 = document.createElement('script');
-    script2.innerHTML = `
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-N87HLGF2NN');
-    `;
-    document.head.appendChild(script2);
-  }, []);
+  // GA scripts are loaded from index.html; react-ga4 is initialised at module level above.
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -227,11 +237,14 @@ function App() {
 
   const navItems = [
     { label: 'AI Directory', icon: BookOpen, view: 'grid' },
+    { label: 'Hardware Benchmarks', icon: Cpu, view: 'benchmarks' },
+    { label: 'AI Stack Planner', icon: Layers, view: 'planner' },
+    { label: 'Cost Estimator', icon: DollarSign, view: 'estimator' },
+    { label: 'GitHub Momentum', icon: TrendingUp, view: 'momentum' },
     { label: 'AI Finder', icon: Search, view: 'finder' },
     { label: 'Tool Compare', icon: Filter, view: 'compare' },
-    { label: 'AI Personas', icon: Users, view: 'personas' },
-    { label: 'Prompt Studio', icon: Brain, view: 'prompts' },
     { label: 'Workflow Builder', icon: Workflow, view: 'workflows' },
+    { label: 'Prompt Studio', icon: Brain, view: 'prompts' },
     { label: 'Learning Hub', icon: GraduationCap, view: 'learning' },
     { label: 'AI Dictionary', icon: Book, view: 'dictionary' },
     { label: 'Weekly Leaderboard', icon: Trophy, view: 'weekly' },
@@ -240,6 +253,8 @@ function App() {
 
   return (
     <Router>
+      {/* Track every SPA route change as a GA page_view */}
+      <RouteTracker />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-x-hidden">
         <Toaster position="top-right" />
         
@@ -337,7 +352,7 @@ function App() {
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
                     onToolSelect={(tool) => {
-                      window.open(tool.url || tool.website || '#', '_blank');
+                      setSelectedModalTool(tool);
                     }}
                     onToggleFavorite={handleFavorite}
                     favorites={favorites}
@@ -346,6 +361,8 @@ function App() {
                     onViewChange={(v: string) => setView(v)}
                     isAuthenticated={isAuthenticated}
                     onOpenAuth={() => setShowAuthModal(true)}
+                    navItems={navItems}
+                    currentView={view}
                   />
                 )}
                   {view === 'finder' && (
@@ -408,6 +425,26 @@ function App() {
                       <ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />
                     </Suspense>
                   )}
+                  {view === 'benchmarks' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <HardwareBenchmarks onBackToHome={() => setView('grid')} />
+                    </Suspense>
+                  )}
+                  {view === 'planner' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <AIStackPlanner tools={tools} onBackToHome={() => setView('grid')} onToolSelect={(tool) => setSelectedModalTool(tool)} />
+                    </Suspense>
+                  )}
+                  {view === 'estimator' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <CostEstimator onBackToHome={() => setView('grid')} />
+                    </Suspense>
+                  )}
+                  {view === 'momentum' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <MomentumIndex tools={tools} onBackToHome={() => setView('grid')} onToolSelect={(tool) => setSelectedModalTool(tool)} />
+                    </Suspense>
+                  )}
                   {view === 'contact' && (
                     <Suspense fallback={<LoadingSpinner />}>
                       <ContactHelp onBackToHome={() => setView('grid')} />
@@ -428,6 +465,18 @@ function App() {
             <div className="space-y-4">
             </div>
           </AuthModal>
+        )}
+
+        {selectedModalTool && (
+          <Suspense fallback={null}>
+            <ToolDetailModal
+              tool={selectedModalTool}
+              isOpen={!!selectedModalTool}
+              onClose={() => setSelectedModalTool(null)}
+              onToggleFavorite={handleFavorite}
+              isFavorite={favorites.includes(selectedModalTool.id)}
+            />
+          </Suspense>
         )}
       </div>
     </Router>
