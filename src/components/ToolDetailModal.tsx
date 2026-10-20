@@ -97,8 +97,8 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
           {/* Header */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-start justify-between bg-gray-50/60 dark:bg-[#141824]/60 shrink-0">
             <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 p-0.5 shadow-lg shadow-orange-500/20 shrink-0">
-                <div className="w-full h-full bg-white dark:bg-[#121620] rounded-[14px] flex items-center justify-center font-black text-xl text-orange-500 overflow-hidden">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0">
+                <div className="w-full h-full bg-white dark:bg-[#121620] rounded-[14px] flex items-center justify-center font-black text-xl text-cyan-500 overflow-hidden">
                   {tool.image ? (
                     <img src={tool.image} alt={tool.name} className="w-full h-full object-cover" />
                   ) : (
@@ -112,7 +112,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                   <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
                     {tool.name}
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                     {tool.category}
                   </span>
                   {tool.license && (
@@ -144,7 +144,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
               <button
                 onClick={() => setShowBadgeModal(true)}
                 title="Get README Badges"
-                className="p-2 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-orange-500 hover:border-orange-500/40 transition-colors"
+                className="p-2 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-cyan-500 hover:border-cyan-500/40 transition-colors"
               >
                 <Award className="w-4 h-4" />
               </button>
@@ -172,7 +172,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                 href={tool.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1 px-3 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all"
+                className="inline-flex items-center space-x-1 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-bold shadow-md shadow-cyan-500/20 transition-all"
               >
                 <span>Visit Tool</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -201,7 +201,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-3 px-4 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-orange-500 text-orange-500'
+                    ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
                     : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -240,7 +240,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                   </div>
                   <button
                     onClick={() => setActiveTab('reviews')}
-                    className="text-xs font-bold text-orange-500 hover:underline"
+                    className="text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline"
                   >
                     View Breakdown →
                   </button>
@@ -262,7 +262,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                   </div>
                   <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-[#161a26] border border-gray-200 dark:border-gray-800 space-y-1">
                     <span className="text-[11px] text-gray-500 font-semibold">Pricing Model</span>
-                    <p className="text-sm font-black text-orange-400">{tool.pricing || 'Free'}</p>
+                    <p className="text-sm font-black text-cyan-600 dark:text-cyan-400">{tool.pricing || 'Free'}</p>
                   </div>
                 </div>
 
@@ -270,7 +270,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center space-x-1.5">
-                      <Terminal className="w-3.5 h-3.5 text-orange-500" />
+                      <Terminal className="w-3.5 h-3.5 text-cyan-500" />
                       <span>One-Click Install Command</span>
                     </h4>
                   </div>
@@ -305,7 +305,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                       <span className="text-gray-500">Official Repository:</span>
                       <p className="font-bold text-gray-900 dark:text-white truncate">
                         {tool.github ? (
-                          <a href={tool.github} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">
+                          <a href={tool.github} target="_blank" rel="noopener noreferrer" className="text-cyan-600 dark:text-cyan-400 hover:underline">
                             {tool.github.replace('https://github.com/', '')}
                           </a>
                         ) : 'Community Maintained'}
@@ -432,7 +432,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                       href={tool.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 text-xs text-orange-500 hover:underline font-semibold"
+                      className="inline-flex items-center space-x-1 text-xs text-cyan-600 dark:text-cyan-400 hover:underline font-semibold"
                     >
                       <span>Official Pricing Page</span>
                       <ExternalLink className="w-3 h-3" />
@@ -482,7 +482,7 @@ export const ToolDetailModal: React.FC<ToolDetailModalProps> = ({
                   <div className="flex justify-end">
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-xl"
+                      className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-md shadow-cyan-500/20"
                     >
                       Post Review
                     </button>

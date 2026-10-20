@@ -19,7 +19,7 @@ import {
   Brain, 
   Book, 
   Lightbulb, 
-  CreditCard 
+  CreditCard
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -40,6 +40,7 @@ interface UserMenuProps {
   user: User;
   onViewChange?: (view: string) => void;
 }
+
 
 type MenuItem = {
   label: string;
@@ -122,11 +123,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onViewChange }) => {
     {
       title: 'Account & Profile',
       items: [
-        { label: 'My Profile', icon: User, href: '/profile', color: 'text-orange-500' },
+        { label: 'My Profile', icon: User, href: '/profile', color: 'text-cyan-500' },
         { label: 'Saved Favorites', icon: Heart, href: '/favorites', color: 'text-red-500', count: userStats.favorites },
         { label: 'Account Settings', icon: Settings, href: '/settings', color: 'text-purple-500' }
       ]
     },
+
     {
       title: 'Explore & Tools',
       items: [
@@ -161,7 +163,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onViewChange }) => {
         title="View Profile & Account Settings"
       >
         <div className="relative">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-md overflow-hidden group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-md overflow-hidden group-hover:scale-105 transition-transform">
             {(user as any)?.avatar_url ? (
               <img
                 src={(user as any).avatar_url}
@@ -178,7 +180,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onViewChange }) => {
           </div>
         </div>
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-black text-gray-900 dark:text-white leading-tight flex items-center gap-1.5 group-hover:text-orange-500 transition-colors">
+          <span className="text-xs font-black text-gray-900 dark:text-white leading-tight flex items-center gap-1.5 group-hover:text-cyan-500 transition-colors">
             {(user as any)?.name || user?.email?.split('@')[0] || 'User'}
             <span className="bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] px-1.5 py-0.2 rounded-md font-mono font-bold">
               {expertise.role}
@@ -202,7 +204,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onViewChange }) => {
             <Link 
               to="/profile"
               onClick={() => setIsOpen(false)}
-              className="block bg-gradient-to-r from-orange-500 via-amber-500 to-purple-600 p-6 text-white hover:opacity-95 transition-opacity cursor-pointer group"
+              className="block bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 p-6 text-white hover:opacity-95 transition-opacity cursor-pointer group"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center overflow-hidden shrink-0 shadow-lg group-hover:scale-105 transition-transform">
@@ -256,7 +258,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onViewChange }) => {
                         <item.icon className={`w-4 h-4 mr-3 ${item.color}`} />
                         <span className="flex-1">{item.label}</span>
                         {item.count !== undefined && item.count > 0 && (
-                          <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-orange-500/10 text-orange-500 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-full">
                             {item.count}
                           </span>
                         )}

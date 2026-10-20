@@ -143,7 +143,7 @@ const Profile: React.FC = () => {
           <div className="space-y-3 pt-2">
             <button
               onClick={() => setShowAuthModal(true)}
-              className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
             >
               Sign In / Create Account
             </button>
@@ -221,8 +221,8 @@ const Profile: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 text-center md:text-left">
               {/* Profile Avatar Badge (No Stock Photos) */}
               <div className="relative group">
-                <div className="w-28 h-28 rounded-3xl bg-gradient-to-tr from-orange-500 via-amber-400 to-purple-600 p-1 shadow-xl">
-                  <div className="w-full h-full rounded-[22px] bg-white dark:bg-[#0b0c10] flex items-center justify-center font-black text-4xl text-orange-500 overflow-hidden relative">
+                <div className="w-28 h-28 rounded-3xl bg-gradient-to-tr from-cyan-500 via-sky-400 to-blue-600 p-1 shadow-xl">
+                  <div className="w-full h-full rounded-[22px] bg-white dark:bg-[#0b0c10] flex items-center justify-center font-black text-4xl text-cyan-500 overflow-hidden relative">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
                     ) : (
@@ -232,7 +232,7 @@ const Profile: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-orange-500 text-white border-4 border-white dark:border-[#141721] flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                  className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-cyan-500 text-white border-4 border-white dark:border-[#141721] flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                   title="Upload Profile Photo"
                 >
                   <Camera className="w-4 h-4" />
@@ -244,7 +244,7 @@ const Profile: React.FC = () => {
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
                     {name}
                   </h1>
-                  <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-mono font-bold">
+                  <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 text-xs font-mono font-bold">
                     {userId}
                   </span>
                   {role === 'superadmin' && (
@@ -273,14 +273,14 @@ const Profile: React.FC = () => {
             <div className="w-full md:w-80 bg-gray-50 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 p-5 rounded-2xl space-y-3 shadow-inner">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-orange-500" /> Rank Progress
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-500" /> Rank Progress
                 </span>
-                <span className="text-orange-500 dark:text-orange-400 font-mono font-bold">{expertise.progressPercent}%</span>
+                <span className="text-cyan-600 dark:text-cyan-400 font-mono font-bold">{expertise.progressPercent}%</span>
               </div>
 
               <div className="w-full bg-gray-200 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-orange-500 to-amber-400 h-full transition-all duration-300" 
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 h-full transition-all duration-300" 
                   style={{ width: `${expertise.progressPercent}%` }} 
                 />
               </div>
@@ -298,7 +298,7 @@ const Profile: React.FC = () => {
         {isEditing && (
           <form onSubmit={handleSaveProfile} className="bg-white dark:bg-[#141721] border border-orange-500/40 p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl">
             <div className="flex items-center space-x-3 border-b border-gray-200 dark:border-gray-800 pb-4">
-              <div className="p-2.5 bg-orange-500/10 text-orange-500 rounded-xl">
+              <div className="p-2.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-xl">
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
@@ -317,7 +317,7 @@ const Profile: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -328,7 +328,7 @@ const Profile: React.FC = () => {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-bold text-purple-600 dark:text-purple-400 outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-mono font-bold text-purple-600 dark:text-purple-400 outline-none focus:border-cyan-500"
                 >
                   <option value="superadmin">👑 SUPERADMIN (Project Owner)</option>
                   <option value="admin">🛡️ ADMIN</option>
@@ -345,7 +345,7 @@ const Profile: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -358,7 +358,7 @@ const Profile: React.FC = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="8699122792"
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -371,7 +371,7 @@ const Profile: React.FC = () => {
                   value={avatarUrl}
                   onChange={(e) => setAvatarUrl(e.target.value)}
                   placeholder="Leave empty for initial letter badge"
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -384,7 +384,7 @@ const Profile: React.FC = () => {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="San Francisco, CA"
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -396,7 +396,7 @@ const Profile: React.FC = () => {
                   rows={2}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-orange-500 resize-none"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:border-cyan-500 resize-none"
                 />
               </div>
             </div>
@@ -411,7 +411,7 @@ const Profile: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center space-x-1.5"
+                className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center space-x-1.5"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Profile Changes</span>
@@ -424,14 +424,14 @@ const Profile: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Identity & Security Card */}
           <div className="bg-white dark:bg-[#141721] border border-gray-200 dark:border-gray-800/80 p-6 rounded-3xl space-y-4 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 flex items-center gap-2 font-mono">
-              <Shield className="w-4 h-4 text-orange-500" /> Account Security & Auth
+            <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center gap-2 font-mono">
+              <Shield className="w-4 h-4 text-cyan-500" /> Account Security & Auth
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800/80">
                 <span className="text-gray-500 dark:text-gray-400">Unique User ID</span>
-                <span className="font-mono font-bold text-orange-600 dark:text-orange-400">{userId}</span>
+                <span className="font-mono font-bold text-cyan-600 dark:text-cyan-400">{userId}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800/80">
                 <span className="text-gray-500 dark:text-gray-400">Authentication Type</span>
@@ -469,7 +469,7 @@ const Profile: React.FC = () => {
               </div>
               <div className="flex justify-between py-2">
                 <span className="text-gray-500 dark:text-gray-400">Support Desk</span>
-                <a href="mailto:support.toolva@gmail.com" className="font-mono font-bold text-orange-500 hover:underline">
+                <a href="mailto:support.toolva@gmail.com" className="font-mono font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
                   support.toolva@gmail.com
                 </a>
               </div>
@@ -528,7 +528,7 @@ const Profile: React.FC = () => {
               <p className="text-xs text-gray-500 font-mono">No favorited AI tools added yet.</p>
               <button
                 onClick={() => navigate('/')}
-                className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md shadow-cyan-500/20 transition-all cursor-pointer"
               >
                 Explore AI Directory & Save Favorites
               </button>
@@ -536,22 +536,22 @@ const Profile: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {favorites.map((tool) => (
-                <div key={tool.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800 hover:border-orange-500/50 transition-all space-y-3 group">
+                <div key={tool.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800 hover:border-cyan-500/50 transition-all space-y-3 group">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                       {tool.category}
                     </span>
                     <span className="text-[10px] font-mono text-gray-500">⭐ {tool.rating}</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-orange-500 transition-colors">{tool.name}</h4>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-cyan-500 transition-colors">{tool.name}</h4>
                     <p className="text-xs text-gray-500 font-mono mt-0.5">{tool.pricing}</p>
                   </div>
                   <a
                     href={tool.url || tool.website || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-2 bg-gray-200 dark:bg-gray-900 hover:bg-orange-500 text-gray-800 dark:text-gray-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1"
+                    className="w-full py-2 bg-gray-200 dark:bg-gray-900 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-blue-600 text-gray-800 dark:text-gray-300 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1"
                   >
                     <span>Launch Tool</span>
                     <ExternalLink className="w-3.5 h-3.5" />

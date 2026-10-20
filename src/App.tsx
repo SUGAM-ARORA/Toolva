@@ -2,13 +2,13 @@ import { lazy, Suspense } from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { 
   Menu, Search, Filter, Zap, BookOpen, Users, Brain, Workflow, 
-  Book, Trophy, GraduationCap, RefreshCw, Cpu, Layers, DollarSign, TrendingUp 
+  Book, Trophy, GraduationCap, RefreshCw, Cpu, Layers, DollarSign, TrendingUp, HardDrive 
 } from 'lucide-react';
 import { categories } from './data/categories';
 import { getAllTools, mergeTools, localAITools } from './data/unifiedTools';
 import { aiTools } from './data/aiTools';
-import Sidebar from './components/Sidebar';
-import TAAFTHome from './components/TAAFTHome';
+import ToolvaHome from './components/ToolvaHome';
+import NavigationSidebar from './components/NavigationSidebar';
 import ThemeToggle from './components/ThemeToggle';
 import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
@@ -18,7 +18,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Pagination from './components/Pagination';
 import { api } from './lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import ReactGA from 'react-ga4';
 import { AITool } from './types';
 
@@ -35,6 +35,64 @@ function RouteTracker() {
     ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
   }, [location]);
   return null;
+}
+
+/** Top-left home button & mobile navigation toggle */
+function TopLeftHomeButton({
+  onGoHome,
+  currentView,
+  onOpenMobileNav,
+}: {
+  onGoHome: () => void;
+  currentView: string;
+  onOpenMobileNav: () => void;
+}) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHomeView = location.pathname === '/' && currentView === 'grid';
+
+  const handleClick = () => {
+    onGoHome();
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+  };
+
+  return (
+    <div className="md:hidden fixed top-3 left-3 z-40 flex items-center space-x-2">
+      <button
+        onClick={onOpenMobileNav}
+        className="p-2.5 rounded-xl bg-white/95 dark:bg-[#111625]/95 hover:bg-white dark:hover:bg-[#161d30] text-gray-700 dark:text-gray-200 shadow-lg border border-gray-200/90 dark:border-gray-800/90 backdrop-blur-md cursor-pointer"
+        title="Open Navigation Menu"
+        id="mobile-nav-toggle"
+      >
+        <Menu className="w-5 h-5 text-cyan-500" />
+      </button>
+
+      <button
+        onClick={handleClick}
+        className="group flex items-center space-x-2 px-3 py-2 bg-white/95 dark:bg-[#111625]/95 hover:bg-white dark:hover:bg-[#161d30] text-gray-800 dark:text-white rounded-xl shadow-lg border border-gray-200/90 dark:border-gray-800/90 backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+        title="Return to ToolVa Home"
+        id="top-left-home-button"
+      >
+        <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 via-sky-400 to-blue-600 flex items-center justify-center font-black text-white text-xs shadow-md shadow-cyan-500/25 shrink-0">
+          T
+        </div>
+        <div className="flex flex-col text-left">
+          <div className="flex items-center space-x-1.5">
+            <span className="text-xs font-black uppercase tracking-wider font-mono text-gray-900 dark:text-gray-100">
+              TOOLVA<span className="text-cyan-500 font-extrabold">.AI</span>
+            </span>
+            {!isHomeView && (
+              <span className="text-[9px] bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-bold px-1.5 py-0.5 rounded-full border border-cyan-500/30">
+                ← Home
+              </span>
+            )}
+          </div>
+        </div>
+      </button>
+    </div>
+  );
 }
 
 // Lazy load components & pages
@@ -64,6 +122,7 @@ const AIStackPlanner = lazy(() => import('./components/AIStackPlanner'));
 const CostEstimator = lazy(() => import('./components/CostEstimator'));
 const MomentumIndex = lazy(() => import('./components/MomentumIndex'));
 const ToolDetailModal = lazy(() => import('./components/ToolDetailModal'));
+const LocalAICompatibilityEngine = lazy(() => import('./components/LocalAICompatibilityEngine'));
 
 function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -72,12 +131,32 @@ function App() {
     }
     return false;
   });
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [themePreset, setThemePreset] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('toolva_theme_preset') || 'cyan';
+    }
+    return 'cyan';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme-preset', themePreset);
+    localStorage.setItem('toolva_theme_preset', themePreset);
+  }, [themePreset]);
+
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly' | 'benchmarks' | 'planner' | 'estimator' | 'momentum' | string>('grid');
+  const [view, setView] = useState<'grid' | 'finder' | 'compare' | 'submit' | 'personas' | 'prompts' | 'workflows' | 'learning' | 'dictionary' | 'weekly' | 'benchmarks' | 'planner' | 'estimator' | 'momentum' | 'local-ai' | string>('grid');
   const [selectedModalTool, setSelectedModalTool] = useState<AITool | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
+
+  const handleGoHome = useCallback(() => {
+    setView('grid');
+    setSelectedCategory('All');
+    setSearchQuery('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const [user, setUser] = useState<any>(null);
   const isAuthenticated = !!user;
   const [currentPage, setCurrentPage] = useState(1);
@@ -237,7 +316,8 @@ function App() {
 
   const navItems = [
     { label: 'AI Directory', icon: BookOpen, view: 'grid' },
-    { label: 'Hardware Benchmarks', icon: Cpu, view: 'benchmarks' },
+    { label: 'Local-AI Compatibility', icon: Cpu, view: 'local-ai' },
+    { label: 'Hardware Benchmarks', icon: HardDrive, view: 'benchmarks' },
     { label: 'AI Stack Planner', icon: Layers, view: 'planner' },
     { label: 'Cost Estimator', icon: DollarSign, view: 'estimator' },
     { label: 'GitHub Momentum', icon: TrendingUp, view: 'momentum' },
@@ -272,66 +352,43 @@ function App() {
           )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {showSidebar && (
-            <motion.div
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-50 w-80 bg-[#141721] shadow-2xl"
-            >
-              <Sidebar
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                onClose={() => setShowSidebar(false)}
-                onFilterChange={() => {}}
-                toolsCount={tools.length}
-                tools={tools}
-                currentView={view}
-                onViewChange={(v: any) => setView(v)}
-                navItems={navItems}
-                isDark={isDark}
-                onToggleTheme={() => setIsDark(!isDark)}
-                onSync={syncTools}
-                isSyncing={isSyncing}
-                user={user}
-                onSignIn={() => setShowAuthModal(true)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Left Navigation Sidebar (Desktop Dock + Mobile Drawer) */}
+        <NavigationSidebar
+          currentView={view}
+          onViewChange={(v: string) => setView(v)}
+          onGoHome={handleGoHome}
+          user={user}
+          isMobileOpen={isMobileNavOpen}
+          onCloseMobile={() => setIsMobileNavOpen(false)}
+        />
 
-        {/* Floating Top-Left Menu Trigger Button */}
-        <div className={`fixed top-4 z-40 transition-all ${view === 'grid' ? 'left-4 md:left-20' : 'left-4'}`}>
-          <button
-            onClick={() => setShowSidebar(true)}
-            className="flex items-center space-x-2 px-3.5 py-2 bg-[#141721] hover:bg-[#1f2435] text-white rounded-xl shadow-2xl border border-gray-700/80 backdrop-blur-md transition-all hover:scale-105 group"
-            title="Open Toolva Menu & Navigation"
-          >
-            <Menu className="h-5 w-5 text-orange-500 group-hover:rotate-90 transition-transform duration-300" />
-            <span className="text-xs font-black uppercase tracking-wider font-mono text-gray-200 group-hover:text-white">
-              TOOLVA<span className="text-orange-500">.AI</span>
-            </span>
-          </button>
-        </div>
+        {/* Mobile Top Navigation & Home Brand Button */}
+        <TopLeftHomeButton
+          onGoHome={handleGoHome}
+          currentView={view}
+          onOpenMobileNav={() => setIsMobileNavOpen(true)}
+        />
 
-        {/* Top-Right Floating User Menu & Account Actions */}
-        <div className="fixed top-4 right-4 z-40 flex items-center space-x-3">
+        {/* Top-Right Floating User Menu, Theme Toggle & Account Actions */}
+        <div className="fixed top-4 right-4 z-40 flex items-center space-x-2">
+          <ThemeToggle
+            isDark={isDark}
+            onToggle={handleToggleTheme}
+          />
+
           {user ? (
             <UserMenu user={user} onViewChange={setView} />
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-lg transition-all hover:scale-105"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all hover:scale-105 flex items-center gap-1.5 cursor-pointer"
             >
-              Sign In / Join
+              <span>Sign In / Join</span>
             </button>
           )}
         </div>
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col md:pl-16 min-w-0 transition-all duration-300">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/profile" element={<Profile />} />
@@ -339,13 +396,13 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/help" element={<HelpFAQ />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/users" element={<UserManagement onBackToHome={() => setView('grid')} />} />
-              <Route path="/activity" element={<ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />} />
-              <Route path="/admin" element={<AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />} />
+              <Route path="/users" element={<UserManagement onBackToHome={handleGoHome} />} />
+              <Route path="/activity" element={<ActivityLogs onBackToHome={handleGoHome} onBackToAdmin={() => setView('admin')} />} />
+              <Route path="/admin" element={<AdminDashboard onBackToHome={handleGoHome} onViewActivityLogs={() => setView('activity-logs')} />} />
               <Route path="/" element={
               <main className="flex-1 pt-0 pb-20">
                 {view === 'grid' && (
-                  <TAAFTHome
+                  <ToolvaHome
                     tools={tools}
                     selectedCategory={selectedCategory}
                     onCategorySelect={handleCategorySelect}
@@ -356,7 +413,6 @@ function App() {
                     }}
                     onToggleFavorite={handleFavorite}
                     favorites={favorites}
-                    onOpenSidebar={() => setShowSidebar(true)}
                     onOpenSubmit={() => setView('submit')}
                     onViewChange={(v: string) => setView(v)}
                     isAuthenticated={isAuthenticated}
@@ -367,87 +423,92 @@ function App() {
                 )}
                   {view === 'finder' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <SmartRecommender onBackToHome={() => setView('grid')} />
+                      <SmartRecommender onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'compare' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <CompareTools tools={tools} onBackToHome={() => setView('grid')} />
+                      <CompareTools tools={tools} onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'personas' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PersonaRecommendations tools={tools} onBackToHome={() => setView('grid')} />
+                      <PersonaRecommendations tools={tools} onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'prompts' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <PromptExplorer onBackToHome={() => setView('grid')} />
+                      <PromptExplorer onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'workflows' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WorkflowBuilder tools={tools} onBackToHome={() => setView('grid')} />
+                      <WorkflowBuilder tools={tools} onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'learning' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AILearningHub onBackToHome={() => setView('grid')} />
+                      <AILearningHub onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'dictionary' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AITermsDictionary onBackToHome={() => setView('grid')} />
+                      <AITermsDictionary onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'weekly' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <WeeklyRecommendations tools={tools} onBackToHome={() => setView('grid')} />
+                      <WeeklyRecommendations tools={tools} onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'submit' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <SubmitTool onClose={() => setView('grid')} onOpenAuth={() => setShowAuthModal(true)} />
+                      <SubmitTool onClose={handleGoHome} onOpenAuth={() => setShowAuthModal(true)} />
                     </Suspense>
                   )}
                   {view === 'admin' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AdminDashboard onBackToHome={() => setView('grid')} onViewActivityLogs={() => setView('activity-logs')} />
+                      <AdminDashboard onBackToHome={handleGoHome} onViewActivityLogs={() => setView('activity-logs')} />
                     </Suspense>
                   )}
                   {view === 'users' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <UserManagement onBackToHome={() => setView('grid')} />
+                      <UserManagement onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {(view === 'activity' || view === 'activity-logs') && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <ActivityLogs onBackToHome={() => setView('grid')} onBackToAdmin={() => setView('admin')} />
+                      <ActivityLogs onBackToHome={handleGoHome} onBackToAdmin={() => setView('admin')} />
+                    </Suspense>
+                  )}
+                  {view === 'local-ai' && (
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <LocalAICompatibilityEngine onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'benchmarks' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <HardwareBenchmarks onBackToHome={() => setView('grid')} />
+                      <HardwareBenchmarks onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'planner' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <AIStackPlanner tools={tools} onBackToHome={() => setView('grid')} onToolSelect={(tool) => setSelectedModalTool(tool)} />
+                      <AIStackPlanner tools={tools} onBackToHome={handleGoHome} onToolSelect={(tool) => setSelectedModalTool(tool)} />
                     </Suspense>
                   )}
                   {view === 'estimator' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <CostEstimator onBackToHome={() => setView('grid')} />
+                      <CostEstimator onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
                   {view === 'momentum' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <MomentumIndex tools={tools} onBackToHome={() => setView('grid')} onToolSelect={(tool) => setSelectedModalTool(tool)} />
+                      <MomentumIndex tools={tools} onBackToHome={handleGoHome} onToolSelect={(tool) => setSelectedModalTool(tool)} />
                     </Suspense>
                   )}
                   {view === 'contact' && (
                     <Suspense fallback={<LoadingSpinner />}>
-                      <ContactHelp onBackToHome={() => setView('grid')} />
+                      <ContactHelp onBackToHome={handleGoHome} />
                     </Suspense>
                   )}
               </main>

@@ -68,7 +68,7 @@ const Contact: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
         {/* Top Banner */}
-        <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-purple-600 p-8 sm:p-10 rounded-3xl text-white shadow-2xl text-center space-y-3 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-cyan-600 via-sky-500 to-blue-600 p-8 sm:p-10 rounded-3xl text-white shadow-2xl text-center space-y-3 relative overflow-hidden">
           <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
             Official Unified Support Hub
           </span>
@@ -208,7 +208,7 @@ const Contact: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
                   <span>{isSubmitting ? 'Sending Message...' : 'Submit Inquiry'}</span>
